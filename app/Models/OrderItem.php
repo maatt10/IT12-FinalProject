@@ -1,0 +1,46 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class OrderItem extends Model
+{
+    protected $primaryKey = 'order_item_id';
+
+    protected $fillable = [
+        'order_id',
+        'product_id',
+        'quantity',
+        'unit_price',
+        'customization_details',
+        'line_total',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'quantity' => 'decimal:2',
+            'unit_price' => 'decimal:2',
+            'line_total' => 'decimal:2',
+        ];
+    }
+
+    public function order()
+    {
+        return $this->belongsTo(
+            Order::class,
+            'order_id',
+            'order_id'
+        );
+    }
+
+    public function product()
+    {
+        return $this->belongsTo(
+            Product::class,
+            'product_id',
+            'product_id'
+        );
+    }
+}
