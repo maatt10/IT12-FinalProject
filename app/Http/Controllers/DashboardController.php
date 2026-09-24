@@ -20,22 +20,19 @@ class DashboardController extends Controller
 
         $recentSales = Sale::with('customer')
             ->orderByDesc('sale_date')
-            ->limit(5)
-            ->get();
+            ->paginate(5);
 
         $pendingOrders = collect();
 
         if (auth()->user()->role === 'owner') {
-            $pendingOrders = Order::with('customer')
-                ->whereIn('order_status', [
+            $pendingOrders = Order::whereIn('order_status', [
                     'pending',
                     'confirmed',
                     'preparing',
                     'ready',
                 ])
                 ->orderByDesc('order_date')
-                ->limit(5)
-                ->get();
+                ->paginate(5);
         }
 
         return view('dashboard', compact(

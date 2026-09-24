@@ -43,133 +43,162 @@ class SaleController extends Controller
             'items.*.quantity' => ['required', 'numeric', 'gt:0'],
         ]);
 
-        DB::transaction(function () use ($validated) {
+        $saleId = null;
 
-            $subtotal = 0;
+        try {
+            DB::transaction(function () use ($validated, &$saleId) {
 
-            foreach ($validated['items'] as $item) {
+                $subtotal = 0;
 
-                $product = Product::findOrFail($item['product_id']);
+                foreach ($validated['items'] as $item) {
 
-                if (!$product->is_sellable) {
+                    $product = Product::findOrFail($item['product_id']);
+
+                    if (!$product->is_sellable) {
+                        throw new \Exception(
+                            "{$product->name} is not available for sale."
+                        );
+                    }
+
+                    $inventory = Inventory::where(
+                        'product_id',
+                        $product->product_id
+                    )
+                        ->where('reserve_type', 'retail')
+                        ->lockForUpdate()
+                        ->first();
+
+                    if (!$inventory) {
+                        throw new \Exception(
+                            "{$product->name} has no retail inventory."
+                        );
+                    }
+
+                    $quantity = (float) $item['quantity'];
+
+                    if ($inventory->current_quantity < $quantity) {
+                        throw new \Exception(
+                            "Insufficient retail stock for {$product->name}."
+                        );
+                    }
+
+                    $unitPrice = (float) $product->selling_price;
+                    $lineTotal = $quantity * $unitPrice;
+
+                    $subtotal += $lineTotal;
+                }
+
+                $discount = (float) $validated['discount_amount'];
+
+                if ($discount > $subtotal) {
                     throw new \Exception(
-                        "{$product->name} is not available for sale."
+                        'Discount cannot exceed the sale subtotal.'
                     );
                 }
 
-                $inventory = Inventory::where(
-                    'product_id',
-                    $product->product_id
-                )
-                    ->where('reserve_type', 'retail')
-                    ->lockForUpdate()
-                    ->first();
+                $total = $subtotal - $discount;
 
-                if (!$inventory) {
-                    throw new \Exception(
-                        "{$product->name} has no retail inventory."
-                    );
-                }
-
-                $quantity = (float) $item['quantity'];
-
-                if ($inventory->current_quantity < $quantity) {
-                    throw new \Exception(
-                        "Insufficient retail stock for {$product->name}."
-                    );
-                }
-
-                $unitPrice = (float) $product->selling_price;
-                $lineTotal = $quantity * $unitPrice;
-
-                $subtotal += $lineTotal;
-            }
-
-            $discount = (float) $validated['discount_amount'];
-
-            if ($discount > $subtotal) {
-                throw new \Exception(
-                    'Discount cannot exceed the sale subtotal.'
-                );
-            }
-
-            $total = $subtotal - $discount;
-
-            $sale = Sale::create([
-                'customer_id' => $validated['customer_id'] ?? null,
-                'user_id' => auth()->user()->user_id,
-                'sale_date' => now(),
-                'payment_method' => $validated['payment_method'],
-                'subtotal' => $subtotal,
-                'discount_amount' => $discount,
-                'total_amount' => $total,
-                'receipt_issued' => $validated['receipt_issued'],
-            ]);
-
-            foreach ($validated['items'] as $item) {
-
-                $product = Product::findOrFail($item['product_id']);
-
-                $inventory = Inventory::where(
-                    'product_id',
-                    $product->product_id
-                )
-                    ->where('reserve_type', 'retail')
-                    ->lockForUpdate()
-                    ->firstOrFail();
-
-                $quantity = (float) $item['quantity'];
-                $unitPrice = (float) $product->selling_price;
-                $lineTotal = $quantity * $unitPrice;
-
-                SaleItem::create([
-                    'sale_id' => $sale->sale_id,
-                    'product_id' => $product->product_id,
-                    'quantity' => $quantity,
-                    'unit_price' => $unitPrice,
-                    'line_total' => $lineTotal,
+                $sale = Sale::create([
+                    'customer_id' => $validated['customer_id'] ?? null,
+                    'user_id' => auth()->user()->user_id,
+                    'sale_date' => now(),
+                    'payment_method' => $validated['payment_method'],
+                    'subtotal' => $subtotal,
+                    'discount_amount' => $discount,
+                    'total_amount' => $total,
+                    'receipt_issued' => $validated['receipt_issued'],
                 ]);
 
-                $inventory->update([
-                    'current_quantity' =>
+                $saleId = $sale->sale_id;
+
+                foreach ($validated['items'] as $item) {
+
+                    $product = Product::findOrFail($item['product_id']);
+
+                    $inventory = Inventory::where(
+                        'product_id',
+                        $product->product_id
+                    )
+                        ->where('reserve_type', 'retail')
+                        ->lockForUpdate()
+                        ->firstOrFail();
+
+                    $quantity = (float) $item['quantity'];
+                    $unitPrice = (float) $product->selling_price;
+                    $lineTotal = $quantity * $unitPrice;
+
+                    SaleItem::create([
+                        'sale_id' => $sale->sale_id,
+                        'product_id' => $product->product_id,
+                        'quantity' => $quantity,
+                        'unit_price' => $unitPrice,
+                        'line_total' => $lineTotal,
+                    ]);
+
+                    $inventory->update([
+                        'current_quantity' =>
                         $inventory->current_quantity - $quantity,
-                    'last_updated' => now(),
-                ]);
+                        'last_updated' => now(),
+                    ]);
 
-                InventoryTransaction::create([
-                    'inventory_id' => $inventory->inventory_id,
-                    'transaction_type' => 'sale_out',
-                    'quantity_change' => -$quantity,
-                    'reference_id' => $sale->sale_id,
-                    'reference_type' => 'sale',
-                    'notes' => null,
-                    'transaction_date' => now(),
-                    'recorded_by' => auth()->user()->user_id,
+                    InventoryTransaction::create([
+                        'inventory_id' => $inventory->inventory_id,
+                        'transaction_type' => 'sale_out',
+                        'quantity_change' => -$quantity,
+                        'reference_id' => $sale->sale_id,
+                        'reference_type' => 'sale',
+                        'notes' => null,
+                        'transaction_date' => now(),
+                        'recorded_by' => auth()->user()->user_id,
+                    ]);
+                }
+
+                $customerName = $sale->customer
+                    ? $sale->customer->full_name
+                    : 'Walk-in Customer';
+
+                app(AuditLogger::class)->log(
+                    'create',
+                    'sales',
+                    $sale->sale_id,
+                    'Sale completed for ' .
+                        $customerName .
+                        '. Total: ₱' .
+                        number_format((float) $sale->total_amount, 2) .
+                        ', Payment: ' .
+                        strtoupper($sale->payment_method)
+                );
+            });
+
+            // Return JSON with receipt URL for the POS fetch flow
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'sale_id' => $saleId,
+                    'receipt_url' => route('sales.print', $saleId),
                 ]);
             }
 
-            /*
-             * Record the completed sale in the audit trail.
-             */
-            $customerName = $sale->customer
-                ? $sale->customer->full_name
-                : 'Walk-in Customer';
+            // Fallback: redirect to receipt for normal form submits
+            return redirect()->route('sales.print', $saleId);
 
-            app(AuditLogger::class)->log(
-                'create',
-                'sales',
-                $sale->sale_id,
-                'Sale completed for ' .
-                    $customerName .
-                    '. Total: ₱' .
-                    number_format((float) $sale->total_amount, 2) .
-                    ', Payment: ' .
-                    strtoupper($sale->payment_method)
-            );
-        });
+        } catch (\Exception $e) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                ], 422);
+            }
 
-        return redirect()
-            ->route('sales.create')
-            ->with('success', 'Sale completed successfully.');
+            return back()
+                ->withInput()
+                ->with('error', $e->getMessage());
+        }
+    }
+
+    public function print(Sale $sale)
+    {
+        $sale->load('items.product', 'customer', 'user');
+        return view('sales.print', compact('sale'));
     }
 }

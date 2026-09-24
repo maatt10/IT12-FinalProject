@@ -6,4 +6,26 @@
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* ============================================
+       LALA'S FLOWERSHOP BRAND COLORS
+       ============================================ */
+    --color-lala-rose: #E85D75;
+    --color-lala-rose-dark: #D14A62;
+    --color-lala-pink: #F8BBD0;
+    --color-lala-pink-soft: #FCE4EC;
+    --color-lala-leaf: #2E5A3B;
+    --color-lala-leaf-light: #80B918;
+    --color-lala-gold: #D4AF37;
+    --color-lala-gold-light: #F6C453;
+    --color-lala-berry: #3A2D5C;
+    --color-lala-cream: #F9F6F0;
+    --color-lala-charcoal: #212121;
+    --color-lala-slate: #64748B;
 }
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #F9F6F0; }
+::-webkit-scrollbar-thumb { background: #E85D75; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #D14A62; }

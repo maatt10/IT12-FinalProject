@@ -150,6 +150,9 @@ Route::middleware(['auth', 'role:owner,employee'])->group(function () {
 
     Route::post('/production', [ProductionController::class, 'store'])
         ->name('production.store');
+
+    // In routes/web.php
+    Route::get('/sales/{sale}/print', [SaleController::class, 'print'])->name('sales.print');
 });
 
 Route::redirect('/', '/login');

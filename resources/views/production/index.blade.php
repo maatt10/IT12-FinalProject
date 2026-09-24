@@ -4,104 +4,94 @@
 
 @section('content')
 
-<div class="space-y-6">
+<div class="page-header">
+    <div>
+        <h1>Production</h1>
+        <p>Record and review products made from their defined BOM components.</p>
+    </div>
 
-    <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    <a href="{{ route('production.create') }}" class="btn btn-primary">
+        + Record Production
+    </a>
+</div>
 
-        <div>
-            <h1 class="text-2xl font-bold text-gray-800">
-                Production
-            </h1>
+<div class="card">
 
-            <p class="mt-1 text-sm text-gray-600">
-                Record and review products made from their defined BOM components.
-            </p>
+    @if($productions->isEmpty())
+
+        <div class="empty-state">
+            <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+            </svg>
+            <h3>No production records yet</h3>
+            <p>Start by recording your first production run.</p>
+            <a href="{{ route('production.create') }}" class="btn btn-primary">
+                + Record First Production
+            </a>
         </div>
 
-        <a
-            href="{{ route('production.create') }}"
-            class="inline-flex items-center justify-center px-5 py-2.5 rounded-lg bg-green-600 text-white font-medium hover:bg-green-700 transition"
-        >
-            Record Production
-        </a>
+    @else
 
-    </div>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date &amp; Time</th>
+                        <th>Product</th>
+                        <th style="text-align: right;">Quantity Produced</th>
+                        <th>Produced By</th>
+                    </tr>
+                </thead>
 
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <tbody>
+                    @foreach($productions as $production)
+                        <tr>
+                            <td style="color: #64748B; white-space: nowrap;">
+                                {{ $production->production_date->format('M d, Y h:i A') }}
+                            </td>
 
-        @if($productions->isEmpty())
+                            <td style="font-weight: 600; color: #212121;">
+                                {{ $production->product->display_name }}
+                            </td>
 
-            <div class="rounded-lg border border-dashed border-gray-300 p-8 text-center">
-                <p class="text-sm text-gray-500">
-                    No production records have been created yet.
-                </p>
-            </div>
+                            <td style="text-align: right; font-weight: 600; color: #2E5A3B;">
+                                {{ (float) $production->quantity_produced }} {{ $production->product->stock_unit }}
+                            </td>
 
-        @else
-
-            <div class="overflow-x-auto">
-
-                <table class="w-full text-sm">
-
-                    <thead>
-                        <tr class="border-b border-gray-200 text-left">
-
-                            <th class="px-4 py-3 font-semibold text-gray-700">
-                                Date & Time
-                            </th>
-
-                            <th class="px-4 py-3 font-semibold text-gray-700">
-                                Product
-                            </th>
-
-                            <th class="px-4 py-3 font-semibold text-gray-700">
-                                Quantity Produced
-                            </th>
-
-                            <th class="px-4 py-3 font-semibold text-gray-700">
-                                Produced By
-                            </th>
-
+                            <td style="color: #64748B;">
+                                {{ $production->producedBy->full_name }}
+                            </td>
                         </tr>
-                    </thead>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
 
-                    <tbody>
-
-                        @foreach($productions as $production)
-
-                            <tr class="border-b border-gray-100">
-
-                                <td class="px-4 py-3 text-gray-600">
-                                    {{ $production->production_date->format('M d, Y h:i A') }}
-                                </td>
-
-                                <td class="px-4 py-3 font-medium text-gray-800">
-                                    {{ $production->product->display_name }}
-                                </td>
-
-                                <td class="px-4 py-3 text-gray-700">
-                                    {{ number_format((float) $production->quantity_produced, 2) }}
-                                    {{ $production->product->stock_unit }}
-                                </td>
-
-                                <td class="px-4 py-3 text-gray-600">
-                                    {{ $production->producedBy->full_name }}
-                                </td>
-
-                            </tr>
-
-                        @endforeach
-
-                    </tbody>
-
-                </table>
-
-            </div>
-
-        @endif
-
-    </div>
+    @endif
 
 </div>
+
+<style>
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #64748B;
+    }
+    .empty-state svg {
+        color: #D4AF37;
+        margin-bottom: 16px;
+        opacity: 0.6;
+    }
+    .empty-state h3 {
+        font-size: 18px;
+        color: #212121;
+        margin-bottom: 6px;
+        font-weight: 700;
+    }
+    .empty-state p {
+        font-size: 14px;
+        margin-bottom: 20px;
+    }
+</style>
 
 @endsection
