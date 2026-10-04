@@ -494,7 +494,7 @@
 
                 
                 <a href="<?php echo e(route('dashboard')); ?>"
-                   class="nav-link <?php echo e(request()->routeIs('dashboard') ? 'active' : ''); ?>">
+                    class="nav-link <?php echo e(request()->routeIs('dashboard') ? 'active' : ''); ?>">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                     </svg>
@@ -503,7 +503,7 @@
 
                 
                 <a href="<?php echo e(route('pos.index')); ?>"
-                   class="nav-link <?php echo e(request()->routeIs('pos.*') ? 'active' : ''); ?>">
+                    class="nav-link <?php echo e(request()->routeIs('pos.*') ? 'active' : ''); ?>">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
@@ -511,29 +511,17 @@
                 </a>
 
                 
-                <div class="nav-title">Inventory Management</div>
-
                 <a href="<?php echo e(route('products.index')); ?>"
-                   class="nav-link sub <?php echo e(request()->routeIs('products.*') ? 'active' : ''); ?>">
-                    Items
-                </a>
-
-                <?php if(auth()->user()->role === 'owner'): ?>
-                    <a href="<?php echo e(route('purchases.create')); ?>"
-                       class="nav-link sub <?php echo e(request()->routeIs('purchases.*') ? 'active' : ''); ?>">
-                        Stock-in
-                    </a>
-                <?php endif; ?>
-
-                <a href="<?php echo e(route('inventory.index')); ?>"
-                   class="nav-link sub <?php echo e(request()->routeIs('inventory.*') ? 'active' : ''); ?>">
-                    Stock Levels
+                    class="nav-link <?php echo e(request()->routeIs('products.*') || request()->routeIs('inventory.*') ? 'active' : ''); ?>">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                    </svg>
+                    Inventory
                 </a>
 
                 
                 <a href="<?php echo e(route('reports.index')); ?>"
-                   class="nav-link <?php echo e(request()->routeIs('reports.*') ? 'active' : ''); ?>"
-                   style="margin-top: 8px;">
+                    class="nav-link <?php echo e(request()->routeIs('reports.*') ? 'active' : ''); ?>">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
@@ -542,25 +530,25 @@
 
                 
                 <?php if(auth()->user()->role === 'owner'): ?>
-                    <a href="<?php echo e(route('records.index')); ?>"
-                       class="nav-link <?php echo e(request()->routeIs('records.*') ? 'active' : ''); ?>">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        Records
-                    </a>
+                <a href="<?php echo e(route('records.index')); ?>"
+                    class="nav-link <?php echo e(request()->routeIs('records.*') ? 'active' : ''); ?>">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Records
+                </a>
 
-                    <div class="nav-title">System</div>
+                <div class="nav-title">System</div>
 
-                    <a href="<?php echo e(route('audit.index')); ?>"
-                       class="nav-link sub <?php echo e(request()->routeIs('audit.*') ? 'active' : ''); ?>">
-                        Audit Trail
-                    </a>
+                <a href="<?php echo e(route('audit.index')); ?>"
+                    class="nav-link sub <?php echo e(request()->routeIs('audit.*') ? 'active' : ''); ?>">
+                    Audit Trail
+                </a>
 
-                    <a href="<?php echo e(route('backup.index')); ?>"
-                       class="nav-link sub <?php echo e(request()->routeIs('backup.*') ? 'active' : ''); ?>">
-                        Backup &amp; Recovery
-                    </a>
+                <a href="<?php echo e(route('backup.index')); ?>"
+                    class="nav-link sub <?php echo e(request()->routeIs('backup.*') ? 'active' : ''); ?>">
+                    Backup &amp; Recovery
+                </a>
                 <?php endif; ?>
 
             </div>
@@ -603,11 +591,11 @@
             <div class="content">
 
                 <?php if(session('success')): ?>
-                    <div class="alert alert-success"><?php echo e(session('success')); ?></div>
+                <div class="alert alert-success"><?php echo e(session('success')); ?></div>
                 <?php endif; ?>
 
                 <?php if(session('error')): ?>
-                    <div class="alert alert-error"><?php echo e(session('error')); ?></div>
+                <div class="alert alert-error"><?php echo e(session('error')); ?></div>
                 <?php endif; ?>
 
                 <?php echo $__env->yieldContent('content'); ?>

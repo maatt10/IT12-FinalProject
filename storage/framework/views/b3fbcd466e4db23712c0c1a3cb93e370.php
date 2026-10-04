@@ -1,20 +1,14 @@
 
 
-<?php $__env->startSection('title', 'Items'); ?>
+<?php $__env->startSection('title', 'Inventory'); ?>
 
 <?php $__env->startSection('content'); ?>
 
 <div class="page-header">
     <div>
-        <h1>Items</h1>
-        <p>Manage the products and materials used by the shop.</p>
+        <h1>Inventory</h1>
+        <p>Manage products and materials used by the shop.</p>
     </div>
-
-    <a href="<?php echo e(route('products.create', ['item_type' => $itemType === 'material' ? 'material' : 'product'])); ?>"
-       class="btn btn-primary">
-        + Add <?php echo e($itemType === 'material' ? 'Material' : 'Product'); ?>
-
-    </a>
 </div>
 
 
@@ -41,6 +35,41 @@
 </div>
 
 
+<div class="item-actions">
+
+    <?php if($itemType === 'product'): ?>
+
+        <a href="<?php echo e(route('products.create', ['item_type' => 'product'])); ?>" class="btn btn-primary">
+            + Add Product
+        </a>
+        <a href="<?php echo e(route('production.create')); ?>" class="btn btn-secondary">
+            🏭 Make Product
+        </a>
+
+    <?php else: ?>
+
+        <?php if(auth()->user()->role === 'owner'): ?>
+
+            <a href="<?php echo e(route('products.create', ['item_type' => 'material'])); ?>" class="btn btn-primary">
+                + Add Material
+            </a>
+            <a href="<?php echo e(route('purchases.create')); ?>" class="btn btn-secondary">
+                📥 Restock
+            </a>
+
+        <?php else: ?>
+
+            <p style="font-size: 13px; color: #94A3B8; margin: 0;">
+                You can view materials for reference. Adding or restocking is handled by the Owner.
+            </p>
+
+        <?php endif; ?>
+
+    <?php endif; ?>
+
+</div>
+
+
 <div class="card">
 
     <?php if($items->count() > 0): ?>
@@ -50,20 +79,15 @@
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th><?php echo e($itemType === 'material' ? 'Material' : 'Product Name'); ?></th>
-
-                        <?php if($itemType === 'product'): ?>
-                            <th>Type</th>
-                        <?php endif; ?>
-
+                        <th><?php echo e($itemType === 'material' ? 'Material Name' : 'Product Name'); ?></th>
                         <th>Variation</th>
-                        <th>Sellable</th>
 
                         <?php if($itemType === 'product'): ?>
-                            <th>Selling Price</th>
+                            <th style="text-align: right;">Selling Price</th>
                         <?php endif; ?>
 
-                        <th>Inventory Unit</th>
+                        <th style="text-align: right;">Stock</th>
+                        <th>Unit</th>
                         <th style="text-align: right;">Actions</th>
                     </tr>
                 </thead>
@@ -81,31 +105,13 @@
 
                             </td>
 
-                            <?php if($itemType === 'product'): ?>
-                                <td>
-                                    <?php if($item->item_type === 'made_product'): ?>
-                                        <span class="type-badge made">Made Product</span>
-                                    <?php else: ?>
-                                        <span class="type-badge retail">Retail Product</span>
-                                    <?php endif; ?>
-                                </td>
-                            <?php endif; ?>
-
                             <td style="color: #64748B;">
                                 <?php echo e($item->variation ?? '—'); ?>
 
                             </td>
 
-                            <td>
-                                <?php if($item->is_sellable): ?>
-                                    <span class="sellable-yes">✓ Yes</span>
-                                <?php else: ?>
-                                    <span class="sellable-no">No</span>
-                                <?php endif; ?>
-                            </td>
-
                             <?php if($itemType === 'product'): ?>
-                                <td style="font-weight: 600; color: #2E5A3B;">
+                                <td style="text-align: right; font-weight: 600; color: #2E5A3B;">
                                     <?php if($item->selling_price !== null): ?>
                                         ₱<?php echo e(number_format($item->selling_price, 2)); ?>
 
@@ -115,6 +121,11 @@
                                 </td>
                             <?php endif; ?>
 
+                            <td style="text-align: right; font-weight: 700; color: <?php echo e($item->total_stock > 0 ? '#2E5A3B' : '#DC3545'); ?>;">
+                                <?php echo e((float) $item->total_stock); ?>
+
+                            </td>
+
                             <td style="color: #64748B;">
                                 <?php echo e($item->stock_unit); ?>
 
@@ -122,25 +133,41 @@
 
                             <td>
                                 <div class="action-buttons">
+
                                     <a href="<?php echo e(route('products.show', $item)); ?>" class="action-btn view">
                                         View
                                     </a>
 
-                                    <a href="<?php echo e(route('products.edit', $item)); ?>" class="action-btn edit">
-                                        Edit
-                                    </a>
+                                    <?php if(auth()->user()->role === 'owner'): ?>
+                                        <a href="<?php echo e(route('products.edit', $item)); ?>" class="action-btn edit">
+                                            Edit
+                                        </a>
+                                    <?php endif; ?>
 
-                                    <form action="<?php echo e(route('products.destroy', $item)); ?>"
-                                          method="POST"
-                                          style="display: inline;"
-                                          onsubmit="return confirm('Are you sure you want to archive this <?php echo e($itemType === 'material' ? 'material' : 'product'); ?>? It will no longer appear in the active list.');">
-                                        <?php echo csrf_field(); ?>
-                                        <?php echo method_field('DELETE'); ?>
+                                    <?php if($item->inventory->isEmpty()): ?>
+                                        <a href="<?php echo e(route('inventory.initial-stock', $item)); ?>" class="action-btn adjust">
+                                            Set Stock
+                                        </a>
+                                    <?php else: ?>
+                                        <a href="<?php echo e(route('inventory.adjustment', $item)); ?>" class="action-btn adjust">
+                                            Adjust
+                                        </a>
+                                    <?php endif; ?>
 
-                                        <button type="submit" class="action-btn archive">
-                                            Archive
-                                        </button>
-                                    </form>
+                                    <?php if(auth()->user()->role === 'owner'): ?>
+                                        <form action="<?php echo e(route('products.destroy', $item)); ?>"
+                                              method="POST"
+                                              style="display: inline;"
+                                              onsubmit="return confirm('Archive this <?php echo e($itemType === 'material' ? 'material' : 'product'); ?>? It will no longer appear in the active list.');">
+                                            <?php echo csrf_field(); ?>
+                                            <?php echo method_field('DELETE'); ?>
+
+                                            <button type="submit" class="action-btn archive">
+                                                Archive
+                                            </button>
+                                        </form>
+                                    <?php endif; ?>
+
                                 </div>
                             </td>
                         </tr>
@@ -155,12 +182,14 @@
             <?php if($itemType === 'material'): ?>
                 <h3>No materials yet</h3>
                 <p>Add materials such as flowers, ribbons, beads, or fuzzy wires.</p>
-                <a href="<?php echo e(route('products.create', ['item_type' => 'material'])); ?>" class="btn btn-primary">
-                    + Add Material
-                </a>
+                <?php if(auth()->user()->role === 'owner'): ?>
+                    <a href="<?php echo e(route('products.create', ['item_type' => 'material'])); ?>" class="btn btn-primary">
+                        + Add Material
+                    </a>
+                <?php endif; ?>
             <?php else: ?>
                 <h3>No products yet</h3>
-                <p>Add a retail product or handmade product to the system.</p>
+                <p>Add a product that the shop makes and sells.</p>
                 <a href="<?php echo e(route('products.create', ['item_type' => 'product'])); ?>" class="btn btn-primary">
                     + Add Product
                 </a>
@@ -226,7 +255,15 @@
         background: rgba(255, 255, 255, 0.25);
     }
 
-    /* ACTION BUTTONS */
+    /* ACTIONS */
+    .item-actions {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    /* ROW ACTIONS */
     .action-buttons {
         display: flex;
         gap: 6px;
@@ -244,6 +281,7 @@
         border: none;
         transition: all 0.15s ease;
         white-space: nowrap;
+        font-family: inherit;
     }
 
     .action-btn.view {
@@ -264,6 +302,15 @@
         color: #D14A62;
     }
 
+    .action-btn.adjust {
+        background: #EEF5F0;
+        color: #2E5A3B;
+    }
+    .action-btn.adjust:hover {
+        background: #D8E9DF;
+        color: #1E3D28;
+    }
+
     .action-btn.archive {
         background: #FFF4E5;
         color: #A16207;
@@ -271,40 +318,6 @@
     .action-btn.archive:hover {
         background: #FDE9C7;
         color: #854D0E;
-    }
-
-    /* TYPE BADGES */
-    .type-badge {
-        display: inline-block;
-        padding: 4px 8px;
-        border-radius: 6px;
-        font-size: 11px;
-        font-weight: 600;
-    }
-    .type-badge.made {
-        background: #FCE4EC;
-        color: #C4455D;
-    }
-    .type-badge.retail {
-        background: #EEF5F0;
-        color: #2E5A3B;
-    }
-
-    /* SELLABLE */
-    .sellable-yes {
-        color: #2E5A3B;
-        font-weight: 600;
-        font-size: 13px;
-        cursor: default;
-        user-select: none;
-    }
-    .sellable-no {
-        color: #94A3B8;
-        font-weight: 500;
-        font-size: 13px;
-        font-style: italic;
-        cursor: default;
-        user-select: none;
     }
 
     /* EMPTY STATE */
@@ -325,15 +338,9 @@
     }
 
     @media (max-width: 640px) {
-        .item-tabs {
-            width: 100%;
-        }
-        .item-tab {
-            flex: 1;
-            justify-content: center;
-            padding: 10px 12px;
-            font-size: 13px;
-        }
+        .item-tabs { width: 100%; }
+        .item-tab { flex: 1; justify-content: center; padding: 10px 12px; font-size: 13px; }
+        .item-actions .btn { flex: 1; text-align: center; }
     }
 </style>
 

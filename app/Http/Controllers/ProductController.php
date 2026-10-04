@@ -18,23 +18,20 @@ class ProductController extends Controller
             $itemType = 'product';
         }
 
-        // Base query for the active tab
-        if ($itemType === 'material') {
-            $query = Product::where('item_type', 'material');
-        } else {
-            $query = Product::whereIn('item_type', ['retail_product', 'made_product']);
-        }
+        $dbType = $itemType === 'material' ? 'material' : 'made_product';
 
-        $query->orderBy('name')->orderBy('variation');
+        $items = Product::with('inventory')
+            ->where('item_type', $dbType)
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->orderBy('variation')
+            ->get()
+            ->map(function ($item) {
+                $item->total_stock = $item->inventory->sum('current_quantity');
+                return $item;
+            });
 
-        if (!$request->boolean('show_archived')) {
-            $query->where('is_active', true);
-        }
-
-        $items = $query->get();
-
-        // Counts for tab badges
-        $productCount = Product::whereIn('item_type', ['retail_product', 'made_product'])
+        $productCount = Product::where('item_type', 'made_product')
             ->where('is_active', true)
             ->count();
 
@@ -49,6 +46,7 @@ class ProductController extends Controller
             'materialCount'
         ));
     }
+
     public function create()
     {
         return view('products.create');
