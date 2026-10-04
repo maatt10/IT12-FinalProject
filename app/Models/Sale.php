@@ -10,15 +10,21 @@ class Sale extends Model
     protected $primaryKey = 'sale_id';
 
     protected $fillable = [
+        'reference_code',
         'customer_id',
         'user_id',
         'sale_date',
         'payment_method',
+        'gcash_reference',
         'subtotal',
         'discount_amount',
+        'discount_type',
+        'discount_name',
+        'discount_id_number',
         'total_amount',
         'receipt_issued',
     ];
+
 
     protected function casts(): array
     {

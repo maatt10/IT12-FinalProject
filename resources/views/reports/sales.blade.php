@@ -7,19 +7,19 @@
 <div class="page-header">
     <div>
         <h1>Sales Reports</h1>
-        <p>Review sales activity for a selected date range.</p>
+        <p>Review and generate sales reports for a selected date range.</p>
     </div>
 </div>
 
 {{-- ============================================
-     DATE RANGE FILTER
+     REPORT GENERATOR
      ============================================ --}}
 <div class="card" style="margin-bottom: 24px;">
     <h2 class="card-heading">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#E85D75" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
-        Report Period
+        Report Generator
     </h2>
 
     <form action="{{ route('reports.sales') }}" method="GET">
@@ -55,11 +55,37 @@
             </button>
 
         </div>
+
+        {{-- Action buttons (print, export) --}}
+        <div class="action-row">
+
+            <button
+                type="submit"
+                formaction="{{ route('reports.sales.print') }}"
+                formtarget="_blank"
+                class="btn btn-secondary action-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                </svg>
+                Print Report
+            </button>
+
+            <button
+                type="submit"
+                formaction="{{ route('reports.sales.export') }}"
+                class="btn btn-secondary action-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Export CSV
+            </button>
+
+        </div>
     </form>
 </div>
 
 {{-- ============================================
-     STAT CARDS
+     SUMMARY STATS
      ============================================ --}}
 <div class="stats-grid">
 
@@ -102,7 +128,7 @@
 </div>
 
 {{-- ============================================
-     PAYMENT METHODS BREAKDOWN
+     PAYMENT BREAKDOWN
      ============================================ --}}
 <div class="card" style="margin-bottom: 24px;">
     <h2 class="card-heading">
@@ -113,7 +139,6 @@
     </h2>
 
     <div class="payment-breakdown">
-
         <div class="payment-row">
             <div class="payment-info">
                 <div class="payment-icon cash">
@@ -149,12 +174,11 @@
             </div>
             <span class="payment-value">₱{{ number_format($paymentTotals['bank_transfer'], 2) }}</span>
         </div>
-
     </div>
 </div>
 
 {{-- ============================================
-     SALES TRANSACTIONS TABLE
+     TRANSACTIONS TABLE
      ============================================ --}}
 <div class="card">
     <h2 class="card-heading">
@@ -166,73 +190,72 @@
 
     @if($sales->isEmpty())
 
-    <div class="empty-state">
-        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-        </svg>
-        <h3>No sales recorded</h3>
-        <p>No sales were recorded during the selected period.</p>
-    </div>
+        <div class="empty-state">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <h3>No sales recorded</h3>
+            <p>No sales were recorded during the selected period.</p>
+        </div>
 
     @else
 
-    <div style="overflow-x: auto;">
-        <table>
-            <thead>
-                <tr>
-                    <th>Date &amp; Time</th>
-                    <th>Customer</th>
-                    <th>Payment</th>
-                    <th style="text-align: right;">Subtotal</th>
-                    <th style="text-align: right;">Discount</th>
-                    <th style="text-align: right;">Total</th>
-                    <th>Recorded By</th>
-                </tr>
-            </thead>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date &amp; Time</th>
+                        <th>Customer</th>
+                        <th>Payment</th>
+                        <th style="text-align: right;">Subtotal</th>
+                        <th style="text-align: right;">Discount</th>
+                        <th style="text-align: right;">Total</th>
+                        <th>Recorded By</th>
+                    </tr>
+                </thead>
 
-            <tbody>
-                @foreach($sales as $sale)
-                <tr>
-                    <td style="color: #64748B; white-space: nowrap;">
-                        {{ $sale->sale_date->format('M d, Y h:i A') }}
-                    </td>
+                <tbody>
+                    @foreach($sales as $sale)
+                        <tr>
+                            <td style="color: #64748B; white-space: nowrap;">
+                                {{ $sale->sale_date->format('M d, Y h:i A') }}
+                            </td>
 
-                    <td style="font-weight: 500;">
-                        {{ $sale->customer->full_name ?? 'Walk-in' }}
-                    </td>
+                            <td style="font-weight: 500;">
+                                {{ $sale->customer->full_name ?? 'Walk-in' }}
+                            </td>
 
-                    <td>
-                        <span class="pay-tag pay-{{ $sale->payment_method }}">
-                            {{ str_replace('_', ' ', $sale->payment_method) }}
-                        </span>
-                    </td>
+                            <td>
+                                <span class="pay-tag pay-{{ $sale->payment_method }}">
+                                    {{ str_replace('_', ' ', $sale->payment_method) }}
+                                </span>
+                            </td>
 
-                    <td style="text-align: right; color: #64748B;">
-                        ₱{{ number_format($sale->subtotal, 2) }}
-                    </td>
+                            <td style="text-align: right; color: #64748B;">
+                                ₱{{ number_format($sale->subtotal, 2) }}
+                            </td>
 
-                    <td style="text-align: right; color: {{ $sale->discount_amount > 0 ? '#B8860B' : '#94A3B8' }}; font-weight: 500;">
-                        {{ $sale->discount_amount > 0 ? '− ₱' . number_format($sale->discount_amount, 2) : '—' }}
-                    </td>
+                            <td style="text-align: right; color: {{ $sale->discount_amount > 0 ? '#B8860B' : '#94A3B8' }}; font-weight: 500;">
+                                {{ $sale->discount_amount > 0 ? '− ₱' . number_format($sale->discount_amount, 2) : '—' }}
+                            </td>
 
-                    <td style="text-align: right; font-weight: 700; color: #2E5A3B;">
-                        ₱{{ number_format($sale->total_amount, 2) }}
-                    </td>
+                            <td style="text-align: right; font-weight: 700; color: #2E5A3B;">
+                                ₱{{ number_format($sale->total_amount, 2) }}
+                            </td>
 
-                    <td style="color: #64748B;">
-                        {{ $sale->user->full_name ?? 'Unknown' }}
-                    </td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
-    </div>
+                            <td style="color: #64748B;">
+                                {{ $sale->user->full_name ?? 'Unknown' }}
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
 
     @endif
 </div>
 
 <style>
-    /* Card headings */
     .card-heading {
         font-size: 16px;
         font-weight: 700;
@@ -251,26 +274,51 @@
         align-items: end;
     }
 
-    @media (max-width: 640px) {
-        .filter-row {
-            grid-template-columns: 1fr;
-        }
-
-        .filter-btn {
-            width: 100%;
-            justify-content: center;
-        }
-    }
-
     .filter-btn {
         display: inline-flex;
         align-items: center;
         gap: 8px;
         padding: 11px 20px;
         font-size: 14px;
+        white-space: nowrap;
     }
 
-    /* Stats grid */
+    /* Action row (Print, Export) */
+    .action-row {
+        display: flex;
+        gap: 8px;
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px dashed #F0E6DD;
+    }
+
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 9px 16px;
+        font-size: 13px;
+        white-space: nowrap;
+    }
+
+    @media (max-width: 640px) {
+        .filter-row {
+            grid-template-columns: 1fr;
+        }
+        .filter-btn {
+            width: 100%;
+            justify-content: center;
+        }
+        .action-row {
+            flex-direction: column;
+        }
+        .action-btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    /* Stats */
     .stats-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -278,7 +326,6 @@
         margin-bottom: 24px;
     }
 
-    /* Stat cards — non-clickable */
     .stat-card {
         background: #FFFFFF;
         border-radius: 12px;
@@ -293,14 +340,8 @@
         cursor: default;
         user-select: none;
     }
-
-    .stat-card.green-accent {
-        border-top-color: #2E5A3B;
-    }
-
-    .stat-card.gold-accent {
-        border-top-color: #D4AF37;
-    }
+    .stat-card.green-accent { border-top-color: #2E5A3B; }
+    .stat-card.gold-accent { border-top-color: #D4AF37; }
 
     .stat-card .stat-icon {
         width: 44px;
@@ -312,19 +353,9 @@
         justify-content: center;
         color: #E85D75;
         flex-shrink: 0;
-        cursor: default;
-        user-select: none;
     }
-
-    .stat-card.green-accent .stat-icon {
-        background: #E8F5E9;
-        color: #2E5A3B;
-    }
-
-    .stat-card.gold-accent .stat-icon {
-        background: #FFF8E1;
-        color: #D4AF37;
-    }
+    .stat-card.green-accent .stat-icon { background: #E8F5E9; color: #2E5A3B; }
+    .stat-card.gold-accent .stat-icon { background: #FFF8E1; color: #D4AF37; }
 
     .stat-card .stat-label {
         font-size: 11px;
@@ -333,7 +364,6 @@
         text-transform: uppercase;
         letter-spacing: 1px;
     }
-
     .stat-card .stat-value {
         font-size: 24px;
         font-weight: 700;
@@ -347,7 +377,6 @@
         flex-direction: column;
         gap: 10px;
     }
-
     .payment-row {
         display: flex;
         align-items: center;
@@ -357,13 +386,11 @@
         border: 1px solid #F5EEE4;
         border-radius: 10px;
     }
-
     .payment-info {
         display: flex;
         align-items: center;
         gap: 12px;
     }
-
     .payment-icon {
         width: 36px;
         height: 36px;
@@ -372,31 +399,15 @@
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
-        cursor: default;
-        user-select: none;
     }
-
-    .payment-icon.cash {
-        background: #FCE4EC;
-        color: #E85D75;
-    }
-
-    .payment-icon.gcash {
-        background: #E8F5E9;
-        color: #2E5A3B;
-    }
-
-    .payment-icon.bank {
-        background: #FFF8E1;
-        color: #B8860B;
-    }
-
+    .payment-icon.cash { background: #FCE4EC; color: #E85D75; }
+    .payment-icon.gcash { background: #E8F5E9; color: #2E5A3B; }
+    .payment-icon.bank { background: #FFF8E1; color: #B8860B; }
     .payment-name {
         font-size: 14px;
         font-weight: 600;
         color: #212121;
     }
-
     .payment-value {
         font-size: 16px;
         font-weight: 700;
@@ -405,7 +416,7 @@
         user-select: none;
     }
 
-    /* Payment tags (in table) — non-clickable */
+    /* Payment tags */
     .pay-tag {
         display: inline-block;
         font-size: 11px;
@@ -415,18 +426,9 @@
         cursor: default;
         user-select: none;
     }
-
-    .pay-cash {
-        color: #E85D75;
-    }
-
-    .pay-gcash {
-        color: #2E5A3B;
-    }
-
-    .pay-bank_transfer {
-        color: #B8860B;
-    }
+    .pay-cash { color: #E85D75; }
+    .pay-gcash { color: #2E5A3B; }
+    .pay-bank_transfer { color: #B8860B; }
 
     /* Empty state */
     .empty-state {
@@ -434,23 +436,18 @@
         padding: 60px 20px;
         color: #64748B;
     }
-
     .empty-state svg {
         color: #D4AF37;
         margin-bottom: 16px;
         opacity: 0.6;
     }
-
     .empty-state h3 {
         font-size: 18px;
         color: #212121;
         margin-bottom: 6px;
         font-weight: 700;
     }
-
-    .empty-state p {
-        font-size: 14px;
-    }
+    .empty-state p { font-size: 14px; }
 </style>
 
 @endsection

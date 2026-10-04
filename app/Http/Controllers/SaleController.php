@@ -17,27 +17,66 @@ class SaleController extends Controller
     public function create()
     {
         $products = Product::where('is_sellable', true)
+            ->where('is_active', true)
             ->orderBy('name')
             ->orderBy('variation')
-            ->get();
+            ->with([
+                'inventory' => function ($query) {
+                    $query->where('reserve_type', 'retail');
+                },
+            ])
+            ->get()
+            ->map(function ($product) {
+                $retailInventory = $product->inventory->first();
+
+                return [
+                    'id' => $product->product_id,
+                    'name' => $product->display_name,
+                    'price' => (float) $product->selling_price,
+                    'unit' => $product->stock_unit,
+                    'stock' => $retailInventory
+                        ? (float) $retailInventory->current_quantity
+                        : 0,
+                ];
+            })
+            ->values();
 
         $customers = Customer::orderBy('last_name')
             ->orderBy('first_name')
-            ->get();
+            ->get()
+            ->map(function ($customer) {
+                return [
+                    'id' => $customer->customer_id,
+                    'full_name' => $customer->full_name,
+                    'label' => $customer->last_name . ', ' . $customer->first_name,
+                    'discount_type' => $customer->discount_type ?? 'none',
+                    'discount_id_number' => $customer->discount_id_number,
+                ];
+            })
+            ->values();
 
-        return view('sales.create', compact(
-            'products',
-            'customers'
-        ));
+        return view('sales.create', compact('products', 'customers'));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
             'customer_id' => ['nullable', 'exists:customers,customer_id'],
-            'payment_method' => ['required', 'in:cash,gcash,bank_transfer'],
+            'payment_method' => ['required', 'in:cash,gcash'],
+            'gcash_reference' => [
+                'nullable',
+                'required_if:payment_method,gcash',
+                'digits:13',
+            ],
+            'discount_type' => ['required', 'in:none,pwd,senior'],
+            'discount_name' => ['nullable', 'string', 'max:120'],
+            'discount_id_number' => [
+                'nullable',
+                'required_unless:discount_type,none',
+                'string',
+                'max:30',
+            ],
             'discount_amount' => ['required', 'numeric', 'min:0'],
-            'receipt_issued' => ['required', 'boolean'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'exists:products,product_id'],
             'items.*.quantity' => ['required', 'numeric', 'gt:0'],
@@ -103,10 +142,31 @@ class SaleController extends Controller
                     'user_id' => auth()->user()->user_id,
                     'sale_date' => now(),
                     'payment_method' => $validated['payment_method'],
+                    'gcash_reference' => $validated['gcash_reference'] ?? null,
                     'subtotal' => $subtotal,
                     'discount_amount' => $discount,
+                    'discount_type' => $validated['discount_type'],
+                    'discount_name' => $validated['discount_name'] ?? null,
+                    'discount_id_number' => $validated['discount_id_number'] ?? null,
                     'total_amount' => $total,
-                    'receipt_issued' => $validated['receipt_issued'],
+                    'receipt_issued' => true,
+                ]);
+
+                // Generate the human-readable reference code (DDMMYY-NNNNN)
+                $datePart = $sale->sale_date->format('dmy');
+
+                $lastToday = Sale::where('reference_code', 'LIKE', $datePart . '-%')
+                    ->orderByDesc('reference_code')
+                    ->value('reference_code');
+
+                $nextNumber = 1;
+                if ($lastToday) {
+                    $parts = explode('-', $lastToday);
+                    $nextNumber = intval(end($parts)) + 1;
+                }
+
+                $sale->update([
+                    'reference_code' => $datePart . '-' . str_pad($nextNumber, 5, '0', STR_PAD_LEFT),
                 ]);
 
                 $saleId = $sale->sale_id;
@@ -153,6 +213,25 @@ class SaleController extends Controller
                     ]);
                 }
 
+                // Extra validation: PWD and Senior ID formats
+                if ($validated['discount_type'] === 'pwd') {
+                    $raw = preg_replace('/\D/', '', $validated['discount_id_number'] ?? '');
+                    if (strlen($raw) !== 16) {
+                        throw \Illuminate\Validation\ValidationException::withMessages([
+                            'discount_id_number' => 'PWD ID must contain exactly 16 digits (format: RR-PPMM-BBB-NNNNNNN).',
+                        ]);
+                    }
+                }
+
+                if ($validated['discount_type'] === 'senior') {
+                    $raw = trim($validated['discount_id_number'] ?? '');
+                    if (strlen($raw) < 4 || strlen($raw) > 30) {
+                        throw \Illuminate\Validation\ValidationException::withMessages([
+                            'discount_id_number' => 'Senior Citizen ID must be between 4 and 30 characters.',
+                        ]);
+                    }
+                }
+
                 $customerName = $sale->customer
                     ? $sale->customer->full_name
                     : 'Walk-in Customer';
@@ -170,7 +249,6 @@ class SaleController extends Controller
                 );
             });
 
-            // Return JSON with receipt URL for the POS fetch flow
             if ($request->expectsJson()) {
                 return response()->json([
                     'success' => true,
@@ -179,9 +257,7 @@ class SaleController extends Controller
                 ]);
             }
 
-            // Fallback: redirect to receipt for normal form submits
             return redirect()->route('sales.print', $saleId);
-
         } catch (\Exception $e) {
             if ($request->expectsJson()) {
                 return response()->json([

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Receipt #{{ $sale->sale_id }} — Lara's Flowershop</title>
+    <title>Receipt {{ $sale->reference_code }} — Lara's Flowershop</title>
 
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -54,12 +54,38 @@
             letter-spacing: 3px;
             text-transform: uppercase;
             margin-top: 2px;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
         .store-info {
             font-size: 10px;
             color: #64748B;
             line-height: 1.6;
+        }
+
+        /* REFERENCE BADGE */
+        .reference-badge {
+            text-align: center;
+            margin: 14px 0 14px;
+            padding: 10px;
+            background: #FCE4EC;
+            border-radius: 6px;
+        }
+        .ref-label {
+            display: block;
+            font-size: 9px;
+            font-weight: 700;
+            color: #E85D75;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+        .ref-value {
+            display: block;
+            font-size: 16px;
+            font-weight: 700;
+            color: #E85D75;
+            letter-spacing: 2px;
+            font-family: 'Instrument Sans', Arial, sans-serif;
         }
 
         /* META */
@@ -79,18 +105,6 @@
             color: #212121;
             font-weight: 600;
             text-align: right;
-        }
-
-        .invoice-badge { text-align: center; margin: 10px 0; }
-        .invoice-number {
-            display: inline-block;
-            padding: 4px 12px;
-            background: #FCE4EC;
-            color: #E85D75;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            border-radius: 4px;
         }
 
         /* ITEMS TABLE */
@@ -123,14 +137,6 @@
             color: #212121;
             line-height: 1.3;
         }
-        .item-custom {
-            display: block;
-            font-size: 9px;
-            color: #94A3B8;
-            font-style: italic;
-            margin-top: 1px;
-        }
-        .discount-text { color: #B8860B; }
 
         /* TOTALS */
         .totals {
@@ -145,65 +151,52 @@
             font-size: 11px;
         }
         .total-row .label { color: #64748B; }
-        .total-row .value {
-            color: #212121;
-            font-weight: 600;
-        }
+        .total-row .value { color: #212121; font-weight: 600; }
         .total-row.grand {
             margin-top: 6px;
             padding-top: 8px;
             border-top: 1px solid #F0E6DD;
         }
-        .total-row.grand .label {
-            font-size: 12px;
-            font-weight: 700;
-            color: #212121;
-        }
-        .total-row.grand .value {
-            font-size: 16px;
-            font-weight: 700;
-            color: #E85D75;
-        }
+        .total-row.grand .label { font-size: 12px; font-weight: 700; color: #212121; }
+        .total-row.grand .value { font-size: 16px; font-weight: 700; color: #E85D75; }
         .total-row.change .value { color: #2E5A3B; }
+        .total-row.discount-line .label { color: #B8860B; font-weight: 600; }
+        .total-row.discount-line .value { color: #B8860B; font-weight: 700; }
 
-        /* SIGNATURE */
-        .signature {
-            margin-top: 20px;
-            padding-top: 10px;
-            border-top: 1px dashed #F0E6DD;
-            text-align: center;
-            font-size: 10px;
-            color: #64748B;
-        }
-        .signature-line {
-            margin-top: 25px;
-            padding-top: 4px;
-            border-top: 1px solid #212121;
-            display: inline-block;
-            min-width: 140px;
-            font-size: 9px;
-            color: #212121;
-        }
-        .signature-label {
-            font-size: 9px;
-            color: #94A3B8;
-            margin-top: 4px;
-        }
-
-        /* TERMS */
-        .terms {
+        /* DISCOUNT INFO BOX */
+        .discount-info {
             margin-top: 14px;
-            padding-top: 10px;
-            border-top: 1px dashed #F0E6DD;
+            padding: 10px 12px;
+            background: #FFF8E1;
+            border-left: 3px solid #D4AF37;
+            border-radius: 4px;
+            font-size: 10px;
+        }
+        .discount-info-title {
             font-size: 9px;
-            color: #94A3B8;
-            text-align: center;
-            line-height: 1.6;
+            font-weight: 700;
+            color: #B8860B;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+        .discount-info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 3px;
+        }
+        .discount-info-row span:first-child { color: #94A3B8; }
+        .discount-info-row span:last-child {
+            color: #212121;
+            font-weight: 600;
+            text-align: right;
+            max-width: 60%;
+            word-break: break-word;
         }
 
         /* FOOTER */
         .footer {
-            margin-top: 14px;
+            margin-top: 16px;
             padding-top: 12px;
             border-top: 2px dashed #F0E6DD;
             text-align: center;
@@ -222,11 +215,7 @@
         /* PRINT */
         @media print {
             body { background: #FFFFFF; padding: 0; }
-            .receipt {
-                box-shadow: none;
-                border-radius: 0;
-                padding: 10px;
-            }
+            .receipt { box-shadow: none; border-radius: 0; padding: 10px; }
             .no-print { display: none !important; }
         }
 
@@ -245,14 +234,9 @@
             font-weight: 600;
             cursor: pointer;
             text-align: center;
-            text-decoration: none;
             font-family: 'Instrument Sans', Arial, sans-serif;
-            transition: all 0.2s ease;
         }
-        .print-button:hover {
-            background: #D14A62;
-            box-shadow: 0 4px 12px rgba(232, 93, 117, 0.4);
-        }
+        .print-button:hover { background: #D14A62; }
         .back-link {
             display: block;
             width: 80mm;
@@ -278,9 +262,14 @@
             <div class="store-name">Lara's Flowershop</div>
             <div class="store-sub">Est. 2021</div>
             <div class="store-info">
-                Store #127 · Manila Central<br>
                 Terminal POS-03
             </div>
+        </div>
+
+        {{-- REFERENCE BADGE --}}
+        <div class="reference-badge">
+            <span class="ref-label">Receipt No.</span>
+            <span class="ref-value">{{ $sale->reference_code }}</span>
         </div>
 
         {{-- META --}}
@@ -299,44 +288,32 @@
             </div>
             <div class="meta-row">
                 <span class="meta-label">Customer:</span>
-                <span class="meta-value">{{ $sale->customer->full_name ?? 'Walk-in Customer' }}</span>
+                <span class="meta-value">{{ $sale->customer->full_name ?? 'Walk-in' }}</span>
             </div>
-        </div>
-
-        {{-- INVOICE NUMBER --}}
-        <div class="invoice-badge">
-            <span class="invoice-number">RECEIPT #{{ str_pad($sale->sale_id, 6, '0', STR_PAD_LEFT) }}</span>
         </div>
 
         {{-- ITEMS --}}
         <table class="items-table">
             <thead>
                 <tr>
-                    <th style="width: 42%;">Item</th>
+                    <th style="width: 44%;">Item</th>
                     <th style="width: 12%;" class="qty">Qty</th>
                     <th style="width: 20%;" class="right">Price</th>
-                    <th style="width: 26%;" class="right">Amount</th>
+                    <th style="width: 24%;" class="right">Amount</th>
                 </tr>
             </thead>
-
             <tbody>
                 @foreach($sale->items as $item)
                     @php
                         $lineTotal = $item->quantity * $item->unit_price;
                     @endphp
-
                     <tr>
                         <td>
                             <div class="item-name">{{ $item->product->display_name }}</div>
-                            @if($item->customization_details ?? false)
-                                <span class="item-custom">{{ $item->customization_details }}</span>
-                            @endif
                         </td>
                         <td class="qty">{{ (float) $item->quantity }}</td>
                         <td class="right">₱{{ number_format($item->unit_price, 2) }}</td>
-                        <td class="right" style="font-weight: 600;">
-                            ₱{{ number_format($lineTotal, 2) }}
-                        </td>
+                        <td class="right" style="font-weight: 600;">₱{{ number_format($lineTotal, 2) }}</td>
                     </tr>
                 @endforeach
 
@@ -360,54 +337,63 @@
             </div>
 
             @if($sale->discount_amount > 0)
-                <div class="total-row">
-                    <span class="label">Discount</span>
-                    <span class="value discount-text">− ₱{{ number_format($sale->discount_amount, 2) }}</span>
+                <div class="total-row discount-line">
+                    <span class="label">
+                        Discount ({{ $sale->discount_type === 'pwd' ? 'PWD 20%' : 'Senior 20%' }})
+                    </span>
+                    <span class="value">− ₱{{ number_format($sale->discount_amount, 2) }}</span>
                 </div>
             @endif
 
             <div class="total-row grand">
-                <span class="label">Total</span>
+                <span class="label">TOTAL</span>
                 <span class="value">₱{{ number_format($sale->total_amount, 2) }}</span>
             </div>
 
             @if($sale->payment_method === 'cash')
                 <div class="total-row">
-                    <span class="label">Cash Received</span>
-                    <span class="value">₱{{ number_format($sale->cash_received ?? $sale->total_amount, 2) }}</span>
+                    <span class="label">Cash</span>
+                    <span class="value">₱{{ number_format($sale->total_amount, 2) }}</span>
                 </div>
                 <div class="total-row change">
                     <span class="label">Change</span>
-                    <span class="value">₱{{ number_format($sale->change ?? 0, 2) }}</span>
+                    <span class="value">₱{{ number_format(0, 2) }}</span>
                 </div>
-            @else
+            @elseif($sale->payment_method === 'gcash')
                 <div class="total-row">
-                    <span class="label">Payment Method</span>
-                    <span class="value">{{ strtoupper(str_replace('_', ' ', $sale->payment_method)) }}</span>
+                    <span class="label">GCash</span>
+                    <span class="value">₱{{ number_format($sale->total_amount, 2) }}</span>
+                </div>
+                <div class="total-row">
+                    <span class="label">Ref No.</span>
+                    <span class="value">{{ $sale->gcash_reference ?? '—' }}</span>
                 </div>
             @endif
 
         </div>
 
-        {{-- SIGNATURE --}}
-        <div class="signature">
-            <div>Received by:</div>
-            <div class="signature-line">&nbsp;</div>
-            <div class="signature-label">Customer Signature</div>
-        </div>
-
-        {{-- TERMS --}}
-        <div class="terms">
-            Thank you for your purchase!<br>
-            Items are final sale. Please verify all items<br>
-            before leaving the counter.
-        </div>
+        {{-- DISCOUNT INFO (only if PWD/Senior) --}}
+        @if($sale->discount_type && $sale->discount_type !== 'none')
+            <div class="discount-info">
+                <div class="discount-info-title">
+                    {{ $sale->discount_type === 'pwd' ? 'PWD Discount Applied' : 'Senior Citizen Discount Applied' }}
+                </div>
+                <div class="discount-info-row">
+                    <span>Name:</span>
+                    <span>{{ $sale->discount_name ?: '—' }}</span>
+                </div>
+                <div class="discount-info-row">
+                    <span>ID No:</span>
+                    <span>{{ $sale->discount_id_number ?: '—' }}</span>
+                </div>
+            </div>
+        @endif
 
         {{-- FOOTER --}}
         <div class="footer">
-            <div class="thank-you">Thank you! Come again! 🌸</div>
+            <div class="thank-you">Thank you! Come again!</div>
             <div class="powered-by">
-                Lara's Flowershop · Sales &amp; Inventory System
+                Lara's Flowershop
             </div>
         </div>
 

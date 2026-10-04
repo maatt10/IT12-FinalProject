@@ -5,84 +5,117 @@
 @section('content')
 
 <div class="page-header">
-    <div>
-        <h1>Add BOM Component</h1>
-        <p>
-            Add a material or product required to produce
-            <strong style="color: #E85D75;">{{ $product->display_name }}</strong>.
-        </p>
-    </div>
 
-    <a href="{{ route('products.show', $product) }}" class="btn btn-secondary">
-        ← Back to Product
-    </a>
+```
+<div>
+    <h1>Add BOM Component</h1>
+
+    <p>
+        Add a material required to produce
+        <strong style="color: #E85D75;">{{ $product->display_name }}</strong>.
+    </p>
+</div>
+
+<a href="{{ route('products.show', $product) }}" class="btn btn-secondary">
+    ← Back to Product
+</a>
+```
+
 </div>
 
 <div class="card" style="max-width: 640px; border-top: 4px solid #D4AF37;">
 
-    <form action="{{ route('products.components.store', $product) }}" method="POST">
-        @csrf
+```
+<form action="{{ route('products.components.store', $product) }}" method="POST">
+    @csrf
 
-        <div class="form-group">
-            <label for="material_product_id">
-                Material / Component <span class="req">*</span>
-            </label>
+    <div class="form-group">
 
-            <select id="material_product_id" name="material_product_id" class="form-control" required>
-                <option value="">— Select a component —</option>
+        <label for="material_product_id">
+            Material <span class="req">*</span>
+        </label>
 
-                @foreach($materials as $material)
-                    <option
-                        value="{{ $material->product_id }}"
-                        {{ old('material_product_id') == $material->product_id ? 'selected' : '' }}
-                    >
-                        {{ $material->display_name }}
-                        — {{ $material->stock_unit }}
-                    </option>
-                @endforeach
-            </select>
+        <select
+            id="material_product_id"
+            name="material_product_id"
+            class="form-control"
+            required
+        >
+            <option value="">— Select a material —</option>
 
-            @error('material_product_id')
-                <div class="error">{{ $message }}</div>
-            @enderror
-        </div>
+            @foreach($materials as $material)
+                <option
+                    value="{{ $material->product_id }}"
+                    {{ old('material_product_id') == $material->product_id ? 'selected' : '' }}
+                >
+                    {{ $material->display_name }}
+                    — {{ $material->stock_unit }}
+                </option>
+            @endforeach
+        </select>
 
-        <div class="form-group">
-            <label for="quantity_required">
-                Quantity Required <span class="req">*</span>
-            </label>
+        @if($materials->isEmpty())
+            <div class="error">
+                No active materials are currently available to add to this BOM.
+            </div>
+        @endif
 
-            <input
-                type="number"
-                id="quantity_required"
-                name="quantity_required"
-                class="form-control"
-                value="{{ old('quantity_required') }}"
-                min="0.01"
-                step="0.01"
-                placeholder="e.g. 8"
-                required
-            >
+        @error('material_product_id')
+            <div class="error">{{ $message }}</div>
+        @enderror
 
-            @error('quantity_required')
-                <div class="error">{{ $message }}</div>
-            @enderror
-        </div>
+    </div>
 
-        <div class="form-actions">
-            <a href="{{ route('products.show', $product) }}" class="btn btn-secondary">
-                Cancel
-            </a>
-            <button type="submit" class="btn btn-primary">
-                Add Component
-            </button>
-        </div>
+    <div class="form-group">
 
-    </form>
+        <label for="quantity_required">
+            Quantity Required <span class="req">*</span>
+        </label>
+
+        <input
+            type="number"
+            id="quantity_required"
+            name="quantity_required"
+            class="form-control"
+            value="{{ old('quantity_required') }}"
+            min="0.01"
+            step="0.01"
+            placeholder="e.g. 8"
+            required
+        >
+
+        @error('quantity_required')
+            <div class="error">{{ $message }}</div>
+        @enderror
+
+    </div>
+
+    <div class="form-actions">
+
+        <a
+            href="{{ route('products.show', $product) }}"
+            class="btn btn-secondary"
+        >
+            Cancel
+        </a>
+
+        <button
+            type="submit"
+            class="btn btn-primary"
+            {{ $materials->isEmpty() ? 'disabled' : '' }}
+        >
+            Add Component
+        </button>
+
+    </div>
+
+</form>
+```
 
 </div>
 
 <style>
+
     .req {
         color: #E85D75;
         margin-left: 2px;
@@ -96,6 +129,7 @@
         margin-top: 10px;
         border-top: 1px solid #F0E6DD;
     }
+
 </style>
 
 @endsection

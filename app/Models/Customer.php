@@ -15,6 +15,8 @@ class Customer extends Model
         'contact_number',
         'address',
         'is_regular',
+        'discount_type',
+        'discount_id_number',
     ];
 
     protected function casts(): array
@@ -46,8 +48,8 @@ class Customer extends Model
     {
         return trim(
             $this->first_name . ' ' .
-            ($this->middle_name ? $this->middle_name . ' ' : '') .
-            $this->last_name
+                ($this->middle_name ? $this->middle_name . ' ' : '') .
+                $this->last_name
         );
     }
 }

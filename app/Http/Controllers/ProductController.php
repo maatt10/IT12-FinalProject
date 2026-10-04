@@ -4,17 +4,51 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use App\Services\AuditLogger;
 
 class ProductController extends Controller
 {
-    public function index()
+
+    public function index(Request $request)
     {
-        $products = Product::orderBy('name')->get();
+        $itemType = $request->query('item_type', 'product');
 
-        return view('products.index', compact('products'));
+        if (!in_array($itemType, ['product', 'material'])) {
+            $itemType = 'product';
+        }
+
+        // Base query for the active tab
+        if ($itemType === 'material') {
+            $query = Product::where('item_type', 'material');
+        } else {
+            $query = Product::whereIn('item_type', ['retail_product', 'made_product']);
+        }
+
+        $query->orderBy('name')->orderBy('variation');
+
+        if (!$request->boolean('show_archived')) {
+            $query->where('is_active', true);
+        }
+
+        $items = $query->get();
+
+        // Counts for tab badges
+        $productCount = Product::whereIn('item_type', ['retail_product', 'made_product'])
+            ->where('is_active', true)
+            ->count();
+
+        $materialCount = Product::where('item_type', 'material')
+            ->where('is_active', true)
+            ->count();
+
+        return view('products.index', compact(
+            'items',
+            'itemType',
+            'productCount',
+            'materialCount'
+        ));
     }
-
     public function create()
     {
         return view('products.create');
@@ -25,12 +59,24 @@ class ProductController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'variation' => ['nullable', 'string', 'max:100'],
+
+            'item_type' => [
+                'required',
+                Rule::in([
+                    'material',
+                    'retail_product',
+                    'made_product',
+                ]),
+            ],
+
             'is_sellable' => ['required', 'boolean'],
             'selling_price' => ['nullable', 'numeric', 'min:0'],
             'stock_unit' => ['required', 'string', 'max:50'],
             'purchase_unit' => ['nullable', 'string', 'max:50'],
             'units_per_purchase' => ['nullable', 'numeric', 'min:0.01'],
         ]);
+
+        $validated['is_active'] = true;
 
         $product = Product::create($validated);
 
@@ -61,6 +107,16 @@ class ProductController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'variation' => ['nullable', 'string', 'max:100'],
+
+            'item_type' => [
+                'required',
+                Rule::in([
+                    'material',
+                    'retail_product',
+                    'made_product',
+                ]),
+            ],
+
             'is_sellable' => ['required', 'boolean'],
             'selling_price' => ['nullable', 'numeric', 'min:0'],
             'stock_unit' => ['required', 'string', 'max:50'],
@@ -88,22 +144,24 @@ class ProductController extends Controller
             $productName = $product->display_name;
             $productId = $product->product_id;
 
-            $product->delete();
+            $product->update([
+                'is_active' => false,
+            ]);
 
             app(AuditLogger::class)->log(
-                'delete',
+                'update',
                 'products',
                 $productId,
-                'Product deleted: ' . $productName
+                'Product archived: ' . $productName
             );
 
             return redirect()
                 ->route('products.index')
-                ->with('success', 'Product deleted successfully.');
+                ->with('success', 'Product archived successfully.');
         } catch (\Exception $e) {
             return redirect()
                 ->route('products.index')
-                ->with('error', 'This product cannot be deleted because it is already being used in the system.');
+                ->with('error', 'The product could not be archived.');
         }
     }
 }
