@@ -30,8 +30,10 @@ class CustomerController extends Controller
             'last_name' => ['required', 'string', 'max:100'],
             'contact_number' => ['required', 'string', 'max:30'],
             'address' => ['nullable', 'string', 'max:500'],
-            'is_regular' => ['required', 'boolean'],
+            'is_regular' => ['nullable', 'boolean'],
         ]);
+
+        $validated['is_regular'] = $request->boolean('is_regular');
 
         $customer = Customer::create($validated);
 
@@ -39,15 +41,21 @@ class CustomerController extends Controller
             'create',
             'customers',
             $customer->customer_id,
-            'Customer created: ' . $customer->full_name
+            'Customer added: ' . $customer->full_name
         );
+
+        if ($request->input('from') === 'records') {
+            return redirect()
+                ->route('records.index', ['tab' => 'customers'])
+                ->with('success', 'Customer added successfully.');
+        }
 
         return redirect()
             ->route('customers.index')
             ->with('success', 'Customer added successfully.');
     }
 
-    public function edit(Customer $customer)
+    public function edit(Request $request, Customer $customer)
     {
         return view('customers.edit', compact('customer'));
     }
@@ -60,8 +68,10 @@ class CustomerController extends Controller
             'last_name' => ['required', 'string', 'max:100'],
             'contact_number' => ['required', 'string', 'max:30'],
             'address' => ['nullable', 'string', 'max:500'],
-            'is_regular' => ['required', 'boolean'],
+            'is_regular' => ['nullable', 'boolean'],
         ]);
+
+        $validated['is_regular'] = $request->boolean('is_regular');
 
         $customer->update($validated);
 
@@ -71,6 +81,12 @@ class CustomerController extends Controller
             $customer->customer_id,
             'Customer updated: ' . $customer->full_name
         );
+
+        if ($request->input('from') === 'records') {
+            return redirect()
+                ->route('records.index', ['tab' => 'customers'])
+                ->with('success', 'Customer updated successfully.');
+        }
 
         return redirect()
             ->route('customers.index')

@@ -23,7 +23,7 @@
 
 </div>
 
-<div class="card" style="max-width: 640px; border-top: 4px solid #D4AF37;">
+<div class="card" style="max-width: 640px;  #D4AF37;">
 
 ```
 <form action="<?php echo e(route('products.components.store', $product)); ?>" method="POST">

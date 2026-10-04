@@ -207,7 +207,7 @@ class PurchaseController extends Controller
         });
 
         return redirect()
-            ->route('purchases.index')
-            ->with('success', 'Purchase recorded successfully.');
+            ->route('products.index', ['item_type' => 'material'])
+            ->with('success', 'Stock-in recorded successfully.');
     }
 }

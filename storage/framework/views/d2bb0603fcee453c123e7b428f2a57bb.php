@@ -1,254 +1,233 @@
 
 
-<?php $__env->startSection('title', 'Product Details'); ?>
+<?php
+$typeLabel = $product->item_type === 'material' ? 'Material' : 'Product';
+$tabParam = $product->item_type === 'material' ? 'material' : 'product';
+$isArchived = !$product->is_active;
+$isOwner = auth()->user()->role === 'owner';
+?>
+
+<?php $__env->startSection('title', $product->name); ?>
 
 <?php $__env->startSection('content'); ?>
 
 <div class="page-header">
     <div>
-        <h1><?php echo e($product->display_name); ?></h1>
-        <p>View product information and bill of materials.</p>
+        <h1>
+            <?php echo e($product->name); ?>
+
+            <?php if($product->variation): ?>
+            <span style="color: #94A3B8; font-weight: 500;">— <?php echo e($product->variation); ?></span>
+            <?php endif; ?>
+            <?php if($isArchived): ?>
+            <span class="archived-tag">Archived</span>
+            <?php endif; ?>
+        </h1>
+        <p><?php echo e($typeLabel); ?> details and Bill of Materials.</p>
     </div>
 
-```
-<div style="display: flex; gap: 8px;">
-    <a href="<?php echo e(route('products.edit', $product)); ?>" class="btn btn-primary">
-        Edit Product
-    </a>
-
-    <a href="<?php echo e(route('products.index')); ?>" class="btn btn-secondary">
-        ← Back
+    <a href="<?php echo e(route('products.index', ['item_type' => $tabParam])); ?>" class="btn btn-secondary">
+        ← Back to Inventory
     </a>
 </div>
-```
-
-</div>
 
 
-
-<div class="card" style="margin-bottom: 20px; border-top: 4px solid #E85D75;">
-
-```
-<h2 style="font-size: 16px; font-weight: 700; color: #212121; margin-bottom: 18px; display: flex; align-items: center; gap: 8px;">
-    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#E85D75" stroke-width="2">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-    </svg>
-    Product Information
-</h2>
-
-<div class="info-grid">
-
-    <div class="info-item">
-        <span class="info-label">Product ID</span>
-        <span class="info-value">#<?php echo e($product->product_id); ?></span>
-    </div>
-
-    <div class="info-item">
-        <span class="info-label">Product Name</span>
-        <span class="info-value"><?php echo e($product->name); ?></span>
-    </div>
-
-    <div class="info-item">
-        <span class="info-label">Variation</span>
-        <span class="info-value"><?php echo e($product->variation ?? '—'); ?></span>
-    </div>
-
-    <div class="info-item">
-        <span class="info-label">Item Type</span>
-        <span class="info-value">
-            <?php if($product->item_type === 'made_product'): ?>
-                <span class="type-badge made">Made Product</span>
-            <?php elseif($product->item_type === 'retail_product'): ?>
-                <span class="type-badge retail">Retail Product</span>
-            <?php else: ?>
-                <span class="type-badge material">Material</span>
-            <?php endif; ?>
-        </span>
-    </div>
-
-    <div class="info-item">
-        <span class="info-label">Sellable</span>
-        <span class="info-value">
-            <?php if($product->is_sellable): ?>
-                <span class="sellable-yes">✓ Yes</span>
-            <?php else: ?>
-                <span class="sellable-no">No</span>
-            <?php endif; ?>
-        </span>
-    </div>
-
-    <div class="info-item">
-        <span class="info-label">Selling Price</span>
-        <span class="info-value price">
-            <?php if($product->selling_price !== null): ?>
-                ₱<?php echo e(number_format($product->selling_price, 2)); ?>
-
-            <?php else: ?>
-                <span style="color: #94A3B8;">—</span>
-            <?php endif; ?>
-        </span>
-    </div>
-
-    <div class="info-item">
-        <span class="info-label">Inventory Unit</span>
-        <span class="info-value"><?php echo e($product->stock_unit); ?></span>
-    </div>
-
-    <?php if($product->item_type !== 'made_product'): ?>
-
-        <div class="info-item">
-            <span class="info-label">How it is Purchased</span>
-            <span class="info-value">
-                <?php echo e($product->purchase_unit ?? '—'); ?>
-
-            </span>
-        </div>
-
-        <div class="info-item">
-            <span class="info-label">Quantity per Purchase</span>
-            <span class="info-value">
-                <?php echo e($product->units_per_purchase !== null ? (float) $product->units_per_purchase : '—'); ?>
-
-            </span>
-        </div>
-
+<?php if($isOwner): ?>
+<div class="action-bar">
+    <?php if($isArchived): ?>
+    <form action="<?php echo e(route('products.unarchive', $product)); ?>"
+        method="POST" style="display: inline;"
+        onsubmit="return confirm('Restore this item?');">
+        <?php echo csrf_field(); ?>
+        <button type="submit" class="btn btn-primary">Unarchive</button>
+    </form>
+    <?php else: ?>
+    <a href="<?php echo e(route('products.edit', $product)); ?>" class="btn btn-primary">Edit <?php echo e($typeLabel); ?></a>
     <?php endif; ?>
-
 </div>
-```
+<?php endif; ?>
 
+
+<div class="card" style="margin-bottom: 20px;  #E85D75;">
+    <h2 class="card-heading">Item Information</h2>
+
+    <div class="info-grid">
+        <div class="info-item">
+            <span class="info-label">Reference Code</span>
+            <span class="info-value" style="font-family: 'SF Mono', Consolas, monospace; font-weight: 700; color: #E85D75; letter-spacing: 0.5px;">
+                <?php echo e($product->reference_code); ?>
+
+            </span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">Type</span>
+            <span class="info-value"><?php echo e($typeLabel); ?></span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">Stock Purpose</span>
+            <span class="info-value">
+                <?php if($product->stock_purpose === 'retail'): ?> Retail only
+                <?php elseif($product->stock_purpose === 'production'): ?> Production only
+                <?php else: ?> Both
+                <?php endif; ?>
+            </span>
+        </div>
+        <?php if($product->selling_price !== null): ?>
+        <div class="info-item">
+            <span class="info-label">Selling Price</span>
+            <span class="info-value price">₱<?php echo e(number_format($product->selling_price, 2)); ?></span>
+        </div>
+        <?php endif; ?>
+        <div class="info-item">
+            <span class="info-label">Inventory Unit</span>
+            <span class="info-value"><?php echo e($product->stock_unit); ?></span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">Low Stock Threshold</span>
+            <span class="info-value"><?php echo e((float) $product->low_stock_threshold); ?></span>
+        </div>
+        <?php if($product->item_type === 'material' && $product->purchase_unit): ?>
+        <div class="info-item">
+            <span class="info-label">Purchase Unit</span>
+            <span class="info-value"><?php echo e($product->purchase_unit); ?></span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">Units per Purchase</span>
+            <span class="info-value"><?php echo e((float) $product->units_per_purchase); ?></span>
+        </div>
+        <?php endif; ?>
+    </div>
+</div>
+
+
+<div class="card" style="margin-bottom: 20px;  #2E5A3B;">
+    <h2 class="card-heading">Current Stock</h2>
+
+    <div class="stock-grid">
+        <?php
+        $retail = $product->inventory->firstWhere('reserve_type', 'retail');
+        $production = $product->inventory->firstWhere('reserve_type', 'production');
+        $threshold = (float) $product->low_stock_threshold;
+        ?>
+
+        <div class="stock-grid">
+            <?php
+            $retail = $product->inventory->firstWhere('reserve_type', 'retail');
+            $production = $product->inventory->firstWhere('reserve_type', 'production');
+            $threshold = (float) $product->low_stock_threshold;
+            ?>
+
+            <div class="stock-box <?php echo e($retail && $retail->current_quantity <= $threshold ? 'low' : ''); ?>">
+                <span class="stock-label">Retail Stock</span>
+                <span class="stock-value">
+                    <?php if($retail): ?>
+                    <?php echo e((float) $retail->current_quantity); ?> <span class="stock-unit"><?php echo e($product->stock_unit); ?></span>
+                    <?php else: ?>
+                    <span style="color: #CBD5E1;">—</span>
+                    <?php endif; ?>
+                </span>
+                <?php if($retail && $retail->current_quantity <= $threshold): ?>
+                    <span class="low-tag">Low</span>
+                    <?php endif; ?>
+            </div>
+
+            <div class="stock-box <?php echo e($production && $production->current_quantity <= $threshold ? 'low' : ''); ?>">
+                <span class="stock-label">Production Stock</span>
+                <span class="stock-value">
+                    <?php if($production): ?>
+                    <?php echo e((float) $production->current_quantity); ?> <span class="stock-unit"><?php echo e($product->stock_unit); ?></span>
+                    <?php else: ?>
+                    <span style="color: #CBD5E1;">—</span>
+                    <?php endif; ?>
+                </span>
+                <?php if($production && $production->current_quantity <= $threshold): ?>
+                    <span class="low-tag">Low</span>
+                    <?php endif; ?>
+            </div>
+        </div>
+    </div>
 </div>
 
 
 <?php if($product->item_type === 'made_product'): ?>
+<div class="card" style=" #D4AF37;">
+    <h2 class="card-heading">Bill of Materials</h2>
+    <p style="font-size: 13px; color: #64748B; margin-top: -10px; margin-bottom: 18px;">
+        Materials required to make one unit of this product.
+    </p>
 
-<div class="card" style="border-top: 4px solid #D4AF37;">
-
-```
-<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; flex-wrap: wrap; gap: 12px;">
-
-    <div>
-        <h2 style="font-size: 16px; font-weight: 700; color: #212121; display: flex; align-items: center; gap: 8px;">
-
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#D4AF37" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-            </svg>
-
-            Bill of Materials
-        </h2>
-
-        <p style="font-size: 13px; color: #64748B; margin-top: 4px;">
-            Materials required to produce this product.
-        </p>
-    </div>
-
-    <a
-        href="<?php echo e(route('products.components.create', $product)); ?>"
-        class="btn btn-primary"
-    >
-        + Add Component
-    </a>
-
+    <?php if($product->parentComponents->isEmpty()): ?>
+    <p style="color: #94A3B8; font-size: 13px; padding: 20px 0;">
+        No materials defined for this product.
+    </p>
+    <?php else: ?>
+    <table>
+        <thead>
+            <tr>
+                <th>Material</th>
+                <th style="text-align: right;">Quantity Required</th>
+                <th>Unit</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php $__currentLoopData = $product->parentComponents; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $component): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+            <tr>
+                <td style="font-weight: 600;"><?php echo e($component->materialProduct->display_name); ?></td>
+                <td style="text-align: right;"><?php echo e((float) $component->quantity_required); ?></td>
+                <td style="color: #64748B;"><?php echo e($component->materialProduct->stock_unit); ?></td>
+            </tr>
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+        </tbody>
+    </table>
+    <?php endif; ?>
 </div>
-
-<?php if($product->parentComponents->count() > 0): ?>
-
-    <div style="overflow-x: auto;">
-
-        <table>
-
-            <thead>
-                <tr>
-                    <th>Material</th>
-                    <th>Quantity Required</th>
-                    <th style="text-align: right;">Actions</th>
-                </tr>
-            </thead>
-
-            <tbody>
-
-                <?php $__currentLoopData = $product->parentComponents; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $component): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-
-                    <tr>
-
-                        <td style="font-weight: 600; color: #212121;">
-                            <?php echo e($component->materialProduct->display_name); ?>
-
-                        </td>
-
-                        <td style="color: #212121; font-weight: 600;">
-                            <?php echo e((float) $component->quantity_required); ?>
-
-                            <?php echo e($component->materialProduct->stock_unit); ?>
-
-                        </td>
-
-                        <td style="text-align: right;">
-
-                            <form
-                                action="<?php echo e(route('products.components.destroy', [
-                                    'product' => $product,
-                                    'materialProduct' => $component->material_product_id,
-                                ])); ?>"
-                                method="POST"
-                                style="display: inline;"
-                                onsubmit="return confirm('Remove this material from the BOM?');"
-                            >
-
-                                <?php echo csrf_field(); ?>
-                                <?php echo method_field('DELETE'); ?>
-
-                                <button
-                                    type="submit"
-                                    class="action-btn delete"
-                                >
-                                    Remove
-                                </button>
-
-                            </form>
-
-                        </td>
-
-                    </tr>
-
-                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-
-            </tbody>
-
-        </table>
-
-    </div>
-
-<?php else: ?>
-
-    <div class="empty-state">
-
-        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-        </svg>
-
-        <h3>No components yet</h3>
-
-        <p>
-            Add materials needed to produce this product.
-        </p>
-
-    </div>
-
 <?php endif; ?>
-```
 
+
+<?php if($product->item_type === 'material' && $product->usedAsComponent->count() > 0): ?>
+<div class="card" style="margin-top: 20px;  #D4AF37;">
+    <h2 class="card-heading">Used In</h2>
+    <p style="font-size: 13px; color: #64748B; margin-top: -10px; margin-bottom: 18px;">
+        Products that use this material.
+    </p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th style="text-align: right;">Quantity Required</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php $__currentLoopData = $product->usedAsComponent; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $component): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+            <tr>
+                <td style="font-weight: 600;"><?php echo e($component->parentProduct->display_name); ?></td>
+                <td style="text-align: right;"><?php echo e((float) $component->quantity_required); ?></td>
+            </tr>
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+        </tbody>
+    </table>
 </div>
-
 <?php endif; ?>
 
 <style>
+    .card-heading {
+        font-size: 16px;
+        font-weight: 700;
+        color: #212121;
+        margin-bottom: 18px;
+    }
 
-    /* Info grid */
+    .action-bar {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
 
     .info-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         gap: 18px 24px;
     }
 
@@ -280,101 +259,82 @@
         font-size: 16px;
     }
 
-    /* Item type badges */
-
-    .type-badge {
-        display: inline-block;
-        padding: 4px 9px;
-        border-radius: 6px;
-        font-size: 11px;
-        font-weight: 700;
-        white-space: nowrap;
+    .stock-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
     }
 
-    .type-badge.made {
-        background: #FFF4D6;
-        color: #8A6D1D;
+    .stock-box {
+        padding: 20px;
+        background: #FEFCF9;
+        border: 1.5px solid #F0E6DD;
+        border-radius: 12px;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
     }
 
-    .type-badge.retail {
-        background: #EAF2FF;
-        color: #315A9B;
-    }
-
-    .type-badge.material {
-        background: #EEF7F0;
-        color: #2E5A3B;
-    }
-
-    /* Sellable */
-
-    .sellable-yes {
-        color: #2E5A3B;
-        font-weight: 600;
-        cursor: default;
-        user-select: none;
-    }
-
-    .sellable-no {
-        color: #94A3B8;
-        font-weight: 500;
-        font-style: italic;
-        cursor: default;
-        user-select: none;
-    }
-
-    /* Action buttons */
-
-    .action-btn {
-        display: inline-block;
-        padding: 5px 12px;
-        border-radius: 6px;
-        font-size: 12px;
-        font-weight: 600;
-        text-decoration: none;
-        cursor: pointer;
-        border: none;
-        transition: all 0.15s ease;
-        white-space: nowrap;
-    }
-
-    .action-btn.delete {
+    .stock-box.low {
         background: #FDECEA;
+        border-color: #F8D7DA;
+    }
+
+    .stock-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: #94A3B8;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .stock-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: #2E5A3B;
+        text-align: right;
+    }
+
+    .stock-box.low .stock-value {
         color: #DC3545;
     }
 
-    .action-btn.delete:hover {
-        background: #F8D7DA;
-        color: #B02A37;
-    }
-
-    /* Empty state */
-
-    .empty-state {
-        text-align: center;
-        padding: 40px 20px;
+    .stock-unit {
+        font-size: 13px;
+        font-weight: 500;
         color: #64748B;
     }
 
-    .empty-state svg {
-        color: #D4AF37;
-        margin-bottom: 12px;
-        opacity: 0.6;
-    }
-
-    .empty-state h3 {
-        font-size: 16px;
-        color: #212121;
-        margin-bottom: 4px;
+    .low-tag {
+        position: absolute;
+        top: 8px;
+        right: 12px;
+        font-size: 9px;
         font-weight: 700;
+        color: #DC3545;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        background: #FFFFFF;
+        padding: 2px 6px;
+        border-radius: 4px;
     }
 
-    .empty-state p {
-        font-size: 13px;
+    .archived-tag {
+        display: inline-block;
+        margin-left: 8px;
+        vertical-align: middle;
+        padding: 3px 10px;
+        border-radius: 6px;
+        background: #F1F5F9;
+        color: #64748B;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
-
 </style>
 
 <?php $__env->stopSection(); ?>
-
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\VICTUS\lf_system\resources\views/products/show.blade.php ENDPATH**/ ?>

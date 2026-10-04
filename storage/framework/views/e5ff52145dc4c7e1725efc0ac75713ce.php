@@ -47,7 +47,7 @@
 
 
 <?php if(auth()->user()->role === 'owner'): ?>
-<div class="card" style="margin-bottom: 24px; border-top: 4px solid #D4AF37;">
+<div class="card" style="margin-bottom: 24px;  #D4AF37;">
 
     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
         <div>
@@ -304,7 +304,6 @@
         padding: 22px;
         border: 1px solid #F0E6DD;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
-        border-top: 4px solid #E85D75;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -401,7 +400,7 @@
         letter-spacing: 1.2px;
         padding: 12px;
         text-align: left;
-        border-bottom: 2px solid #F8BBD0;
+        ;
     }
 
     .dashboard-table th:first-child {

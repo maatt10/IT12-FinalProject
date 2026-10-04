@@ -19,6 +19,7 @@
         body {
             background: #F9F6F0;
             color: #212121;
+            overflow-x: hidden;
         }
 
         .layout {
@@ -26,7 +27,6 @@
             min-height: 100vh;
         }
 
-        /* SIDEBAR */
         .sidebar {
             width: 240px;
             background: #2E5A3B;
@@ -35,6 +35,10 @@
             display: flex;
             flex-direction: column;
             flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow: hidden;
         }
 
         .brand-logo {
@@ -373,7 +377,7 @@
             text-transform: uppercase;
             font-size: 11px;
             letter-spacing: 1px;
-            border-bottom: 2px solid #F8BBD0;
+            ;
         }
 
         td {
@@ -396,13 +400,13 @@
         .alert-success {
             background: #E8F5E9;
             color: #2E5A3B;
-            border-left: 4px solid #80B918;
+            solid #80B918;
         }
 
         .alert-error {
             background: #FDECEA;
             color: #C0392B;
-            border-left: 4px solid #DC3545;
+            solid #DC3545;
         }
 
         .form-group {
@@ -434,6 +438,17 @@
             box-shadow: 0 0 0 3px rgba(232, 93, 117, 0.1);
         }
 
+        /* Centered form pages */
+        .form-page {
+            max-width: 720px;
+            margin: 0 auto;
+        }
+
+        .form-page-wide {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
         .error {
             color: #DC3545;
             font-size: 12px;
@@ -447,6 +462,8 @@
 
             .sidebar {
                 width: 100%;
+                position: static;
+                height: auto;
             }
 
             .sidebar-nav {
@@ -474,6 +491,12 @@
                 display: none;
             }
         }
+
+        table td.num,
+        table th.num {
+            text-align: right;
+            white-space: nowrap;
+        }
     </style>
 </head>
 
@@ -491,6 +514,8 @@
             <div class="brand-sub">Est. 2021</div>
 
             <div class="sidebar-nav">
+                <div class="nav-title">Main</div>
+
 
                 {{-- DASHBOARD --}}
                 <a href="{{ route('dashboard') }}"

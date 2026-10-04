@@ -16,7 +16,7 @@ class SaleController extends Controller
 {
     public function create()
     {
-        $products = Product::where('is_sellable', true)
+        $products = Product::whereIn('stock_purpose', ['retail', 'both'])
             ->where('is_active', true)
             ->orderBy('name')
             ->orderBy('variation')
@@ -82,6 +82,25 @@ class SaleController extends Controller
             'items.*.quantity' => ['required', 'numeric', 'gt:0'],
         ]);
 
+        // Extra ID validation before transaction
+        if ($validated['discount_type'] === 'pwd') {
+            $raw = preg_replace('/\D/', '', $validated['discount_id_number'] ?? '');
+            if (strlen($raw) !== 16) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'discount_id_number' => 'PWD ID must contain exactly 16 digits.',
+                ]);
+            }
+        }
+
+        if ($validated['discount_type'] === 'senior') {
+            $raw = trim($validated['discount_id_number'] ?? '');
+            if (strlen($raw) < 4 || strlen($raw) > 30) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'discount_id_number' => 'Senior Citizen ID must be between 4 and 30 characters.',
+                ]);
+            }
+        }
+
         $saleId = null;
 
         try {
@@ -93,16 +112,13 @@ class SaleController extends Controller
 
                     $product = Product::findOrFail($item['product_id']);
 
-                    if (!$product->is_sellable) {
+                    if (!in_array($product->stock_purpose, ['retail', 'both'])) {
                         throw new \Exception(
                             "{$product->name} is not available for sale."
                         );
                     }
 
-                    $inventory = Inventory::where(
-                        'product_id',
-                        $product->product_id
-                    )
+                    $inventory = Inventory::where('product_id', $product->product_id)
                         ->where('reserve_type', 'retail')
                         ->lockForUpdate()
                         ->first();
@@ -130,9 +146,7 @@ class SaleController extends Controller
                 $discount = (float) $validated['discount_amount'];
 
                 if ($discount > $subtotal) {
-                    throw new \Exception(
-                        'Discount cannot exceed the sale subtotal.'
-                    );
+                    throw new \Exception('Discount cannot exceed the sale subtotal.');
                 }
 
                 $total = $subtotal - $discount;
@@ -152,7 +166,7 @@ class SaleController extends Controller
                     'receipt_issued' => true,
                 ]);
 
-                // Generate the human-readable reference code (DDMMYY-NNNNN)
+                // Generate the reference code (DDMMYY-NNNNN)
                 $datePart = $sale->sale_date->format('dmy');
 
                 $lastToday = Sale::where('reference_code', 'LIKE', $datePart . '-%')
@@ -175,10 +189,7 @@ class SaleController extends Controller
 
                     $product = Product::findOrFail($item['product_id']);
 
-                    $inventory = Inventory::where(
-                        'product_id',
-                        $product->product_id
-                    )
+                    $inventory = Inventory::where('product_id', $product->product_id)
                         ->where('reserve_type', 'retail')
                         ->lockForUpdate()
                         ->firstOrFail();
@@ -196,8 +207,7 @@ class SaleController extends Controller
                     ]);
 
                     $inventory->update([
-                        'current_quantity' =>
-                        $inventory->current_quantity - $quantity,
+                        'current_quantity' => $inventory->current_quantity - $quantity,
                         'last_updated' => now(),
                     ]);
 
@@ -213,25 +223,6 @@ class SaleController extends Controller
                     ]);
                 }
 
-                // Extra validation: PWD and Senior ID formats
-                if ($validated['discount_type'] === 'pwd') {
-                    $raw = preg_replace('/\D/', '', $validated['discount_id_number'] ?? '');
-                    if (strlen($raw) !== 16) {
-                        throw \Illuminate\Validation\ValidationException::withMessages([
-                            'discount_id_number' => 'PWD ID must contain exactly 16 digits (format: RR-PPMM-BBB-NNNNNNN).',
-                        ]);
-                    }
-                }
-
-                if ($validated['discount_type'] === 'senior') {
-                    $raw = trim($validated['discount_id_number'] ?? '');
-                    if (strlen($raw) < 4 || strlen($raw) > 30) {
-                        throw \Illuminate\Validation\ValidationException::withMessages([
-                            'discount_id_number' => 'Senior Citizen ID must be between 4 and 30 characters.',
-                        ]);
-                    }
-                }
-
                 $customerName = $sale->customer
                     ? $sale->customer->full_name
                     : 'Walk-in Customer';
@@ -240,12 +231,9 @@ class SaleController extends Controller
                     'create',
                     'sales',
                     $sale->sale_id,
-                    'Sale completed for ' .
-                        $customerName .
-                        '. Total: ₱' .
-                        number_format((float) $sale->total_amount, 2) .
-                        ', Payment: ' .
-                        strtoupper($sale->payment_method)
+                    'Sale completed for ' . $customerName .
+                        '. Total: ₱' . number_format((float) $sale->total_amount, 2) .
+                        ', Payment: ' . strtoupper($sale->payment_method)
                 );
             });
 
@@ -258,6 +246,7 @@ class SaleController extends Controller
             }
 
             return redirect()->route('sales.print', $saleId);
+
         } catch (\Exception $e) {
             if ($request->expectsJson()) {
                 return response()->json([
@@ -266,9 +255,7 @@ class SaleController extends Controller
                 ], 422);
             }
 
-            return back()
-                ->withInput()
-                ->with('error', $e->getMessage());
+            return back()->withInput()->with('error', $e->getMessage());
         }
     }
 

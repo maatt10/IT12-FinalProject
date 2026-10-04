@@ -10,20 +10,19 @@
         <p>Enter the existing physical stock for this product.</p>
     </div>
 
-    <a href="{{ route('inventory.index') }}" class="btn btn-secondary">
+    <a href="{{ route('products.index', ['item_type' => $product->item_type === 'material' ? 'material' : 'product']) }}" class="btn btn-secondary">
         ← Back to Inventory
     </a>
 </div>
 
-<div class="card" style="max-width: 720px; border-top: 4px solid #D4AF37;">
-
+<div class="card form-page">
     <h2 class="card-heading">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#D4AF37" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
         </svg>
         {{ $product->name }}
         @if($product->variation)
-            <span style="color: #94A3B8; font-weight: 500;">— {{ $product->variation }}</span>
+        <span style="color: #94A3B8; font-weight: 500;">— {{ $product->variation }}</span>
         @endif
     </h2>
 
@@ -32,13 +31,13 @@
     </p>
 
     @if($errors->any())
-        <div class="alert alert-error">
-            <ul style="margin-left: 20px;">
-                @foreach($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
+    <div class="alert alert-error">
+        <ul style="margin-left: 20px;">
+            @foreach($errors->all() as $error)
+            <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
     @endif
 
     <form action="{{ route('inventory.initial-stock.store', $product) }}" method="POST">
@@ -77,7 +76,7 @@
         </div>
 
         <div class="form-actions">
-            <a href="{{ route('inventory.index') }}" class="btn btn-secondary">Cancel</a>
+            <a href="{{ route('products.index', ['item_type' => $product->item_type === 'material' ? 'material' : 'product']) }}" class="btn btn-secondary">Cancel</a>
             <button type="submit" class="btn btn-primary">Save Initial Stock</button>
         </div>
 

@@ -42,7 +42,7 @@
                     </td>
 
                     <td style="font-weight: 600; color: #212121;">
-                        {{ $order->customer->full_name }}
+                        {{ $order->customer->full_name ?? $order->customer_name ?? 'Unknown' }}
                     </td>
 
                     <td style="color: #64748B;">

@@ -6,17 +6,17 @@
 
 <div class="page-header">
     <div>
-        <h1>Purchase Details</h1>
+        <h1>Stock-in Record</h1>
         <p>Review the recorded purchase and its items.</p>
     </div>
 
-    <a href="{{ route('purchases.index') }}" class="btn btn-secondary">
-        ← Back to Purchases
+    <a href="{{ route('records.index', ['tab' => 'purchases']) }}" class="btn btn-secondary">
+        ← Back to Records
     </a>
 </div>
 
 {{-- PURCHASE INFO CARD --}}
-<div class="card" style="margin-bottom: 20px; border-top: 4px solid #E85D75;">
+<div class="card" style="margin-bottom: 20px;  #E85D75;">
 
     <h2 class="card-heading">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#E85D75" stroke-width="2">
@@ -52,7 +52,7 @@
 </div>
 
 {{-- PURCHASED ITEMS CARD --}}
-<div class="card" style="border-top: 4px solid #D4AF37;">
+<div class="card" style=" #D4AF37;">
 
     <h2 class="card-heading">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#D4AF37" stroke-width="2">

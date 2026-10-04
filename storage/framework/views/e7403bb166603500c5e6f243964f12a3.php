@@ -106,7 +106,7 @@
             color: #C0392B;
             padding: 12px 15px;
             border-radius: 8px;
-            border-left: 4px solid #DC3545;
+             solid #DC3545;
             margin-bottom: 20px;
             font-size: 13px;
             font-weight: 500;

@@ -100,7 +100,7 @@
         .summary-card {
             background: #FEFCF9;
             border: 1px solid #F0E6DD;
-            border-left: 4px solid #E85D75;
+             solid #E85D75;
             border-radius: 8px;
             padding: 14px 16px;
         }
@@ -134,7 +134,7 @@
             letter-spacing: 1px;
             text-transform: uppercase;
             padding-bottom: 8px;
-            border-bottom: 2px solid #F8BBD0;
+            ;
             margin-bottom: 14px;
             color: #E85D75;
         }
@@ -180,7 +180,7 @@
             text-transform: uppercase;
             font-size: 10px;
             letter-spacing: 0.8px;
-            border-bottom: 2px solid #F8BBD0;
+            ;
         }
         .transactions-table thead th.right { text-align: right; }
 

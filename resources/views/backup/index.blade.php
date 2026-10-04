@@ -12,7 +12,7 @@
 </div>
 
 {{-- CREATE BACKUP --}}
-<div class="card" style="margin-bottom: 20px; border-top: 4px solid #E85D75;">
+<div class="card" style="margin-bottom: 20px;  #E85D75;">
     <div style="display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap;">
         <div style="display: flex; align-items: center; gap: 14px;">
             <div style="width: 48px; height: 48px; border-radius: 50%; background: #FCE4EC; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">

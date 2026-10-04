@@ -104,10 +104,11 @@ class InventoryController extends Controller
                     $productionQuantity
             );
         });
-
         return redirect()
-            ->route('inventory.index')
-            ->with('success', 'Initial stock added successfully.');
+            ->route('products.index', [
+                'item_type' => $product->item_type === 'material' ? 'material' : 'product',
+            ])
+            ->with('success', 'Stock adjustment recorded successfully.');
     }
 
     public function adjustment(Product $product)
@@ -203,7 +204,9 @@ class InventoryController extends Controller
         });
 
         return redirect()
-            ->route('inventory.index')
+            ->route('products.index', [
+                'item_type' => $product->item_type === 'material' ? 'material' : 'product',
+            ])
             ->with('success', 'Stock adjustment recorded successfully.');
     }
 
@@ -228,5 +231,105 @@ class InventoryController extends Controller
             'product',
             'transactions'
         ));
+    }
+
+    public function storeTransfer(Request $request, Product $product)
+    {
+        $validated = $request->validate([
+            'from' => ['required', 'in:retail,production'],
+            'to' => ['required', 'in:retail,production', 'different:from'],
+            'quantity' => ['required', 'numeric', 'gt:0'],
+            'notes' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $quantity = (float) $validated['quantity'];
+
+        try {
+            DB::transaction(function () use ($product, $validated, $quantity) {
+
+                $fromInventory = Inventory::where('product_id', $product->product_id)
+                    ->where('reserve_type', $validated['from'])
+                    ->lockForUpdate()
+                    ->first();
+
+                if (!$fromInventory) {
+                    throw new \RuntimeException('Source allocation (' . $validated['from'] . ') has not been initialized.');
+                }
+
+                $available = (float) $fromInventory->current_quantity;
+
+                if ($available < $quantity) {
+                    throw new \RuntimeException(
+                        'Insufficient ' . $validated['from'] . ' stock. Available: ' .
+                            number_format($available, 2) . ', Requested: ' . number_format($quantity, 2) . '.'
+                    );
+                }
+
+                // Deduct from source
+                $fromInventory->update([
+                    'current_quantity' => $available - $quantity,
+                    'last_updated' => now(),
+                ]);
+
+                InventoryTransaction::create([
+                    'inventory_id' => $fromInventory->inventory_id,
+                    'transaction_type' => 'adjustment',
+                    'quantity_change' => -$quantity,
+                    'reference_id' => null,
+                    'reference_type' => 'transfer_out',
+                    'notes' => 'Transferred to ' . $validated['to'] . ' stock' .
+                        ($validated['notes'] ? '. ' . $validated['notes'] : '.'),
+                    'transaction_date' => now(),
+                    'recorded_by' => auth()->user()->user_id,
+                ]);
+
+                // Add to destination (create if missing)
+                $toInventory = Inventory::where('product_id', $product->product_id)
+                    ->where('reserve_type', $validated['to'])
+                    ->lockForUpdate()
+                    ->first();
+
+                if (!$toInventory) {
+                    $toInventory = Inventory::create([
+                        'product_id' => $product->product_id,
+                        'reserve_type' => $validated['to'],
+                        'current_quantity' => $quantity,
+                        'last_updated' => now(),
+                    ]);
+                } else {
+                    $toInventory->update([
+                        'current_quantity' => (float) $toInventory->current_quantity + $quantity,
+                        'last_updated' => now(),
+                    ]);
+                }
+
+                InventoryTransaction::create([
+                    'inventory_id' => $toInventory->inventory_id,
+                    'transaction_type' => 'adjustment',
+                    'quantity_change' => $quantity,
+                    'reference_id' => null,
+                    'reference_type' => 'transfer_in',
+                    'notes' => 'Transferred from ' . $validated['from'] . ' stock' .
+                        ($validated['notes'] ? '. ' . $validated['notes'] : '.'),
+                    'transaction_date' => now(),
+                    'recorded_by' => auth()->user()->user_id,
+                ]);
+
+                app(AuditLogger::class)->log(
+                    'update',
+                    'inventory',
+                    $product->product_id,
+                    'Stock transfer: ' . number_format($quantity, 2) . ' ' . $product->stock_unit .
+                        ' moved from ' . $validated['from'] . ' to ' . $validated['to'] .
+                        ' for ' . $product->display_name . '.'
+                );
+            });
+        } catch (\RuntimeException $e) {
+            return back()->withErrors(['quantity' => $e->getMessage()])->withInput();
+        }
+
+        return redirect()
+            ->route('products.index', ['item_type' => $product->item_type === 'material' ? 'material' : 'product'])
+            ->with('success', 'Stock transferred successfully.');
     }
 }

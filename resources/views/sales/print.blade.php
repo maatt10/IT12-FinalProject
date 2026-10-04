@@ -1,12 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Receipt {{ $sale->reference_code }} — Lara's Flowershop</title>
 
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
         body {
             font-family: 'SF Mono', 'Courier New', Consolas, monospace;
@@ -34,12 +39,14 @@
             border-bottom: 2px dashed #F0E6DD;
             margin-bottom: 12px;
         }
+
         .logo {
             width: 60px;
             height: 60px;
             object-fit: contain;
             margin-bottom: 6px;
         }
+
         .store-name {
             font-size: 18px;
             font-weight: 700;
@@ -47,6 +54,7 @@
             letter-spacing: 0.5px;
             font-family: 'Instrument Sans', Arial, sans-serif;
         }
+
         .store-sub {
             font-size: 9px;
             font-weight: 600;
@@ -56,6 +64,7 @@
             margin-top: 2px;
             margin-bottom: 6px;
         }
+
         .store-info {
             font-size: 10px;
             color: #64748B;
@@ -70,6 +79,7 @@
             background: #FCE4EC;
             border-radius: 6px;
         }
+
         .ref-label {
             display: block;
             font-size: 9px;
@@ -79,6 +89,7 @@
             text-transform: uppercase;
             margin-bottom: 2px;
         }
+
         .ref-value {
             display: block;
             font-size: 16px;
@@ -95,12 +106,17 @@
             padding-bottom: 10px;
             border-bottom: 1px dashed #F0E6DD;
         }
+
         .meta-row {
             display: flex;
             justify-content: space-between;
             margin-bottom: 3px;
         }
-        .meta-label { color: #94A3B8; }
+
+        .meta-label {
+            color: #94A3B8;
+        }
+
         .meta-value {
             color: #212121;
             font-weight: 600;
@@ -114,24 +130,36 @@
             margin-bottom: 10px;
             font-size: 10px;
         }
+
         .items-table thead th {
             text-align: left;
             padding: 6px 2px;
-            border-bottom: 2px solid #F8BBD0;
+            ;
             color: #E85D75;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.8px;
             font-size: 9px;
         }
-        .items-table thead th.right { text-align: right; }
+
+        .items-table thead th.right {
+            text-align: right;
+        }
+
         .items-table tbody td {
             padding: 5px 2px;
             border-bottom: 1px solid #F5EEE4;
             vertical-align: top;
         }
-        .items-table tbody td.right { text-align: right; }
-        .items-table tbody td.qty { text-align: center; }
+
+        .items-table tbody td.right {
+            text-align: right;
+        }
+
+        .items-table tbody td.qty {
+            text-align: center;
+        }
+
         .item-name {
             font-weight: 600;
             color: #212121;
@@ -144,34 +172,65 @@
             padding-top: 10px;
             border-top: 2px dashed #F0E6DD;
         }
+
         .total-row {
             display: flex;
             justify-content: space-between;
             padding: 3px 0;
             font-size: 11px;
         }
-        .total-row .label { color: #64748B; }
-        .total-row .value { color: #212121; font-weight: 600; }
+
+        .total-row .label {
+            color: #64748B;
+        }
+
+        .total-row .value {
+            color: #212121;
+            font-weight: 600;
+        }
+
         .total-row.grand {
             margin-top: 6px;
             padding-top: 8px;
             border-top: 1px solid #F0E6DD;
         }
-        .total-row.grand .label { font-size: 12px; font-weight: 700; color: #212121; }
-        .total-row.grand .value { font-size: 16px; font-weight: 700; color: #E85D75; }
-        .total-row.change .value { color: #2E5A3B; }
-        .total-row.discount-line .label { color: #B8860B; font-weight: 600; }
-        .total-row.discount-line .value { color: #B8860B; font-weight: 700; }
+
+        .total-row.grand .label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #212121;
+        }
+
+        .total-row.grand .value {
+            font-size: 16px;
+            font-weight: 700;
+            color: #E85D75;
+        }
+
+        .total-row.change .value {
+            color: #2E5A3B;
+        }
+
+        .total-row.discount-line .label {
+            color: #B8860B;
+            font-weight: 600;
+        }
+
+        .total-row.discount-line .value {
+            color: #B8860B;
+            font-weight: 700;
+        }
 
         /* DISCOUNT INFO BOX */
         .discount-info {
             margin-top: 14px;
             padding: 10px 12px;
             background: #FFF8E1;
-            border-left: 3px solid #D4AF37;
+            solid #D4AF37;
             border-radius: 4px;
             font-size: 10px;
         }
+
         .discount-info-title {
             font-size: 9px;
             font-weight: 700;
@@ -180,12 +239,17 @@
             text-transform: uppercase;
             margin-bottom: 6px;
         }
+
         .discount-info-row {
             display: flex;
             justify-content: space-between;
             margin-bottom: 3px;
         }
-        .discount-info-row span:first-child { color: #94A3B8; }
+
+        .discount-info-row span:first-child {
+            color: #94A3B8;
+        }
+
         .discount-info-row span:last-child {
             color: #212121;
             font-weight: 600;
@@ -201,12 +265,14 @@
             border-top: 2px dashed #F0E6DD;
             text-align: center;
         }
+
         .thank-you {
             font-size: 12px;
             font-weight: 700;
             color: #2E5A3B;
             margin-bottom: 4px;
         }
+
         .powered-by {
             font-size: 9px;
             color: #94A3B8;
@@ -214,9 +280,20 @@
 
         /* PRINT */
         @media print {
-            body { background: #FFFFFF; padding: 0; }
-            .receipt { box-shadow: none; border-radius: 0; padding: 10px; }
-            .no-print { display: none !important; }
+            body {
+                background: #FFFFFF;
+                padding: 0;
+            }
+
+            .receipt {
+                box-shadow: none;
+                border-radius: 0;
+                padding: 10px;
+            }
+
+            .no-print {
+                display: none !important;
+            }
         }
 
         /* SCREEN BUTTONS */
@@ -236,7 +313,11 @@
             text-align: center;
             font-family: 'Instrument Sans', Arial, sans-serif;
         }
-        .print-button:hover { background: #D14A62; }
+
+        .print-button:hover {
+            background: #D14A62;
+        }
+
         .back-link {
             display: block;
             width: 80mm;
@@ -248,7 +329,10 @@
             text-decoration: none;
             font-family: 'Instrument Sans', Arial, sans-serif;
         }
-        .back-link:hover { color: #E85D75; }
+
+        .back-link:hover {
+            color: #E85D75;
+        }
     </style>
 </head>
 
@@ -304,17 +388,17 @@
             </thead>
             <tbody>
                 @foreach($sale->items as $item)
-                    @php
-                        $lineTotal = $item->quantity * $item->unit_price;
-                    @endphp
-                    <tr>
-                        <td>
-                            <div class="item-name">{{ $item->product->display_name }}</div>
-                        </td>
-                        <td class="qty">{{ (float) $item->quantity }}</td>
-                        <td class="right">₱{{ number_format($item->unit_price, 2) }}</td>
-                        <td class="right" style="font-weight: 600;">₱{{ number_format($lineTotal, 2) }}</td>
-                    </tr>
+                @php
+                $lineTotal = $item->quantity * $item->unit_price;
+                @endphp
+                <tr>
+                    <td>
+                        <div class="item-name">{{ $item->product->display_name }}</div>
+                    </td>
+                    <td class="qty">{{ (float) $item->quantity }}</td>
+                    <td class="right">₱{{ number_format($item->unit_price, 2) }}</td>
+                    <td class="right" style="font-weight: 600;">₱{{ number_format($lineTotal, 2) }}</td>
+                </tr>
                 @endforeach
 
                 @for($i = 0; $i < max(0, 8 - $sale->items->count()); $i++)
@@ -324,7 +408,7 @@
                         <td class="right">&nbsp;</td>
                         <td class="right">&nbsp;</td>
                     </tr>
-                @endfor
+                    @endfor
             </tbody>
         </table>
 
@@ -337,12 +421,12 @@
             </div>
 
             @if($sale->discount_amount > 0)
-                <div class="total-row discount-line">
-                    <span class="label">
-                        Discount ({{ $sale->discount_type === 'pwd' ? 'PWD 20%' : 'Senior 20%' }})
-                    </span>
-                    <span class="value">− ₱{{ number_format($sale->discount_amount, 2) }}</span>
-                </div>
+            <div class="total-row discount-line">
+                <span class="label">
+                    Discount ({{ $sale->discount_type === 'pwd' ? 'PWD 20%' : 'Senior 20%' }})
+                </span>
+                <span class="value">− ₱{{ number_format($sale->discount_amount, 2) }}</span>
+            </div>
             @endif
 
             <div class="total-row grand">
@@ -351,42 +435,42 @@
             </div>
 
             @if($sale->payment_method === 'cash')
-                <div class="total-row">
-                    <span class="label">Cash</span>
-                    <span class="value">₱{{ number_format($sale->total_amount, 2) }}</span>
-                </div>
-                <div class="total-row change">
-                    <span class="label">Change</span>
-                    <span class="value">₱{{ number_format(0, 2) }}</span>
-                </div>
+            <div class="total-row">
+                <span class="label">Cash</span>
+                <span class="value">₱{{ number_format($sale->total_amount, 2) }}</span>
+            </div>
+            <div class="total-row change">
+                <span class="label">Change</span>
+                <span class="value">₱{{ number_format(0, 2) }}</span>
+            </div>
             @elseif($sale->payment_method === 'gcash')
-                <div class="total-row">
-                    <span class="label">GCash</span>
-                    <span class="value">₱{{ number_format($sale->total_amount, 2) }}</span>
-                </div>
-                <div class="total-row">
-                    <span class="label">Ref No.</span>
-                    <span class="value">{{ $sale->gcash_reference ?? '—' }}</span>
-                </div>
+            <div class="total-row">
+                <span class="label">GCash</span>
+                <span class="value">₱{{ number_format($sale->total_amount, 2) }}</span>
+            </div>
+            <div class="total-row">
+                <span class="label">Ref No.</span>
+                <span class="value">{{ $sale->gcash_reference ?? '—' }}</span>
+            </div>
             @endif
 
         </div>
 
         {{-- DISCOUNT INFO (only if PWD/Senior) --}}
         @if($sale->discount_type && $sale->discount_type !== 'none')
-            <div class="discount-info">
-                <div class="discount-info-title">
-                    {{ $sale->discount_type === 'pwd' ? 'PWD Discount Applied' : 'Senior Citizen Discount Applied' }}
-                </div>
-                <div class="discount-info-row">
-                    <span>Name:</span>
-                    <span>{{ $sale->discount_name ?: '—' }}</span>
-                </div>
-                <div class="discount-info-row">
-                    <span>ID No:</span>
-                    <span>{{ $sale->discount_id_number ?: '—' }}</span>
-                </div>
+        <div class="discount-info">
+            <div class="discount-info-title">
+                {{ $sale->discount_type === 'pwd' ? 'PWD Discount Applied' : 'Senior Citizen Discount Applied' }}
             </div>
+            <div class="discount-info-row">
+                <span>Name:</span>
+                <span>{{ $sale->discount_name ?: '—' }}</span>
+            </div>
+            <div class="discount-info-row">
+                <span>ID No:</span>
+                <span>{{ $sale->discount_id_number ?: '—' }}</span>
+            </div>
+        </div>
         @endif
 
         {{-- FOOTER --}}
@@ -402,9 +486,16 @@
     <button onclick="window.print()" class="print-button no-print">
         Print Receipt
     </button>
+    @if(request('from') === 'records')
+    <a href="{{ route('records.index', ['tab' => 'sales', 'sub' => 'walk-in']) }}" class="back-link no-print">
+        ← Back to Sales Records
+    </a>
+    @else
     <a href="{{ route('sales.create') }}" class="back-link no-print">
         ← Start New Sale
     </a>
+    @endif
 
 </body>
+
 </html>

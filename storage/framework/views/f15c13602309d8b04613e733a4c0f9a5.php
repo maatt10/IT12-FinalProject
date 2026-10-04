@@ -1,163 +1,161 @@
 
 
-<?php $__env->startSection('title', 'Record Purchase'); ?>
+<?php $__env->startSection('title', 'Restock'); ?>
 
 <?php $__env->startSection('content'); ?>
 
-<div class="page-header">
-    <div>
-        <h1>Record Purchase</h1>
-        <p>Record purchased items and add them to inventory.</p>
-    </div>
+<div class="form-page-wide">
 
-    <a href="<?php echo e(route('purchases.index')); ?>" class="btn btn-secondary">
-        ← Back to Purchases
-    </a>
-</div>
-
-<form action="<?php echo e(route('purchases.store')); ?>" method="POST" id="purchase-form">
-    <?php echo csrf_field(); ?>
-
-    
-    <div class="card" style="margin-bottom: 20px;">
-        <h2 class="card-heading">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#E85D75" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-            </svg>
-            Purchase Information
-        </h2>
-
-        <div class="form-group" style="margin-bottom: 0;">
-            <label for="supplier_name">Supplier</label>
-            <input
-                type="text"
-                id="supplier_name"
-                name="supplier_name"
-                class="form-control"
-                value="<?php echo e(old('supplier_name')); ?>"
-                placeholder="Optional">
+    <div class="page-header">
+        <div>
+            <h1>Restock</h1>
+            <p>Record materials and products received from suppliers.</p>
         </div>
+
+        <a href="<?php echo e(route('products.index', ['item_type' => 'material'])); ?>" class="btn btn-secondary">
+            ← Back to Inventory
+        </a>
     </div>
 
-    
-    <div class="card" style="margin-bottom: 20px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 18px; flex-wrap: wrap;">
-            <h2 class="card-heading" style="margin-bottom: 0;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#D4AF37" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+    <form action="<?php echo e(route('purchases.store')); ?>" method="POST" id="purchase-form">
+        <?php echo csrf_field(); ?>
+
+        
+        <div class="card" style="margin-bottom: 20px;">
+            <h2 class="card-heading">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#E85D75" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
-                Purchased Items
+                Purchase Information
             </h2>
 
-            <button type="button" class="btn btn-secondary" id="add-item" style="padding: 8px 16px; font-size: 13px;">
-                + Add Item
-            </button>
-        </div>
-
-        <div id="items-container">
-            
-            <div class="purchase-item" data-index="0">
-
-                <div class="form-grid">
-
-                    <div class="form-group">
-                        <label>Product <span class="req">*</span></label>
-                        <select name="items[0][product_id]" class="product-select form-control" required>
-                            <option value="">— Select Product —</option>
-                            <?php $__currentLoopData = $products; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $product): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                            <?php if($product->purchase_unit && $product->units_per_purchase !== null): ?>
-                            <option
-                                value="<?php echo e($product->product_id); ?>"
-                                data-purchase-unit="<?php echo e($product->purchase_unit); ?>"
-                                data-stock-unit="<?php echo e($product->stock_unit); ?>"
-                                data-units-per-purchase="<?php echo e($product->units_per_purchase); ?>"
-                                data-name="<?php echo e($product->display_name); ?>">
-                                <?php echo e($product->display_name); ?>
-
-                            </option>
-                            <?php endif; ?>
-                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Purchase Qty <span class="req">*</span></label>
-                        <input
-                            type="number"
-                            name="items[0][quantity]"
-                            class="quantity-input form-control"
-                            min="0.01"
-                            step="0.01"
-                            required>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Purchase Unit</label>
-                        <input type="text" class="purchase-unit form-control readonly-field" readonly placeholder="—">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Unit Cost <span class="req">*</span></label>
-                        <div class="input-with-prefix">
-                            <span class="prefix">₱</span>
-                            <input
-                                type="number"
-                                name="items[0][unit_cost]"
-                                class="unit-cost-input form-control"
-                                min="0"
-                                step="0.01"
-                                required>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Allocation <span class="req">*</span></label>
-                        <select name="items[0][reserve_type]" class="form-control" required>
-                            <option value="retail">Retail</option>
-                            <option value="production">Production</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Stock Added</label>
-                        <input type="text" class="stock-quantity form-control readonly-field" readonly value="—">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Line Total</label>
-                        <input type="text" class="line-total form-control readonly-field" readonly value="₱0.00">
-                    </div>
-
-                </div>
-
-                <div style="display: flex; justify-content: flex-end; margin-top: 8px;">
-                    <button type="button" class="action-btn delete remove-item">
-                        Remove Item
-                    </button>
-                </div>
-
+            <div class="form-group" style="margin-bottom: 0;">
+                <label for="supplier_name">Supplier</label>
+                <input
+                    type="text"
+                    id="supplier_name"
+                    name="supplier_name"
+                    class="form-control"
+                    value="<?php echo e(old('supplier_name')); ?>"
+                    placeholder="Optional">
             </div>
         </div>
 
         
-        <div class="purchase-total">
-            <span>Total Amount</span>
-            <strong>₱<span id="total-amount">0.00</span></strong>
+        <div class="card" style="margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 18px; flex-wrap: wrap;">
+                <h2 class="card-heading" style="margin-bottom: 0;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#D4AF37" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                    </svg>
+                    Purchased Items
+                </h2>
+
+                <button type="button" class="btn btn-secondary" id="add-item" style="padding: 8px 16px; font-size: 13px;">
+                    + Add Item
+                </button>
+            </div>
+
+            <div id="items-container">
+                <div class="purchase-item" data-index="0">
+                    <div class="form-grid">
+
+                        <div class="form-group">
+                            <label>Product <span class="req">*</span></label>
+                            <select name="items[0][product_id]" class="product-select form-control" required>
+                                <option value="">— Select Product —</option>
+                                <?php $__currentLoopData = $products; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $product): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <?php if($product->purchase_unit && $product->units_per_purchase !== null): ?>
+                                <option
+                                    value="<?php echo e($product->product_id); ?>"
+                                    data-purchase-unit="<?php echo e($product->purchase_unit); ?>"
+                                    data-stock-unit="<?php echo e($product->stock_unit); ?>"
+                                    data-units-per-purchase="<?php echo e($product->units_per_purchase); ?>"
+                                    data-name="<?php echo e($product->display_name); ?>">
+                                    <?php echo e($product->display_name); ?>
+
+                                </option>
+                                <?php endif; ?>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Purchase Qty <span class="req">*</span></label>
+                            <input
+                                type="number"
+                                name="items[0][quantity]"
+                                class="quantity-input form-control"
+                                min="0.01"
+                                step="0.01"
+                                required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Purchase Unit</label>
+                            <input type="text" class="purchase-unit form-control readonly-field" readonly placeholder="—">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Unit Cost <span class="req">*</span></label>
+                            <div class="input-with-prefix">
+                                <span class="prefix">₱</span>
+                                <input
+                                    type="number"
+                                    name="items[0][unit_cost]"
+                                    class="unit-cost-input form-control"
+                                    min="0"
+                                    step="0.01"
+                                    required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Allocation <span class="req">*</span></label>
+                            <select name="items[0][reserve_type]" class="form-control" required>
+                                <option value="retail">Retail</option>
+                                <option value="production">Production</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Stock Added</label>
+                            <input type="text" class="stock-quantity form-control readonly-field" readonly value="—">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Line Total</label>
+                            <input type="text" class="line-total form-control readonly-field" readonly value="₱0.00">
+                        </div>
+
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end; margin-top: 8px;">
+                        <button type="button" class="action-btn delete remove-item">
+                            Remove Item
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="purchase-total">
+                <span>Total Amount</span>
+                <strong>₱<span id="total-amount">0.00</span></strong>
+            </div>
         </div>
 
-    </div>
+        <div class="form-actions">
+            <a href="<?php echo e(route('products.index', ['item_type' => 'material'])); ?>" class="btn btn-secondary">
+                Cancel
+            </a>
+            <button type="submit" class="btn btn-primary">
+                Save Purchase
+            </button>
+        </div>
 
-    
-    <div class="form-actions">
-        <a href="<?php echo e(route('purchases.index')); ?>" class="btn btn-secondary">
-            Cancel
-        </a>
-        <button type="submit" class="btn btn-primary">
-            Save Purchase
-        </button>
-    </div>
+    </form>
 
-</form>
+</div>
 
 <style>
     .card-heading {
@@ -207,9 +205,8 @@
 
     .purchase-item {
         padding: 20px;
-        background: #FFFFFF;
+        background: #FEFCF9;
         border: 1px solid #F0E6DD;
-        border-left: 3px solid #E85D75;
         border-radius: 12px;
         margin-bottom: 14px;
     }
@@ -224,7 +221,6 @@
         border-radius: 6px;
         font-size: 12px;
         font-weight: 600;
-        text-decoration: none;
         cursor: pointer;
         border: none;
         transition: all 0.15s ease;
@@ -352,7 +348,6 @@
 
         addItemButton.addEventListener('click', function() {
             const template = document.querySelector('.purchase-item').cloneNode(true);
-
             template.dataset.index = itemIndex;
 
             template.querySelectorAll('input, select').forEach(function(element) {
@@ -364,13 +359,11 @@
                     element.value = element.classList.contains('line-total') ? '₱0.00' : '—';
                     return;
                 }
-
                 if (element.tagName === 'SELECT') {
                     element.selectedIndex = 0;
                 } else {
                     element.value = '';
                 }
-
                 if (element.name) {
                     element.name = element.name.replace(/items\[\d+\]/, 'items[' + itemIndex + ']');
                 }

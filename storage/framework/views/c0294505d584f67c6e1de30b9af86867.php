@@ -43,7 +43,7 @@
                     </td>
 
                     <td style="font-weight: 600; color: #212121;">
-                        <?php echo e($order->customer->full_name); ?>
+                        <?php echo e($order->customer->full_name ?? $order->customer_name ?? 'Unknown'); ?>
 
                     </td>
 

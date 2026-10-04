@@ -134,12 +134,12 @@ class ProductionController extends Controller
 
                         throw new \RuntimeException(
                             'Insufficient production stock for ' .
-                            $materialName .
-                            '. Required: ' .
-                            number_format($requiredQuantity, 2) .
-                            ', Available: ' .
-                            number_format($availableQuantity, 2) .
-                            '.'
+                                $materialName .
+                                '. Required: ' .
+                                number_format($requiredQuantity, 2) .
+                                ', Available: ' .
+                                number_format($availableQuantity, 2) .
+                                '.'
                         );
                     }
 
@@ -178,31 +178,31 @@ class ProductionController extends Controller
 
                     InventoryTransaction::create([
                         'inventory_id' =>
-                            $inventory->inventory_id,
+                        $inventory->inventory_id,
 
                         'transaction_type' =>
-                            'production_use',
+                        'production_use',
 
                         'quantity_change' =>
-                            -$requiredQuantity,
+                        -$requiredQuantity,
 
                         'reference_id' =>
-                            $production->production_id,
+                        $production->production_id,
 
                         'reference_type' =>
-                            'production',
+                        'production',
 
                         'notes' =>
-                            'Materials used to produce ' .
+                        'Materials used to produce ' .
                             $quantityProduced .
                             ' × ' .
                             $product->display_name,
 
                         'transaction_date' =>
-                            now(),
+                        now(),
 
                         'recorded_by' =>
-                            auth()->user()->user_id,
+                        auth()->user()->user_id,
                     ]);
                 }
 
@@ -226,16 +226,16 @@ class ProductionController extends Controller
                 if (!$finishedInventory) {
                     $finishedInventory = Inventory::create([
                         'product_id' =>
-                            $product->product_id,
+                        $product->product_id,
 
                         'reserve_type' =>
-                            'production',
+                        'production',
 
                         'current_quantity' =>
-                            $quantityProduced,
+                        $quantityProduced,
 
                         'last_updated' =>
-                            now(),
+                        now(),
                     ]);
                 } else {
                     $finishedInventory->current_quantity =
@@ -252,31 +252,31 @@ class ProductionController extends Controller
                  */
                 InventoryTransaction::create([
                     'inventory_id' =>
-                        $finishedInventory->inventory_id,
+                    $finishedInventory->inventory_id,
 
                     'transaction_type' =>
-                        'production_output',
+                    'production_output',
 
                     'quantity_change' =>
-                        $quantityProduced,
+                    $quantityProduced,
 
                     'reference_id' =>
-                        $production->production_id,
+                    $production->production_id,
 
                     'reference_type' =>
-                        'production',
+                    'production',
 
                     'notes' =>
-                        'Finished product produced: ' .
+                    'Finished product produced: ' .
                         $quantityProduced .
                         ' × ' .
                         $product->display_name,
 
                     'transaction_date' =>
-                        now(),
+                    now(),
 
                     'recorded_by' =>
-                        auth()->user()->user_id,
+                    auth()->user()->user_id,
                 ]);
 
                 /*
@@ -295,14 +295,12 @@ class ProductionController extends Controller
                         )
                 );
             });
-
         } catch (\RuntimeException $e) {
 
             return redirect()
                 ->route('production.create')
                 ->withInput()
                 ->with('error', $e->getMessage());
-
         } catch (\Throwable $e) {
 
             return redirect()
@@ -313,12 +311,8 @@ class ProductionController extends Controller
                     'Production could not be completed. No inventory changes were made.'
                 );
         }
-
         return redirect()
-            ->route('production.index')
-            ->with(
-                'success',
-                'Production completed successfully.'
-            );
+            ->route('products.index', ['item_type' => 'product'])
+            ->with('success', 'Production completed successfully.');
     }
 }

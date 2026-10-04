@@ -9,7 +9,6 @@ use App\Http\Controllers\SaleController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PurchaseController;
-use App\Http\Controllers\SalesReportController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\BackupController;
 use App\Http\Controllers\ProductionController;
@@ -35,22 +34,17 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
 
 Route::middleware(['auth', 'role:owner,employee'])->group(function () {
 
-    /* ==============================
-       DASHBOARD
-       ============================== */
-    // (already defined above in your file)
+    /* POS */
+    Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
 
-    /* ==============================
-       POS
-       ============================== */
-    Route::get('/pos', [PosController::class, 'index'])
-        ->name('pos.index');
-
-    /* ==============================
-       ITEMS (Products & Materials)
-       ============================== */
+    /* INVENTORY (Products & Materials) */
     Route::resource('products', ProductController::class);
 
+    Route::post('/products/{product}/unarchive', [ProductController::class, 'unarchive'])
+        ->middleware('role:owner')
+        ->name('products.unarchive');
+
+    /* BOM (legacy — kept for compatibility) */
     Route::get('/products/{product}/components/create', [ProductComponentController::class, 'create'])
         ->name('products.components.create');
 
@@ -60,12 +54,7 @@ Route::middleware(['auth', 'role:owner,employee'])->group(function () {
     Route::delete('/products/{product}/components/{materialProduct}', [ProductComponentController::class, 'destroy'])
         ->name('products.components.destroy');
 
-    /* ==============================
-       STOCK LEVELS (Inventory)
-       ============================== */
-    Route::get('/inventory', [InventoryController::class, 'index'])
-        ->name('inventory.index');
-
+    /* STOCK ADJUSTMENT */
     Route::get('/inventory/{product}/initial-stock', [InventoryController::class, 'initialStock'])
         ->name('inventory.initial-stock');
 
@@ -81,119 +70,60 @@ Route::middleware(['auth', 'role:owner,employee'])->group(function () {
     Route::get('/inventory/{product}/history', [InventoryController::class, 'history'])
         ->name('inventory.history');
 
-    /* ==============================
-       SALES / POS WALK-IN
-       ============================== */
-    Route::get('/sales/pos', [SaleController::class, 'create'])
-        ->name('sales.create');
+    Route::post('/inventory/{product}/transfer', [InventoryController::class, 'storeTransfer'])
+        ->name('inventory.transfer.store');
 
-    Route::post('/sales', [SaleController::class, 'store'])
-        ->name('sales.store');
+    /* SALES POS */
+    Route::get('/sales/pos', [SaleController::class, 'create'])->name('sales.create');
+    Route::post('/sales', [SaleController::class, 'store'])->name('sales.store');
+    Route::get('/sales/{sale}/print', [SaleController::class, 'print'])->name('sales.print');
 
-    Route::get('/sales/{sale}/print', [SaleController::class, 'print'])
-        ->name('sales.print');
+    /* CUSTOMERS */
+    Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
+    Route::get('/customers/create', [CustomerController::class, 'create'])->name('customers.create');
+    Route::post('/customers', [CustomerController::class, 'store'])->name('customers.store');
+    Route::get('/customers/{customer}/edit', [CustomerController::class, 'edit'])->name('customers.edit');
+    Route::put('/customers/{customer}', [CustomerController::class, 'update'])->name('customers.update');
 
-    /* ==============================
-       CUSTOMERS (List only - employee sees)
-       ============================== */
-    Route::get('/customers', [CustomerController::class, 'index'])
-        ->name('customers.index');
-
-    Route::get('/customers/create', [CustomerController::class, 'create'])
-        ->name('customers.create');
-
-    Route::post('/customers', [CustomerController::class, 'store'])
-        ->name('customers.store');
-
-    Route::get('/customers/{customer}/edit', [CustomerController::class, 'edit'])
-        ->name('customers.edit');
-
-    Route::put('/customers/{customer}', [CustomerController::class, 'update'])
-        ->name('customers.update');
-
-    /* ==============================
-       REPORTS
-       ============================== */
-    Route::get('/reports', [ReportsController::class, 'index'])
-        ->name('reports.index');
-
-    Route::get('/reports/sales', [SalesReportController::class, 'index'])
-        ->name('reports.sales');
+    /* REPORTS */
+    Route::get('/reports', [ReportsController::class, 'index'])->name('reports.index');
+    Route::get('/reports/print', [ReportsController::class, 'print'])->name('reports.print');
+    Route::get('/reports/export', [ReportsController::class, 'exportCsv'])->name('reports.export');
 });
 
-/* ============================================================
-   OWNER-ONLY ROUTES
-   ============================================================ */
 Route::middleware(['auth', 'role:owner'])->group(function () {
 
-    /* ==============================
-       STOCK-IN (was Purchases)
-       ============================== */
-    Route::get('/purchases', [PurchaseController::class, 'index'])
-        ->name('purchases.index');
+    /* STOCK-IN */
+    Route::get('/purchases', [PurchaseController::class, 'index'])->name('purchases.index');
+    Route::get('/purchases/create', [PurchaseController::class, 'create'])->name('purchases.create');
+    Route::post('/purchases', [PurchaseController::class, 'store'])->name('purchases.store');
+    Route::get('/purchases/{purchase}', [PurchaseController::class, 'show'])->name('purchases.show');
 
-    Route::get('/purchases/create', [PurchaseController::class, 'create'])
-        ->name('purchases.create');
+    /* ONLINE ORDERS */
+    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/create', [OrderController::class, 'create'])->name('orders.create');
+    Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
+    Route::get('/orders/{order}/edit', [OrderController::class, 'edit'])->name('orders.edit');
+    Route::put('/orders/{order}', [OrderController::class, 'update'])->name('orders.update');
+    Route::get('/orders/{order}/print', [OrderController::class, 'print'])->name('orders.print');
+    Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+    Route::put('/orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.status.update');
 
-    Route::post('/purchases', [PurchaseController::class, 'store'])
-        ->name('purchases.store');
+    /* PRODUCTION */
+    Route::get('/production', [ProductionController::class, 'index'])->name('production.index');
+    Route::get('/production/create', [ProductionController::class, 'create'])->name('production.create');
+    Route::post('/production', [ProductionController::class, 'store'])->name('production.store');
 
-    Route::get('/purchases/{purchase}', [PurchaseController::class, 'show'])
-        ->name('purchases.show');
+    /* RECORDS */
+    Route::get('/records', [RecordsController::class, 'index'])->name('records.index');
 
-    /* ==============================
-       ONLINE ORDERS (owner only)
-       ============================== */
-    Route::get('/orders', [OrderController::class, 'index'])
-        ->name('orders.index');
+    /* AUDIT */
+    Route::get('/audit-trail', [AuditLogController::class, 'index'])->name('audit.index');
 
-    Route::get('/orders/create', [OrderController::class, 'create'])
-        ->name('orders.create');
-
-    Route::get('/orders/{order}', [OrderController::class, 'show'])
-        ->name('orders.show');
-
-    Route::post('/orders', [OrderController::class, 'store'])
-        ->name('orders.store');
-
-    Route::put('/orders/{order}/status', [OrderController::class, 'updateStatus'])
-        ->name('orders.status.update');
-
-    /* ==============================
-       PRODUCTION HISTORY (owner only)
-       ============================== */
-    Route::get('/production', [ProductionController::class, 'index'])
-        ->name('production.index');
-
-    Route::get('/production/create', [ProductionController::class, 'create'])
-        ->name('production.create');
-
-    Route::post('/production', [ProductionController::class, 'store'])
-        ->name('production.store');
-
-    /* ==============================
-       RECORDS (owner only)
-       ============================== */
-    Route::get('/records', [RecordsController::class, 'index'])
-        ->name('records.index');
-
-    /* ==============================
-       AUDIT TRAIL (owner only)
-       ============================== */
-    Route::get('/audit-trail', [AuditLogController::class, 'index'])
-        ->name('audit.index');
-
-    /* ==============================
-       BACKUP & RECOVERY (owner only)
-       ============================== */
-    Route::get('/backup-recovery', [BackupController::class, 'index'])
-        ->name('backup.index');
-
-    Route::post('/backup-recovery/create', [BackupController::class, 'create'])
-        ->name('backup.create');
-
-    Route::get('/backup-recovery/download/{filename}', [BackupController::class, 'download'])
-        ->name('backup.download');
+    /* BACKUP */
+    Route::get('/backup-recovery', [BackupController::class, 'index'])->name('backup.index');
+    Route::post('/backup-recovery/create', [BackupController::class, 'create'])->name('backup.create');
+    Route::get('/backup-recovery/download/{filename}', [BackupController::class, 'download'])->name('backup.download');
 });
 
 Route::redirect('/', '/login');

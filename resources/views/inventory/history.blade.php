@@ -16,7 +16,7 @@
         </p>
     </div>
 
-    <a href="{{ route('inventory.index') }}" class="btn btn-secondary">
+    <a href="{{ route('products.index', ['item_type' => $product->item_type === 'material' ? 'material' : 'product']) }}" class="btn btn-secondary">
         ← Back to Inventory
     </a>
 </div>
@@ -69,8 +69,8 @@
                         {{ ucwords(str_replace('_', ' ', $transaction->transaction_type)) }}
                     </td>
 
-                    <td style="text-align: right; font-weight: 700; color: {{ $change > 0 ? '#2E5A3B' : ($change < 0 ? '#DC3545' : '#94A3B8') }};">
-                        {{ $change > 0 ? '+' : '' }}{{ (float) $change }} {{ $product->stock_unit }}
+                    <td class="num" style="font-weight: 700; color: #2E5A3B;">
+                        ₱{{ number_format($purchase->total_amount, 2) }}
                     </td>
 
                     <td style="color: #64748B;">

@@ -9,11 +9,13 @@ class Product extends Model
     protected $primaryKey = 'product_id';
 
     protected $fillable = [
+        'reference_code',
         'name',
         'variation',
         'item_type',
         'is_active',
-        'is_sellable',
+        'stock_purpose',
+        'low_stock_threshold',
         'selling_price',
         'stock_unit',
         'purchase_unit',
@@ -24,9 +26,9 @@ class Product extends Model
     {
         return [
             'is_active' => 'boolean',
-            'is_sellable' => 'boolean',
             'selling_price' => 'decimal:2',
             'units_per_purchase' => 'decimal:2',
+            'low_stock_threshold' => 'decimal:2',
         ];
     }
 

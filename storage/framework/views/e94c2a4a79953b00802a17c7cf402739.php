@@ -331,7 +331,7 @@
         padding: 22px;
         border: 1px solid #F0E6DD;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
-        border-top: 4px solid #E85D75;
+         #E85D75;
         display: flex;
         align-items: center;
         justify-content: space-between;

@@ -6,9 +6,13 @@
 
 <div class="page-header">
     <div>
-        <h1>POS / Point of Sale</h1>
+        <h1>Walk-in Sale</h1>
         <p>Record a customer purchase and issue a receipt.</p>
     </div>
+
+    @if(auth()->user()->role === 'owner')
+    <a href="{{ route('pos.index') }}" class="btn btn-secondary">← Back to POS</a>
+    @endif
 </div>
 
 @if($errors->any())
@@ -356,7 +360,7 @@
         font-size: 10px;
         letter-spacing: 1px;
         padding: 10px 12px;
-        border-bottom: 2px solid #F8BBD0;
+        ;
     }
 
     .product-table tbody td {

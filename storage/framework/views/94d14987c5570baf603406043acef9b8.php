@@ -1,233 +1,291 @@
 
 
-<?php $__env->startSection('title', 'Order Details'); ?>
+<?php $__env->startSection('title', 'Order ' . $order->reference_code); ?>
+
+<?php
+$backUrl = request('from') === 'records'
+? route('records.index', ['tab' => 'sales', 'sub' => 'online'])
+: route('orders.index');
+?>
 
 <?php $__env->startSection('content'); ?>
 
-<div class="page-header">
-    <div>
-        <h1>Order Details</h1>
-        <p>View the complete information for this online bouquet order.</p>
-    </div>
+<div class="form-page-wide">
 
-    <a href="<?php echo e(route('orders.index')); ?>" class="btn btn-secondary">
-        ← Back to Orders
-    </a>
-</div>
-
-
-<div class="card" style="margin-bottom: 20px; border-top: 4px solid #E85D75;">
-    <h2 class="card-heading">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#E85D75" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-        </svg>
-        Order Information
-    </h2>
-
-    <div class="info-grid">
-
-        <div class="info-item">
-            <span class="info-label">Customer</span>
-            <span class="info-value"><?php echo e($order->customer->full_name); ?></span>
+    <div class="page-header">
+        <div>
+            <h1>
+                Order Details
+                <span class="ref-badge"><?php echo e($order->reference_code); ?></span>
+            </h1>
+            <p>View the complete information for this online bouquet order.</p>
         </div>
 
-        <div class="info-item">
-            <span class="info-label">Recorded By</span>
-            <span class="info-value"><?php echo e($order->user->full_name); ?></span>
-        </div>
-
-        <div class="info-item">
-            <span class="info-label">Order Date</span>
-            <span class="info-value"><?php echo e($order->order_date->format('M d, Y h:i A')); ?></span>
-        </div>
-
-        <div class="info-item">
-            <span class="info-label">Order Type</span>
-            <span class="info-value"><?php echo e($order->order_type === 'ready_made' ? 'Ready-Made' : 'Customized'); ?></span>
-        </div>
-
-        <div class="info-item">
-            <span class="info-label">Fulfillment</span>
-            <span class="info-value"><?php echo e(ucfirst($order->fulfillment_type)); ?></span>
-        </div>
-
-        <div class="info-item">
-            <span class="info-label">Current Status</span>
-            <span class="status-text status-<?php echo e($order->order_status); ?>">
-                <?php echo e(ucfirst($order->order_status)); ?>
-
-            </span>
-        </div>
-
+        <a href="<?php echo e($backUrl); ?>" class="btn btn-secondary">← Back</a>
     </div>
 
     
-    <div class="status-update">
-        <form action="<?php echo e(route('orders.status.update', $order)); ?>" method="POST">
-            <?php echo csrf_field(); ?>
-            <?php echo method_field('PUT'); ?>
+    <div class="card">
+        <h2 class="card-heading">Order Information</h2>
 
-            <div style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
-                <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 200px;">
-                    <label for="order_status">Update Status</label>
-                    <select id="order_status" name="order_status" class="form-control" required>
-                        <option value="pending" <?php echo e($order->order_status === 'pending' ? 'selected' : ''); ?>>Pending</option>
-                        <option value="confirmed" <?php echo e($order->order_status === 'confirmed' ? 'selected' : ''); ?>>Confirmed</option>
-                        <option value="preparing" <?php echo e($order->order_status === 'preparing' ? 'selected' : ''); ?>>Preparing</option>
-                        <option value="ready" <?php echo e($order->order_status === 'ready' ? 'selected' : ''); ?>>Ready</option>
-                        <option value="completed" <?php echo e($order->order_status === 'completed' ? 'selected' : ''); ?>>Completed</option>
-                        <option value="cancelled" <?php echo e($order->order_status === 'cancelled' ? 'selected' : ''); ?>>Cancelled</option>
-                    </select>
-                </div>
-
-                <button type="submit" class="btn btn-primary" style="padding: 10px 20px;">
-                    Update Status
-                </button>
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="info-label">Order Number</span>
+                <span class="info-value mono"><?php echo e($order->reference_code); ?></span>
             </div>
-        </form>
+
+            <div class="info-item">
+                <span class="info-label">Order Date</span>
+                <span class="info-value"><?php echo e($order->order_date->format('M d, Y h:i A')); ?></span>
+            </div>
+
+            <div class="info-item">
+                <span class="info-label">Customer</span>
+                <span class="info-value">
+                    <?php echo e($order->customer->full_name ?? $order->customer_name ?? 'Unregistered Customer'); ?>
+
+                </span>
+            </div>
+
+            <div class="info-item">
+                <span class="info-label">Recorded By</span>
+                <span class="info-value"><?php echo e($order->user->full_name ?? 'Unknown'); ?></span>
+            </div>
+
+            <div class="info-item">
+                <span class="info-label">Order Type</span>
+                <span class="info-value">
+                    <?php echo e($order->order_type === 'ready_made' ? 'Ready-Made' : 'Customized'); ?>
+
+                </span>
+            </div>
+
+            <div class="info-item">
+                <span class="info-label">Current Status</span>
+                <span class="status-text status-<?php echo e($order->order_status); ?>">
+                    <?php echo e(ucfirst($order->order_status)); ?>
+
+                </span>
+            </div>
+        </div>
+
+        <?php if(in_array($order->order_status, ['completed', 'cancelled'])): ?>
+        <div class="status-update">
+            <div class="locked-note">
+                This order is <strong><?php echo e($order->order_status); ?></strong>. Status can no longer be changed.
+            </div>
+        </div>
+        <?php else: ?>
+        <div class="status-update">
+            <form action="<?php echo e(route('orders.status.update', $order)); ?>" method="POST">
+                <?php echo csrf_field(); ?>
+                <?php echo method_field('PUT'); ?>
+
+                <div class="status-form-row">
+                    <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 200px;">
+                        <label for="order_status">Update Status</label>
+                        <select id="order_status" name="order_status" class="form-control" required>
+                            <option value="pending" <?php echo e($order->order_status === 'pending' ? 'selected' : ''); ?>>Pending</option>
+                            <option value="confirmed" <?php echo e($order->order_status === 'confirmed' ? 'selected' : ''); ?>>Confirmed</option>
+                            <option value="preparing" <?php echo e($order->order_status === 'preparing' ? 'selected' : ''); ?>>Preparing</option>
+                            <option value="ready" <?php echo e($order->order_status === 'ready' ? 'selected' : ''); ?>>Ready</option>
+                            <option value="completed" <?php echo e($order->order_status === 'completed' ? 'selected' : ''); ?>>Completed</option>
+                            <option value="cancelled" <?php echo e($order->order_status === 'cancelled' ? 'selected' : ''); ?>>Cancelled</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="padding: 10px 20px;">
+                        Update Status
+                    </button>
+                </div>
+            </form>
+        </div>
+        <?php endif; ?>
     </div>
-</div>
 
+    
+    <div class="card">
+        <h2 class="card-heading">Receiver Information</h2>
 
-<div class="card" style="margin-bottom: 20px;">
-    <h2 class="card-heading">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#D4AF37" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-        </svg>
-        Receiver Information
-    </h2>
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="info-label">Receiver Name</span>
+                <span class="info-value"><?php echo e($order->receiver_full_name); ?></span>
+            </div>
 
-    <div class="info-grid">
+            <div class="info-item">
+                <span class="info-label">Mobile Number</span>
+                <span class="info-value"><?php echo e($order->receiver_contact); ?></span>
+            </div>
 
-        <div class="info-item">
-            <span class="info-label">Receiver Name</span>
-            <span class="info-value"><?php echo e($order->receiver_full_name); ?></span>
+            <div class="info-item">
+                <span class="info-label">Delivery / Pickup Schedule</span>
+                <span class="info-value">
+                    <?php echo e($order->delivery_datetime ? $order->delivery_datetime->format('M d, Y h:i A') : '—'); ?>
+
+                </span>
+            </div>
+
+            <div class="info-item">
+                <span class="info-label">Fulfillment</span>
+                <span class="info-value"><?php echo e(ucfirst($order->fulfillment_type)); ?></span>
+            </div>
+
+            <?php if($order->fulfillment_type === 'delivery'): ?>
+            <div class="info-item" style="grid-column: 1 / -1;">
+                <span class="info-label">Delivery Address</span>
+                <span class="info-value"><?php echo e($order->delivery_address ?: '—'); ?></span>
+            </div>
+            <?php endif; ?>
         </div>
-
-        <div class="info-item">
-            <span class="info-label">Contact Number</span>
-            <span class="info-value"><?php echo e($order->receiver_contact); ?></span>
-        </div>
-
-        <div class="info-item">
-            <span class="info-label">Delivery / Pickup Timing</span>
-            <span class="info-value"><?php echo e($order->delivery_timing); ?></span>
-        </div>
-
-        <div class="info-item" style="grid-column: 1 / -1;">
-            <span class="info-label">Delivery Address</span>
-            <span class="info-value"><?php echo e($order->delivery_address ?: '—'); ?></span>
-        </div>
-
     </div>
-</div>
 
+    
+    <div class="card">
+        <h2 class="card-heading">Payment Information</h2>
 
-<div class="card" style="margin-bottom: 20px;">
-    <h2 class="card-heading">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#2E5A3B" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-        </svg>
-        Payment &amp; Fulfillment
-    </h2>
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="info-label">GCash Reference Number</span>
+                <span class="info-value mono-soft"><?php echo e($order->payment_proof_reference ?: '—'); ?></span>
+            </div>
 
-    <div class="info-grid">
-
-        <div class="info-item">
-            <span class="info-label">Fulfillment Type</span>
-            <span class="info-value"><?php echo e(ucfirst($order->fulfillment_type)); ?></span>
+            <div class="info-item">
+                <span class="info-label">Delivery Fee</span>
+                <span class="info-value">₱<?php echo e(number_format($order->delivery_fee, 2)); ?></span>
+            </div>
         </div>
-
-        <div class="info-item">
-            <span class="info-label">Delivery Fee</span>
-            <span class="info-value price">₱<?php echo e(number_format($order->delivery_fee, 2)); ?></span>
-        </div>
-
-        <div class="info-item">
-            <span class="info-label">Payment Proof Reference</span>
-            <span class="info-value"><?php echo e($order->payment_proof_reference ?: '—'); ?></span>
-        </div>
-
     </div>
-</div>
 
+    
+    <div class="card">
+        <h2 class="card-heading">Order Items</h2>
 
-<div class="card" style="border-top: 4px solid #D4AF37;">
-    <h2 class="card-heading">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#D4AF37" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-        </svg>
-        Order Items
-    </h2>
-
-    <div style="overflow-x: auto;">
-        <table>
-            <thead>
-                <tr>
-                    <th>Product</th>
-                    <th style="text-align: right;">Quantity</th>
-                    <th style="text-align: right;">Unit Price</th>
-                    <th>Customization</th>
-                    <th style="text-align: right;">Line Total</th>
-                </tr>
-            </thead>
-
-            <tbody>
-                <?php $__currentLoopData = $order->items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
                     <tr>
-                        <td style="font-weight: 600; color: #212121;">
-                            <?php echo e($item->product->display_name); ?>
+                        <th>Item</th>
+                        <th class="num">Quantity</th>
+                        <th class="num">Unit Price</th>
+                        <th class="num">Line Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php $__currentLoopData = $order->items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <tr>
+                        <td>
+                            <?php if($item->product): ?>
+                            <div style="font-weight: 600; color: #212121;">
+                                <?php echo e($item->product->display_name); ?>
 
+                            </div>
+                            <?php else: ?>
+                            <div style="font-weight: 600; color: #212121; font-style: italic;">
+                                Custom Bouquet
+                            </div>
+                            <?php if($item->customization_details): ?>
+                            <div style="font-size: 12px; color: #64748B; margin-top: 3px; line-height: 1.4;">
+                                <?php echo e($item->customization_details); ?>
+
+                            </div>
+                            <?php endif; ?>
+                            <?php endif; ?>
                         </td>
 
-                        <td style="text-align: right; color: #212121;">
+                        <td class="num" style="color: #212121;">
                             <?php echo e((float) $item->quantity); ?>
 
                         </td>
 
-                        <td style="text-align: right; color: #64748B;">
+                        <td class="num" style="color: #64748B;">
                             ₱<?php echo e(number_format($item->unit_price, 2)); ?>
 
                         </td>
 
-                        <td style="color: #64748B;">
-                            <?php echo e($item->customization_details ?: '—'); ?>
-
-                        </td>
-
-                        <td style="text-align: right; font-weight: 700; color: #2E5A3B;">
+                        <td class="num" style="font-weight: 700; color: #2E5A3B;">
                             ₱<?php echo e(number_format($item->line_total, 2)); ?>
 
                         </td>
                     </tr>
-                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-            </tbody>
-        </table>
-    </div>
-
-    
-    <div class="order-summary">
-        <div class="summary-line">
-            <span>Delivery Fee</span>
-            <strong>₱<?php echo e(number_format($order->delivery_fee, 2)); ?></strong>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                </tbody>
+            </table>
         </div>
-        <div class="summary-line total">
-            <span>Total</span>
-            <strong>₱<?php echo e(number_format($order->total_amount, 2)); ?></strong>
+
+        <?php if($order->discount_type && $order->discount_type !== 'none'): ?>
+        <div class="discount-info">
+            <div class="discount-info-title">
+                <?php echo e($order->discount_type === 'pwd' ? 'PWD Discount Applied' : 'Senior Citizen Discount Applied'); ?>
+
+            </div>
+            <div class="discount-info-row">
+                <span>Name:</span>
+                <span><?php echo e($order->discount_name ?: '—'); ?></span>
+            </div>
+            <div class="discount-info-row">
+                <span>ID No:</span>
+                <span><?php echo e($order->discount_id_number ?: '—'); ?></span>
+            </div>
+        </div>
+        <?php endif; ?>
+
+        <div class="order-summary">
+            <div class="summary-line">
+                <span>Subtotal</span>
+                <strong>₱<?php echo e(number_format($order->subtotal, 2)); ?></strong>
+            </div>
+
+            <?php if($order->discount_amount > 0): ?>
+            <div class="summary-line discount-line">
+                <span>Discount (20%)</span>
+                <strong>− ₱<?php echo e(number_format($order->discount_amount, 2)); ?></strong>
+            </div>
+            <?php endif; ?>
+
+            <?php if($order->fulfillment_type === 'delivery' && $order->delivery_fee > 0): ?>
+            <div class="summary-line">
+                <span>Delivery Fee</span>
+                <strong>₱<?php echo e(number_format($order->delivery_fee, 2)); ?></strong>
+            </div>
+            <?php endif; ?>
+
+            <div class="summary-line total">
+                <span>Total</span>
+                <strong>₱<?php echo e(number_format($order->total_amount, 2)); ?></strong>
+            </div>
         </div>
     </div>
 
 </div>
 
 <style>
+    .form-page-wide {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .card {
+        margin-bottom: 20px;
+    }
+
+    .ref-badge {
+        font-family: 'SF Mono', Consolas, monospace;
+        font-size: 15px;
+        color: #94A3B8;
+        font-weight: 600;
+        margin-left: 8px;
+        vertical-align: middle;
+    }
+
     .card-heading {
         font-size: 16px;
         font-weight: 700;
         color: #212121;
         margin-bottom: 18px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #FCE4EC;
+        display: inline-block;
     }
 
     .info-grid {
@@ -256,12 +314,21 @@
         font-size: 14px;
         color: #212121;
         font-weight: 500;
+        word-break: break-word;
     }
 
-    .info-value.price {
+    .info-value.mono {
+        font-family: 'SF Mono', Consolas, monospace;
         font-weight: 700;
-        color: #2E5A3B;
-        font-size: 16px;
+        color: #E85D75;
+        letter-spacing: 0.5px;
+    }
+
+    .info-value.mono-soft {
+        font-family: 'SF Mono', Consolas, monospace;
+        font-weight: 700;
+        color: #212121;
+        letter-spacing: 0.5px;
     }
 
     .status-text {
@@ -271,12 +338,30 @@
         cursor: default;
         user-select: none;
     }
-    .status-pending { color: #64748B; }
-    .status-confirmed { color: #E85D75; }
-    .status-preparing { color: #B8860B; }
-    .status-ready { color: #D14A62; }
-    .status-completed { color: #2E5A3B; }
-    .status-cancelled { color: #DC3545; }
+
+    .status-pending {
+        color: #64748B;
+    }
+
+    .status-confirmed {
+        color: #E85D75;
+    }
+
+    .status-preparing {
+        color: #B8860B;
+    }
+
+    .status-ready {
+        color: #D14A62;
+    }
+
+    .status-completed {
+        color: #2E5A3B;
+    }
+
+    .status-cancelled {
+        color: #DC3545;
+    }
 
     .status-update {
         margin-top: 20px;
@@ -284,39 +369,111 @@
         border-top: 1px solid #F0E6DD;
     }
 
-    .order-summary {
+    .status-form-row {
+        display: flex;
+        gap: 10px;
+        align-items: flex-end;
+        flex-wrap: wrap;
+    }
+
+    .discount-info {
         margin-top: 20px;
+        padding: 14px 16px;
+        background: #FFF8E1;
+        border-left: 4px solid #D4AF37;
+        border-radius: 8px;
+    }
+
+    .discount-info-title {
+        font-size: 11px;
+        font-weight: 700;
+        color: #B8860B;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+    }
+
+    .discount-info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 4px 0;
+        font-size: 13px;
+    }
+
+    .discount-info-row span:first-child {
+        color: #94A3B8;
+    }
+
+    .discount-info-row span:last-child {
+        color: #212121;
+        font-weight: 600;
+        text-align: right;
+        max-width: 65%;
+        word-break: break-word;
+    }
+
+    .order-summary {
+        margin-top: 24px;
         padding-top: 20px;
         border-top: 2px solid #F8BBD0;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
     }
+
     .summary-line {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        width: 100%;
+        max-width: 320px;
         padding: 6px 0;
         font-size: 14px;
         color: #64748B;
     }
+
     .summary-line strong {
-        font-size: 16px;
+        font-size: 15px;
         color: #212121;
-        font-weight: 700;
+        font-weight: 600;
     }
+
+    .summary-line.discount-line span,
+    .summary-line.discount-line strong {
+        color: #B8860B;
+        font-weight: 600;
+    }
+
     .summary-line.total {
-        margin-top: 6px;
-        padding-top: 12px;
+        margin-top: 10px;
+        padding-top: 14px;
         border-top: 1px dashed #F0E6DD;
     }
+
     .summary-line.total span {
         font-size: 15px;
-        font-weight: 600;
+        font-weight: 700;
         color: #212121;
     }
+
     .summary-line.total strong {
         font-size: 24px;
         color: #E85D75;
-        cursor: default;
-        user-select: none;
+        font-weight: 700;
+    }
+
+    .locked-note {
+        padding: 14px 18px;
+        background: #F1F5F9;
+        color: #64748B;
+        font-size: 13px;
+        border-radius: 10px;
+        text-align: center;
+    }
+
+    .locked-note strong {
+        text-transform: capitalize;
+        color: #212121;
     }
 </style>
 

@@ -7,109 +7,480 @@
 <div class="page-header">
     <div>
         <h1>Records</h1>
-        <p>View transaction records and history.</p>
+        <p>View transaction records and historical data.</p>
     </div>
 </div>
 
-{{-- RECORD TYPE CARDS --}}
-<div class="record-grid">
-
-    <a href="{{ route('reports.sales') }}" class="record-card">
-        <div class="record-icon" style="background: #FCE4EC; color: #E85D75;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-        </div>
-        <h3>Sales Records</h3>
-        <p>All completed sales transactions.</p>
+{{-- TOP TABS --}}
+<div class="record-tabs">
+    <a href="{{ route('records.index', ['tab' => 'sales']) }}"
+        class="record-tab {{ $tab === 'sales' ? 'active' : '' }}">
+        Sales
     </a>
-
-    <a href="{{ route('orders.index') }}" class="record-card">
-        <div class="record-icon" style="background: #E8F5E9; color: #2E5A3B;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
-        </div>
-        <h3>Order Records</h3>
-        <p>All recorded online bouquet orders.</p>
+    <a href="{{ route('records.index', ['tab' => 'purchases']) }}"
+        class="record-tab {{ $tab === 'purchases' ? 'active' : '' }}">
+        Purchases
     </a>
-
-    <a href="{{ route('purchases.index') }}" class="record-card">
-        <div class="record-icon" style="background: #FFF8E1; color: #B8860B;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-            </svg>
-        </div>
-        <h3>Purchase Records</h3>
-        <p>All recorded stock-in transactions.</p>
+    <a href="{{ route('records.index', ['tab' => 'production']) }}"
+        class="record-tab {{ $tab === 'production' ? 'active' : '' }}">
+        Production
     </a>
-
-    <a href="{{ route('production.index') }}" class="record-card">
-        <div class="record-icon" style="background: #F1F5F9; color: #475569;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-            </svg>
-        </div>
-        <h3>Production Records</h3>
-        <p>All recorded production activity.</p>
+    <a href="{{ route('records.index', ['tab' => 'customers']) }}"
+        class="record-tab {{ $tab === 'customers' ? 'active' : '' }}">
+        Customers
     </a>
+</div>
 
-    <a href="{{ route('customers.index') }}" class="record-card">
-        <div class="record-icon" style="background: #FCE4EC; color: #D14A62;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-        </div>
-        <h3>Customer Records</h3>
-        <p>All registered customers.</p>
+{{-- SUB TABS (only on Sales) --}}
+@if($tab === 'sales')
+<div class="record-sub-tabs">
+    <a href="{{ route('records.index', ['tab' => 'sales', 'sub' => 'walk-in']) }}"
+        class="record-sub-tab {{ $sub === 'walk-in' ? 'active' : '' }}">
+        Walk-in Sales
     </a>
+    <a href="{{ route('records.index', ['tab' => 'sales', 'sub' => 'online']) }}"
+        class="record-sub-tab {{ $sub === 'online' ? 'active' : '' }}">
+        Online Orders
+    </a>
+</div>
+@endif
+
+{{-- TAB ACTION BUTTON --}}
+@if($tab === 'customers')
+<div class="tab-action-row">
+    <a href="{{ route('customers.create', ['from' => 'records']) }}" class="btn btn-primary">
+        + Add Customer
+    </a>
+</div>
+@endif
+
+<div class="card">
+
+    {{-- WALK-IN SALES --}}
+    @if($tab === 'sales' && $sub === 'walk-in')
+
+    @if($sales->isEmpty())
+    <div class="empty-state">
+        <h3>No walk-in sales yet</h3>
+        <p>Sales recorded at the POS will appear here.</p>
+    </div>
+    @else
+    <div style="overflow-x: auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Receipt No.</th>
+                    <th>Date &amp; Time</th>
+                    <th>Customer</th>
+                    <th>Payment</th>
+                    <th class="num">Total</th>
+                    <th class="num">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($sales as $sale)
+                <tr>
+                    <td style="font-family: 'SF Mono', Consolas, monospace; font-size: 12px; color: #64748B; font-weight: 600;">
+                        {{ $sale->reference_code }}
+                    </td>
+                    <td style="color: #64748B; white-space: nowrap;">
+                        {{ $sale->sale_date->format('M d, Y h:i A') }}
+                    </td>
+                    <td style="font-weight: 500;">
+                        {{ $sale->customer->full_name ?? 'Walk-in' }}
+                    </td>
+                    <td>
+                        <span style="font-size: 12px; font-weight: 600; text-transform: capitalize; color: {{ $sale->payment_method === 'cash' ? '#E85D75' : '#2E5A3B' }};">
+                            {{ str_replace('_', ' ', $sale->payment_method) }}
+                        </span>
+                    </td>
+                    <td class="num" style="font-weight: 700; color: #2E5A3B;">
+                        ₱{{ number_format($sale->total_amount, 2) }}
+                    </td>
+                    <td class="num">
+                        <a href="{{ route('sales.print', $sale) }}?from=records"
+                            class="action-btn view">
+                            View Receipt
+                        </a>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+
+    <div class="pagination-wrap">
+        {{ $sales->appends(['tab' => 'sales', 'sub' => 'walk-in'])->links() }}
+    </div>
+    @endif
+
+    {{-- ONLINE ORDERS --}}
+    @elseif($tab === 'sales' && $sub === 'online')
+
+    @if($orders->isEmpty())
+    <div class="empty-state">
+        <h3>No online orders yet</h3>
+        <p>Orders recorded through Messenger will appear here.</p>
+    </div>
+    @else
+    <div style="overflow-x: auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Order No.</th>
+                    <th>Date &amp; Time</th>
+                    <th>Customer</th>
+                    <th>Status</th>
+                    <th class="num">Total</th>
+                    <th class="num">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($orders as $order)
+                <tr>
+                    <td style="font-family: 'SF Mono', Consolas, monospace; font-size: 12px; color: #64748B; font-weight: 600;">
+                        {{ $order->reference_code }}
+                    </td>
+                    <td style="color: #64748B; white-space: nowrap;">
+                        {{ $order->order_date->format('M d, Y h:i A') }}
+                    </td>
+                    <td style="font-weight: 500;">
+                        {{ $order->customer->full_name ?? $order->customer_name ?? 'Unregistered' }}
+                    </td>
+                    <td>
+                        <span style="font-size: 12px; font-weight: 600; text-transform: capitalize;
+                                        color: @switch($order->order_status)
+                                            @case('pending') #64748B @break
+                                            @case('confirmed') #E85D75 @break
+                                            @case('preparing') #B8860B @break
+                                            @case('ready') #D14A62 @break
+                                            @case('completed') #2E5A3B @break
+                                            @case('cancelled') #DC3545 @break
+                                            @default #64748B
+                                        @endswitch;">
+                            {{ str_replace('_', ' ', $order->order_status) }}
+                        </span>
+                    </td>
+                    <td class="num" style="font-weight: 700; color: #2E5A3B;">
+                        ₱{{ number_format($order->total_amount, 2) }}
+                    </td>
+                    <td class="num">
+                        <div class="action-group">
+                            <a href="{{ route('orders.show', ['order' => $order, 'from' => 'records']) }}" class="action-btn view">
+                                View
+                            </a>
+                            <a href="{{ route('orders.print', $order) }}?from=records" class="action-btn receipt">
+                                Receipt
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+
+    <div class="pagination-wrap">
+        {{ $orders->appends(['tab' => 'sales', 'sub' => 'online'])->links() }}
+    </div>
+    @endif
+
+    {{-- PURCHASES --}}
+    @elseif($tab === 'purchases')
+
+    @if($purchases->isEmpty())
+    <div class="empty-state">
+        <h3>No stock-in records yet</h3>
+        <p>Restocking entries will appear here.</p>
+    </div>
+    @else
+    <div style="overflow-x: auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Date &amp; Time</th>
+                    <th>Supplier</th>
+                    <th>Recorded By</th>
+                    <th class="num">Total Amount</th>
+                    <th class="num">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($purchases as $purchase)
+                <tr>
+                    <td style="color: #64748B; white-space: nowrap;">
+                        {{ $purchase->purchase_date->format('M d, Y h:i A') }}
+                    </td>
+                    <td style="font-weight: 500;">
+                        {{ $purchase->supplier_name ?: '—' }}
+                    </td>
+                    <td style="color: #64748B;">
+                        {{ $purchase->user->full_name ?? 'Unknown' }}
+                    </td>
+                    <td class="num" style="font-weight: 700; color: #2E5A3B;">
+                        ₱{{ number_format($purchase->total_amount, 2) }}
+                    </td>
+                    <td class="num">
+                        <a href="{{ route('purchases.show', $purchase) }}" class="action-btn view">
+                            View
+                        </a>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+
+    <div class="pagination-wrap">
+        {{ $purchases->appends(['tab' => 'purchases'])->links() }}
+    </div>
+    @endif
+
+    {{-- PRODUCTION --}}
+    @elseif($tab === 'production')
+
+    @if($productions->isEmpty())
+    <div class="empty-state">
+        <h3>No production records yet</h3>
+        <p>Production entries will appear here.</p>
+    </div>
+    @else
+    <div style="overflow-x: auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Date &amp; Time</th>
+                    <th>Product</th>
+                    <th>Produced By</th>
+                    <th class="num">Quantity Produced</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($productions as $production)
+                <tr>
+                    <td style="color: #64748B; white-space: nowrap;">
+                        {{ $production->production_date->format('M d, Y h:i A') }}
+                    </td>
+                    <td style="font-weight: 600;">
+                        {{ $production->product->display_name }}
+                    </td>
+                    <td style="color: #64748B;">
+                        {{ $production->producedBy->full_name ?? 'Unknown' }}
+                    </td>
+                    <td class="num" style="font-weight: 700; color: #2E5A3B;">
+                        {{ (float) $production->quantity_produced }} {{ $production->product->stock_unit }}
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+
+    <div class="pagination-wrap">
+        {{ $productions->appends(['tab' => 'production'])->links() }}
+    </div>
+    @endif
+
+    {{-- CUSTOMERS --}}
+    @elseif($tab === 'customers')
+
+    @if($customers->isEmpty())
+    <div class="empty-state">
+        <h3>No customers yet</h3>
+        <p>Click "+ Add Customer" to register the first one.</p>
+    </div>
+    @else
+    <div style="overflow-x: auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Contact Number</th>
+                    <th>Address</th>
+                    <th>Regular</th>
+                    <th class="num">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($customers as $customer)
+                <tr>
+                    <td style="font-weight: 600;">
+                        {{ $customer->full_name }}
+                    </td>
+                    <td style="color: #64748B;">
+                        {{ $customer->contact_number }}
+                    </td>
+                    <td style="color: #64748B;">
+                        {{ $customer->address ?: '—' }}
+                    </td>
+                    <td>
+                        @if($customer->is_regular)
+                        <span style="color: #2E5A3B; font-weight: 600; font-size: 13px;">Yes</span>
+                        @else
+                        <span style="color: #94A3B8; font-style: italic; font-size: 13px;">No</span>
+                        @endif
+                    </td>
+                    <td class="num">
+                        <a href="{{ route('customers.edit', ['customer' => $customer, 'from' => 'records']) }}"
+                            class="action-btn view">
+                            View
+                        </a>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+
+    <div class="pagination-wrap">
+        {{ $customers->appends(['tab' => 'customers'])->links() }}
+    </div>
+    @endif
+
+    @endif
 
 </div>
 
 <style>
-    .record-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap: 16px;
-    }
-
-    .record-card {
-        display: block;
-        padding: 22px;
-        background: #FFFFFF;
-        border: 1.5px solid #F0E6DD;
-        border-radius: 14px;
-        text-decoration: none;
-        transition: all 0.2s ease;
-    }
-
-    .record-card:hover {
-        border-color: #E85D75;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(232, 93, 117, 0.12);
-    }
-
-    .record-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 12px;
+    .record-tabs {
         display: flex;
+        gap: 28px;
+        margin-bottom: 20px;
+        border-bottom: 1.5px solid #F0E6DD;
+    }
+
+    .record-tab {
+        display: inline-flex;
         align-items: center;
-        justify-content: center;
-        margin-bottom: 14px;
-    }
-
-    .record-card h3 {
+        padding: 10px 2px;
+        text-decoration: none;
         font-size: 15px;
-        font-weight: 700;
-        color: #212121;
-        margin-bottom: 4px;
+        font-weight: 600;
+        color: #94A3B8;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -1.5px;
+        transition: all 0.15s ease;
     }
 
-    .record-card p {
+    .record-tab:hover {
+        color: #E85D75;
+    }
+
+    .record-tab.active {
+        color: #E85D75;
+        border-bottom-color: #E85D75;
+    }
+
+    .record-sub-tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 20px;
+        background: #FFFFFF;
+        padding: 4px;
+        border-radius: 10px;
+        border: 1px solid #F0E6DD;
+        width: fit-content;
+    }
+
+    .record-sub-tab {
+        padding: 8px 18px;
+        border-radius: 6px;
+        text-decoration: none;
         font-size: 13px;
+        font-weight: 600;
         color: #64748B;
-        line-height: 1.4;
+        transition: all 0.15s ease;
+    }
+
+    .record-sub-tab:hover {
+        background: #FEFCF9;
+        color: #E85D75;
+    }
+
+    .record-sub-tab.active {
+        background: #FCE4EC;
+        color: #E85D75;
+    }
+
+    .tab-action-row {
+        display: flex;
+        justify-content: flex-start;
+        margin-bottom: 16px;
+    }
+
+    .action-group {
+        display: inline-flex;
+        gap: 6px;
+        justify-content: flex-end;
+    }
+
+    .action-btn {
+        display: inline-block;
+        padding: 5px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        border: none;
+        transition: all 0.15s ease;
+        white-space: nowrap;
+        font-family: inherit;
+    }
+
+    .action-btn.view {
+        background: #FCE4EC;
+        color: #E85D75;
+    }
+
+    .action-btn.view:hover {
+        background: #F8BBD0;
+        color: #D14A62;
+    }
+
+    .action-btn.receipt {
+        background: #F1F5F9;
+        color: #475569;
+    }
+
+    .action-btn.receipt:hover {
+        background: #E2E8F0;
+        color: #1E293B;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #64748B;
+    }
+
+    .empty-state h3 {
+        font-size: 18px;
+        color: #212121;
+        margin-bottom: 6px;
+        font-weight: 700;
+    }
+
+    .empty-state p {
+        font-size: 14px;
+    }
+
+    .pagination-wrap {
+        margin-top: 20px;
+        display: flex;
+        justify-content: center;
+    }
+
+    @media (max-width: 640px) {
+        .record-tabs {
+            gap: 20px;
+            overflow-x: auto;
+        }
+
+        .record-tab {
+            font-size: 13px;
+            white-space: nowrap;
+        }
     }
 </style>
 

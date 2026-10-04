@@ -9,7 +9,9 @@ class Order extends Model
     protected $primaryKey = 'order_id';
 
     protected $fillable = [
+        'reference_code',
         'customer_id',
+        'customer_name',
         'user_id',
         'order_type',
         'receiver_first_name',
@@ -17,9 +19,14 @@ class Order extends Model
         'receiver_last_name',
         'receiver_contact',
         'delivery_address',
-        'delivery_timing',
+        'delivery_datetime',
         'fulfillment_type',
         'delivery_fee',
+        'subtotal',
+        'discount_type',
+        'discount_name',
+        'discount_id_number',
+        'discount_amount',
         'payment_proof_reference',
         'order_status',
         'total_amount',
@@ -30,8 +37,11 @@ class Order extends Model
     {
         return [
             'delivery_fee' => 'decimal:2',
+            'subtotal' => 'decimal:2',
+            'discount_amount' => 'decimal:2',
             'total_amount' => 'decimal:2',
             'order_date' => 'datetime',
+            'delivery_datetime' => 'datetime',
         ];
     }
 
@@ -66,10 +76,10 @@ class Order extends Model
     {
         return trim(
             $this->receiver_first_name . ' ' .
-            ($this->receiver_middle_name
-                ? $this->receiver_middle_name . ' '
-                : '') .
-            $this->receiver_last_name
+                ($this->receiver_middle_name
+                    ? $this->receiver_middle_name . ' '
+                    : '') .
+                $this->receiver_last_name
         );
     }
 }
