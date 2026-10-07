@@ -29,14 +29,13 @@ class OrderController extends Controller
             ->orderBy('first_name')
             ->get();
 
-        // Only bouquets — items that are made products, sellable, and have "bouquet" in the name
         $products = Product::with('inventory')
             ->where('item_type', 'made_product')
             ->whereIn('stock_purpose', ['retail', 'both'])
             ->where('is_active', true)
             ->where(function ($q) {
                 $q->where('name', 'LIKE', '%bouquet%')
-                    ->orWhere('variation', 'LIKE', '%bouquet%');
+                  ->orWhere('variation', 'LIKE', '%bouquet%');
             })
             ->orderBy('name')
             ->orderBy('variation')
@@ -56,9 +55,42 @@ class OrderController extends Controller
         return view('orders.show', compact('order'));
     }
 
+    public function edit(Order $order)
+    {
+        if (in_array($order->order_status, ['completed', 'cancelled'])) {
+            return redirect()
+                ->route('orders.show', $order)
+                ->with('error', 'Cannot edit an order that is already ' . $order->order_status . '.');
+        }
+
+        $order->load(['items.product', 'customer']);
+
+        $customers = Customer::orderBy('last_name')
+            ->orderBy('first_name')
+            ->get();
+
+        $products = Product::with('inventory')
+            ->where('item_type', 'made_product')
+            ->whereIn('stock_purpose', ['retail', 'both'])
+            ->where('is_active', true)
+            ->where(function ($q) {
+                $q->where('name', 'LIKE', '%bouquet%')
+                  ->orWhere('variation', 'LIKE', '%bouquet%');
+            })
+            ->orderBy('name')
+            ->orderBy('variation')
+            ->get()
+            ->map(function ($product) {
+                $retail = $product->inventory->firstWhere('reserve_type', 'retail');
+                $product->retail_stock = $retail ? (float) $retail->current_quantity : 0;
+                return $product;
+            });
+
+        return view('orders.edit', compact('order', 'customers', 'products'));
+    }
+
     public function updateStatus(Request $request, Order $order)
     {
-        // Lock completed and cancelled orders
         if (in_array($order->order_status, ['completed', 'cancelled'])) {
             return redirect()
                 ->route('orders.show', $order)
@@ -66,7 +98,7 @@ class OrderController extends Controller
         }
 
         $validated = $request->validate([
-            'order_status' => ['required', 'in:pending,confirmed,preparing,ready,completed,cancelled'],
+            'order_status' => ['required', 'in:pending,completed,cancelled'],
         ]);
 
         $oldStatus = $order->order_status;
@@ -74,12 +106,11 @@ class OrderController extends Controller
 
         DB::transaction(function () use ($order, $oldStatus, $newStatus) {
 
-            // If cancelling → return stock to retail
             if ($newStatus === 'cancelled' && $oldStatus !== 'cancelled') {
                 foreach ($order->items as $item) {
                     if (!$item->product_id) continue;
 
-                    $inventory = \App\Models\Inventory::where('product_id', $item->product_id)
+                    $inventory = Inventory::where('product_id', $item->product_id)
                         ->where('reserve_type', 'retail')
                         ->lockForUpdate()
                         ->first();
@@ -89,7 +120,7 @@ class OrderController extends Controller
                     $inventory->increment('current_quantity', $item->quantity);
                     $inventory->update(['last_updated' => now()]);
 
-                    \App\Models\InventoryTransaction::create([
+                    InventoryTransaction::create([
                         'inventory_id' => $inventory->inventory_id,
                         'transaction_type' => 'return_in',
                         'quantity_change' => $item->quantity,
@@ -116,6 +147,7 @@ class OrderController extends Controller
             ->route('orders.show', $order)
             ->with('success', 'Order status updated successfully.');
     }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -129,7 +161,7 @@ class OrderController extends Controller
             'delivery_address' => ['nullable', 'string', 'max:500'],
             'delivery_datetime' => ['required', 'date'],
             'fulfillment_type' => ['required', 'in:pickup,delivery'],
-            'delivery_fee' => ['required', 'numeric', 'min:0'],
+            'delivery_fee' => ['nullable', 'numeric', 'min:0'],
             'payment_proof_reference' => ['required', 'digits:13'],
 
             'discount_type' => ['required', 'in:none,pwd,senior'],
@@ -144,6 +176,11 @@ class OrderController extends Controller
             'custom_quantity' => ['nullable', 'numeric', 'gt:0'],
             'custom_unit_price' => ['nullable', 'numeric', 'min:0'],
         ]);
+
+        // Force delivery fee to 0 for pickup
+        $validated['delivery_fee'] = $validated['fulfillment_type'] === 'pickup'
+            ? 0
+            : (float) ($validated['delivery_fee'] ?? 0);
 
         if (empty($validated['customer_id']) && empty($validated['customer_name'])) {
             return back()->withErrors([
@@ -189,10 +226,9 @@ class OrderController extends Controller
 
                 $subtotal = 0;
                 $orderItems = [];
-                $stockToDeduct = []; // product_id => quantity to deduct
+                $stockToDeduct = [];
 
                 if ($validated['order_type'] === 'ready_made') {
-
                     foreach ($validated['items'] as $item) {
                         $product = Product::findOrFail($item['product_id']);
 
@@ -202,7 +238,6 @@ class OrderController extends Controller
 
                         $quantity = (float) $item['quantity'];
 
-                        // Check retail stock
                         $retailInventory = Inventory::where('product_id', $product->product_id)
                             ->where('reserve_type', 'retail')
                             ->lockForUpdate()
@@ -213,7 +248,7 @@ class OrderController extends Controller
                         if ($available < $quantity) {
                             throw new \Exception(
                                 "Insufficient retail stock for {$product->name}. " .
-                                    "Available: " . number_format($available, 2) . ", Requested: " . number_format($quantity, 2) . "."
+                                "Available: " . number_format($available, 2) . ", Requested: " . number_format($quantity, 2) . "."
                             );
                         }
 
@@ -229,7 +264,6 @@ class OrderController extends Controller
                             'line_total' => $lineTotal,
                         ];
 
-                        // Track for deduction
                         if (!isset($stockToDeduct[$product->product_id])) {
                             $stockToDeduct[$product->product_id] = 0;
                         }
@@ -248,7 +282,6 @@ class OrderController extends Controller
                         'customization_details' => $validated['custom_description'],
                         'line_total' => $lineTotal,
                     ];
-                    // No stock deduction for customized orders
                 }
 
                 $discountAmount = 0;
@@ -256,7 +289,7 @@ class OrderController extends Controller
                     $discountAmount = $subtotal * 0.20;
                 }
 
-                $deliveryFee = (float) $validated['delivery_fee'];
+                $deliveryFee = (float) ($validated['delivery_fee'] ?? 0);
                 if ($validated['fulfillment_type'] === 'pickup') {
                     $deliveryFee = 0;
                 }
@@ -287,7 +320,6 @@ class OrderController extends Controller
                     'order_date' => now(),
                 ]);
 
-                // Reference code
                 $datePart = $order->order_date->format('dmy');
                 $prefix = 'ORD-' . $datePart . '-';
 
@@ -307,13 +339,11 @@ class OrderController extends Controller
 
                 $orderId = $order->order_id;
 
-                // Create order items
                 foreach ($orderItems as $item) {
                     $item['order_id'] = $order->order_id;
                     OrderItem::create($item);
                 }
 
-                // Deduct stock for ready-made items
                 foreach ($stockToDeduct as $productId => $quantity) {
                     $inventory = Inventory::where('product_id', $productId)
                         ->where('reserve_type', 'retail')
@@ -355,50 +385,10 @@ class OrderController extends Controller
             return redirect()
                 ->route('orders.print', $orderId)
                 ->with('success', 'Order recorded successfully.');
+
         } catch (\Exception $e) {
             return back()->withInput()->with('error', $e->getMessage());
         }
-    }
-
-    public function print(Order $order)
-    {
-        $order->load(['items.product', 'customer', 'user']);
-        return view('orders.print', compact('order'));
-    }
-
-    public function edit(Order $order)
-    {
-        // Block editing completed/cancelled orders
-        if (in_array($order->order_status, ['completed', 'cancelled'])) {
-            return redirect()
-                ->route('orders.show', $order)
-                ->with('error', 'Cannot edit an order that is already ' . $order->order_status . '.');
-        }
-
-        $order->load(['items.product', 'customer']);
-
-        $customers = \App\Models\Customer::orderBy('last_name')
-            ->orderBy('first_name')
-            ->get();
-
-        $products = \App\Models\Product::with('inventory')
-            ->where('item_type', 'made_product')
-            ->whereIn('stock_purpose', ['retail', 'both'])
-            ->where('is_active', true)
-            ->where(function ($q) {
-                $q->where('name', 'LIKE', '%bouquet%')
-                    ->orWhere('variation', 'LIKE', '%bouquet%');
-            })
-            ->orderBy('name')
-            ->orderBy('variation')
-            ->get()
-            ->map(function ($product) {
-                $retail = $product->inventory->firstWhere('reserve_type', 'retail');
-                $product->retail_stock = $retail ? (float) $retail->current_quantity : 0;
-                return $product;
-            });
-
-        return view('orders.edit', compact('order', 'customers', 'products'));
     }
 
     public function update(Request $request, Order $order)
@@ -419,13 +409,18 @@ class OrderController extends Controller
             'delivery_address' => ['nullable', 'string', 'max:500'],
             'delivery_datetime' => ['required', 'date'],
             'fulfillment_type' => ['required', 'in:pickup,delivery'],
-            'delivery_fee' => ['required', 'numeric', 'min:0'],
+            'delivery_fee' => ['nullable', 'numeric', 'min:0'],
             'payment_proof_reference' => ['required', 'digits:13'],
 
             'discount_type' => ['required', 'in:none,pwd,senior'],
             'discount_name' => ['nullable', 'string', 'max:120'],
             'discount_id_number' => ['nullable', 'string', 'max:30'],
         ]);
+
+        // Force delivery fee to 0 for pickup
+        $validated['delivery_fee'] = $validated['fulfillment_type'] === 'pickup'
+            ? 0
+            : (float) ($validated['delivery_fee'] ?? 0);
 
         if (empty($validated['customer_id']) && empty($validated['customer_name'])) {
             return back()->withErrors([
@@ -454,13 +449,12 @@ class OrderController extends Controller
 
         DB::transaction(function () use ($validated, $order) {
 
-            // Recalculate discount from existing subtotal
             $discountAmount = 0;
             if ($validated['discount_type'] !== 'none') {
                 $discountAmount = (float) $order->subtotal * 0.20;
             }
 
-            $deliveryFee = (float) $validated['delivery_fee'];
+            $deliveryFee = (float) ($validated['delivery_fee'] ?? 0);
             if ($validated['fulfillment_type'] === 'pickup') {
                 $deliveryFee = 0;
             }
@@ -497,5 +491,11 @@ class OrderController extends Controller
         return redirect()
             ->route('orders.show', $order)
             ->with('success', 'Order updated successfully.');
+    }
+
+    public function print(Order $order)
+    {
+        $order->load(['items.product', 'customer', 'user']);
+        return view('orders.print', compact('order'));
     }
 }

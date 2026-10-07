@@ -41,12 +41,10 @@
     <a href="<?php echo e(route('products.index', ['item_type' => 'product'])); ?>"
        class="item-tab <?php echo e($itemType === 'product' ? 'active' : ''); ?>">
         Products
-        <span class="item-tab-count"><?php echo e($productCount); ?></span>
     </a>
     <a href="<?php echo e(route('products.index', ['item_type' => 'material'])); ?>"
        class="item-tab <?php echo e($itemType === 'material' ? 'active' : ''); ?>">
         Materials
-        <span class="item-tab-count"><?php echo e($materialCount); ?></span>
     </a>
 </div>
 

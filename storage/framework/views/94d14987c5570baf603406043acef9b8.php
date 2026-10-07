@@ -86,9 +86,6 @@ $backUrl = request('from') === 'records'
                         <label for="order_status">Update Status</label>
                         <select id="order_status" name="order_status" class="form-control" required>
                             <option value="pending" <?php echo e($order->order_status === 'pending' ? 'selected' : ''); ?>>Pending</option>
-                            <option value="confirmed" <?php echo e($order->order_status === 'confirmed' ? 'selected' : ''); ?>>Confirmed</option>
-                            <option value="preparing" <?php echo e($order->order_status === 'preparing' ? 'selected' : ''); ?>>Preparing</option>
-                            <option value="ready" <?php echo e($order->order_status === 'ready' ? 'selected' : ''); ?>>Ready</option>
                             <option value="completed" <?php echo e($order->order_status === 'completed' ? 'selected' : ''); ?>>Completed</option>
                             <option value="cancelled" <?php echo e($order->order_status === 'cancelled' ? 'selected' : ''); ?>>Cancelled</option>
                         </select>

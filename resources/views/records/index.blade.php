@@ -150,10 +150,7 @@
                     <td>
                         <span style="font-size: 12px; font-weight: 600; text-transform: capitalize;
                                         color: @switch($order->order_status)
-                                            @case('pending') #64748B @break
-                                            @case('confirmed') #E85D75 @break
-                                            @case('preparing') #B8860B @break
-                                            @case('ready') #D14A62 @break
+                                            @case('pending') #B8860B @break
                                             @case('completed') #2E5A3B @break
                                             @case('cancelled') #DC3545 @break
                                             @default #64748B

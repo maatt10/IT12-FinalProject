@@ -83,9 +83,6 @@ $backUrl = request('from') === 'records'
                         <label for="order_status">Update Status</label>
                         <select id="order_status" name="order_status" class="form-control" required>
                             <option value="pending" {{ $order->order_status === 'pending' ? 'selected' : '' }}>Pending</option>
-                            <option value="confirmed" {{ $order->order_status === 'confirmed' ? 'selected' : '' }}>Confirmed</option>
-                            <option value="preparing" {{ $order->order_status === 'preparing' ? 'selected' : '' }}>Preparing</option>
-                            <option value="ready" {{ $order->order_status === 'ready' ? 'selected' : '' }}>Ready</option>
                             <option value="completed" {{ $order->order_status === 'completed' ? 'selected' : '' }}>Completed</option>
                             <option value="cancelled" {{ $order->order_status === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
                         </select>

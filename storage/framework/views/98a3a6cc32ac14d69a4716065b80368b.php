@@ -159,10 +159,7 @@
                     <td>
                         <span style="font-size: 12px; font-weight: 600; text-transform: capitalize;
                                         color: <?php switch($order->order_status):
-                                            case ('pending'): ?> #64748B <?php break; ?>
-                                            <?php case ('confirmed'): ?> #E85D75 <?php break; ?>
-                                            <?php case ('preparing'): ?> #B8860B <?php break; ?>
-                                            <?php case ('ready'): ?> #D14A62 <?php break; ?>
+                                            case ('pending'): ?> #B8860B <?php break; ?>
                                             <?php case ('completed'): ?> #2E5A3B <?php break; ?>
                                             <?php case ('cancelled'): ?> #DC3545 <?php break; ?>
                                             <?php default: ?> #64748B

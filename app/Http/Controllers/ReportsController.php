@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\InventoryTransaction;
 use App\Models\Order;
 use App\Models\Product;
-use App\Models\Production;
-use App\Models\Purchase;
 use App\Models\Sale;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -28,41 +27,33 @@ class ReportsController extends Controller
     {
         $data = $this->buildData($request);
         $report = $data['report'];
+        $sub = $data['sub'];
 
-        $filename = $report . '-report-' . $data['from'] . '-to-' . $data['to'] . '.csv';
+        $filename = $report . '-' . $sub . '-report-' . $data['from'] . '-to-' . $data['to'] . '.csv';
 
         $headers = [
             'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ];
 
-        $callback = function () use ($data, $report) {
+        $callback = function () use ($data, $report, $sub) {
             $handle = fopen('php://output', 'w');
             fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
-            // Common header
             fputcsv($handle, ["Lara's Flowershop"]);
-            fputcsv($handle, [$this->reportTitle($report)]);
+            fputcsv($handle, [$this->reportTitle($report, $sub)]);
             fputcsv($handle, ['Period', $data['periodLabel']]);
             fputcsv($handle, ['Generated', now()->format('M d, Y h:i A')]);
             fputcsv($handle, []);
 
-            switch ($report) {
-                case 'sales':
-                    $this->writeSalesCsv($handle, $data);
-                    break;
-                case 'online-orders':
-                    $this->writeOrdersCsv($handle, $data);
-                    break;
-                case 'stock':
-                    $this->writeStockCsv($handle, $data);
-                    break;
-                case 'stock-in':
-                    $this->writeStockInCsv($handle, $data);
-                    break;
-                case 'production':
-                    $this->writeProductionCsv($handle, $data);
-                    break;
+            if ($report === 'sales') {
+                switch ($sub) {
+                    case 'walk-in': $this->writeSalesCsv($handle, $data); break;
+                    case 'online': $this->writeOrdersCsv($handle, $data); break;
+                    case 'overall': $this->writeOverallCsv($handle, $data); break;
+                }
+            } else {
+                $this->writeStockLedgerCsv($handle, $data);
             }
 
             fclose($handle);
@@ -71,15 +62,22 @@ class ReportsController extends Controller
         return response()->stream($callback, 200, $headers);
     }
 
-    private function reportTitle(string $report): string
+    private function reportTitle(string $report, ?string $sub = null): string
     {
-        return match ($report) {
-            'sales' => 'Sales Report',
-            'online-orders' => 'Online Orders Report',
-            'stock' => 'Overall Stock Report',
-            'stock-in' => 'Stock-in Report',
-            'production' => 'Production Report',
-            default => 'Report',
+        if ($report === 'sales') {
+            return match ($sub) {
+                'walk-in' => 'Walk-in Sales Report',
+                'online' => 'Online Orders Report',
+                'overall' => 'Overall Sales Report',
+                default => 'Sales Report',
+            };
+        }
+
+        return match ($sub) {
+            'materials' => 'Materials Stock Report',
+            'products' => 'Products Stock Report',
+            'overall' => 'Overall Stock Report',
+            default => 'Stock Report',
         };
     }
 
@@ -96,11 +94,8 @@ class ReportsController extends Controller
         fputcsv($handle, ['Discounts (₱)', number_format($s['discounts'], 2)]);
         fputcsv($handle, ['Net Sales (₱)', number_format($s['net'], 2)]);
         fputcsv($handle, ['Avg. Order Value (₱)', number_format($s['avgOrder'], 2)]);
-        fputcsv($handle, ['Cash Payments (₱)', number_format($s['paymentCash'], 2)]);
-        fputcsv($handle, ['GCash Payments (₱)', number_format($s['paymentGcash'], 2)]);
         fputcsv($handle, []);
-
-        fputcsv($handle, ['SALES RECORDS']);
+        fputcsv($handle, ['WALK-IN SALES']);
         fputcsv($handle, ['Receipt No', 'Date & Time', 'Customer', 'Payment', 'Subtotal (₱)', 'Discount (₱)', 'Total (₱)']);
 
         foreach ($data['salesRecords'] as $sale) {
@@ -124,16 +119,8 @@ class ReportsController extends Controller
         fputcsv($handle, ['Completed', $s['completed']]);
         fputcsv($handle, ['Cancelled', $s['cancelled']]);
         fputcsv($handle, ['Net Revenue (₱)', number_format($s['net'], 2)]);
-        fputcsv($handle, ['Avg. Order Value (₱)', number_format($s['avgOrder'], 2)]);
         fputcsv($handle, []);
-
-        fputcsv($handle, ['STATUS BREAKDOWN']);
-        foreach ($s['statusCounts'] as $status => $count) {
-            fputcsv($handle, [ucfirst($status), $count]);
-        }
-        fputcsv($handle, []);
-
-        fputcsv($handle, ['ORDERS']);
+        fputcsv($handle, ['ONLINE ORDERS']);
         fputcsv($handle, ['Order No', 'Date & Time', 'Customer', 'Status', 'Fulfillment', 'Total (₱)']);
 
         foreach ($data['orderRecords'] as $order) {
@@ -148,76 +135,54 @@ class ReportsController extends Controller
         }
     }
 
-    private function writeStockCsv($handle, array $data): void
+    private function writeOverallCsv($handle, array $data): void
     {
-        $s = $data['stockData'];
+        $o = $data['overallData'];
         fputcsv($handle, ['SUMMARY']);
-        fputcsv($handle, ['Total Items', $s['totalItems']]);
-        fputcsv($handle, ['Products', $s['totalProducts']]);
-        fputcsv($handle, ['Materials', $s['totalMaterials']]);
-        fputcsv($handle, ['Low Stock', $s['lowStockCount']]);
-        fputcsv($handle, ['Out of Stock', $s['outOfStockCount']]);
+        fputcsv($handle, ['Total Revenue (₱)', number_format($o['totalRevenue'], 2)]);
+        fputcsv($handle, ['Total Transactions', $o['totalCount']]);
+        fputcsv($handle, ['Walk-in Revenue (₱)', number_format($o['walkInRevenue'], 2)]);
+        fputcsv($handle, ['Online Revenue (₱)', number_format($o['onlineRevenue'], 2)]);
         fputcsv($handle, []);
+        fputcsv($handle, ['ALL TRANSACTIONS']);
+        fputcsv($handle, ['Channel', 'Reference', 'Date & Time', 'Customer', 'Total (₱)']);
 
-        fputcsv($handle, ['CURRENT STOCK']);
-        fputcsv($handle, ['Item', 'Type', 'Retail', 'Production', 'Total', 'Unit']);
-
-        foreach ($data['stockProducts'] as $product) {
+        foreach ($data['overallRecords'] as $record) {
             fputcsv($handle, [
-                $product->name . ($product->variation ? ' — ' . $product->variation : ''),
-                $product->item_type === 'material' ? 'Material' : 'Product',
-                $product->retail_stock,
-                $product->production_stock,
-                $product->total_stock,
-                $product->stock_unit,
+                $record['source'],
+                $record['reference'],
+                $record['date']->format('M d, Y h:i A'),
+                $record['customer'],
+                number_format($record['total'], 2),
             ]);
         }
     }
 
-    private function writeStockInCsv($handle, array $data): void
+    private function writeStockLedgerCsv($handle, array $data): void
     {
-        $s = $data['stockInData'];
-        fputcsv($handle, ['SUMMARY']);
-        fputcsv($handle, ['Transactions', $s['transactions']]);
-        fputcsv($handle, ['Items Received', (float) $s['totalItems']]);
-        fputcsv($handle, ['Total Spent (₱)', number_format($s['totalSpent'], 2)]);
-        fputcsv($handle, ['Avg. Transaction (₱)', number_format($s['avgTransaction'], 2)]);
-        fputcsv($handle, []);
+        fputcsv($handle, ['STOCK LEDGER']);
+        fputcsv($handle, ['Item', 'Beginning Balance', 'Stock-in', 'Stock-out', 'Remaining Balance', 'Unit']);
 
-        fputcsv($handle, ['STOCK-IN RECORDS']);
-        fputcsv($handle, ['Date & Time', 'Supplier', 'Recorded By', 'Total (₱)']);
-
-        foreach ($data['purchaseRecords'] as $purchase) {
+        foreach ($data['ledgerRows'] as $row) {
             fputcsv($handle, [
-                $purchase->purchase_date->format('M d, Y h:i A'),
-                $purchase->supplier_name ?: '—',
-                $purchase->user->full_name ?? 'Unknown',
-                number_format($purchase->total_amount, 2),
+                $row['name'],
+                $row['beginning'],
+                $row['stock_in'],
+                $row['stock_out'],
+                $row['remaining'],
+                $row['unit'],
             ]);
         }
-    }
 
-    private function writeProductionCsv($handle, array $data): void
-    {
-        $s = $data['productionData'];
-        fputcsv($handle, ['SUMMARY']);
-        fputcsv($handle, ['Batches', $s['batches']]);
-        fputcsv($handle, ['Total Produced', (float) $s['totalQuantity']]);
-        fputcsv($handle, ['Unique Products', $s['uniqueProducts']]);
-        fputcsv($handle, ['Avg. per Batch', (float) $s['avgBatch']]);
         fputcsv($handle, []);
-
-        fputcsv($handle, ['PRODUCTION RECORDS']);
-        fputcsv($handle, ['Date & Time', 'Product', 'Produced By', 'Quantity']);
-
-        foreach ($data['productionRecords'] as $production) {
-            fputcsv($handle, [
-                $production->production_date->format('M d, Y h:i A'),
-                $production->product->display_name,
-                $production->producedBy->full_name ?? 'Unknown',
-                (float) $production->quantity_produced . ' ' . $production->product->stock_unit,
-            ]);
-        }
+        fputcsv($handle, [
+            'TOTAL',
+            $data['ledgerTotals']['beginning'],
+            $data['ledgerTotals']['stock_in'],
+            $data['ledgerTotals']['stock_out'],
+            $data['ledgerTotals']['remaining'],
+            '',
+        ]);
     }
 
     /* ============================================
@@ -226,6 +191,32 @@ class ReportsController extends Controller
     private function buildData(Request $request): array
     {
         $report = $request->input('report', 'sales');
+        $sub = $request->input('sub');
+
+        // Legacy support
+        if ($report === 'online-orders') {
+            $report = 'sales';
+            $sub = 'online';
+        } elseif ($report === 'stock') {
+            $report = 'stocks';
+            $sub = 'overall';
+        }
+
+        // Sanitize
+        if (!in_array($report, ['sales', 'stocks'])) {
+            $report = 'sales';
+        }
+
+        if ($report === 'sales') {
+            if (!in_array($sub, ['walk-in', 'online', 'overall'])) {
+                $sub = 'walk-in';
+            }
+        } else {
+            if (!in_array($sub, ['materials', 'products', 'overall'])) {
+                $sub = 'materials';
+            }
+        }
+
         $period = $request->input('period', 'weekly');
         $date = $request->input('date', now()->toDateString());
 
@@ -236,6 +227,7 @@ class ReportsController extends Controller
 
         $data = [
             'report' => $report,
+            'sub' => $sub,
             'period' => $period,
             'date' => $date,
             'from' => $from,
@@ -243,22 +235,20 @@ class ReportsController extends Controller
             'periodLabel' => $periodLabel,
         ];
 
-        switch ($report) {
-            case 'sales':
-                $data += $this->salesData($fromDate, $toDate);
-                break;
-            case 'online-orders':
-                $data += $this->onlineOrdersData($fromDate, $toDate);
-                break;
-            case 'stock':
-                $data += $this->stockData();
-                break;
-            case 'stock-in':
-                $data += $this->stockInData($fromDate, $toDate);
-                break;
-            case 'production':
-                $data += $this->productionData($fromDate, $toDate);
-                break;
+        if ($report === 'sales') {
+            $data += $this->salesData($fromDate, $toDate);
+            $data += $this->onlineOrdersData($fromDate, $toDate);
+
+            if ($sub === 'overall') {
+                $data += $this->overallSalesData(
+                    $data['salesData'],
+                    $data['ordersData'],
+                    $data['salesRecords'],
+                    $data['orderRecords']
+                );
+            }
+        } else {
+            $data += $this->stockLedgerData($fromDate, $toDate, $sub);
         }
 
         return $data;
@@ -303,9 +293,7 @@ class ReportsController extends Controller
         $discounts = $sales->sum('discount_amount');
         $net = $sales->sum('total_amount');
         $count = $sales->count();
-        $itemsSold = $sales->sum(function ($sale) {
-            return $sale->items->sum('quantity');
-        });
+        $itemsSold = $sales->sum(fn ($sale) => $sale->items->sum('quantity'));
 
         return [
             'salesData' => [
@@ -342,9 +330,6 @@ class ReportsController extends Controller
                 'avgOrder' => $count > 0 ? $net / $count : 0,
                 'statusCounts' => [
                     'pending' => $orders->where('order_status', 'pending')->count(),
-                    'confirmed' => $orders->where('order_status', 'confirmed')->count(),
-                    'preparing' => $orders->where('order_status', 'preparing')->count(),
-                    'ready' => $orders->where('order_status', 'ready')->count(),
                     'completed' => $orders->where('order_status', 'completed')->count(),
                     'cancelled' => $orders->where('order_status', 'cancelled')->count(),
                 ],
@@ -353,84 +338,123 @@ class ReportsController extends Controller
         ];
     }
 
-    private function stockData(): array
+    private function overallSalesData(array $salesData, array $ordersData, $salesRecords, $orderRecords): array
     {
-        $products = Product::with('inventory')
-            ->where('is_active', true)
-            ->orderBy('item_type')
-            ->orderBy('name')
-            ->get()
-            ->map(function ($product) {
-                $retail = $product->inventory->firstWhere('reserve_type', 'retail');
-                $production = $product->inventory->firstWhere('reserve_type', 'production');
-                $threshold = (float) $product->low_stock_threshold;
+        $walkInRevenue = (float) $salesData['net'];
+        $onlineRevenue = (float) $ordersData['net'];
+        $totalRevenue = $walkInRevenue + $onlineRevenue;
 
-                $product->retail_stock = $retail ? (float) $retail->current_quantity : 0;
-                $product->production_stock = $production ? (float) $production->current_quantity : 0;
-                $product->total_stock = $product->retail_stock + $product->production_stock;
+        $walkInCount = (int) $salesData['orders'];
+        $onlineCount = (int) $ordersData['total'];
+        $totalCount = $walkInCount + $onlineCount;
 
-                $product->retail_low = $retail && $product->retail_stock <= $threshold;
-                $product->production_low = $production && $product->production_stock <= $threshold;
-                $product->has_low = $product->retail_low || $product->production_low;
+        $merged = collect();
 
-                return $product;
-            });
+        foreach ($salesRecords as $sale) {
+            $merged->push([
+                'source' => 'Walk-in',
+                'reference' => $sale->reference_code,
+                'date' => $sale->sale_date,
+                'customer' => $sale->customer->full_name ?? 'Walk-in',
+                'total' => (float) $sale->total_amount,
+            ]);
+        }
+
+        foreach ($orderRecords as $order) {
+            $merged->push([
+                'source' => 'Online',
+                'reference' => $order->reference_code,
+                'date' => $order->order_date,
+                'customer' => $order->customer->full_name ?? $order->customer_name ?? 'Unregistered',
+                'total' => (float) $order->total_amount,
+            ]);
+        }
+
+        $merged = $merged->sortByDesc('date')->values();
 
         return [
-            'stockData' => [
-                'totalItems' => $products->count(),
-                'totalProducts' => $products->where('item_type', 'made_product')->count(),
-                'totalMaterials' => $products->where('item_type', 'material')->count(),
-                'lowStockCount' => $products->where('has_low', true)->count(),
-                'outOfStockCount' => $products->filter(function ($p) {
-                    return $p->retail_stock <= 0 && $p->production_stock <= 0;
-                })->count(),
+            'overallData' => [
+                'totalRevenue' => $totalRevenue,
+                'totalCount' => $totalCount,
+                'walkInRevenue' => $walkInRevenue,
+                'walkInCount' => $walkInCount,
+                'onlineRevenue' => $onlineRevenue,
+                'onlineCount' => $onlineCount,
+                'avgTransaction' => $totalCount > 0 ? $totalRevenue / $totalCount : 0,
             ],
-            'stockProducts' => $products,
+            'overallRecords' => $merged,
         ];
     }
 
-    private function stockInData(Carbon $from, Carbon $to): array
+    private function stockLedgerData(Carbon $from, Carbon $to, string $sub): array
     {
-        $purchases = Purchase::with(['user', 'items'])
-            ->whereBetween('purchase_date', [$from, $to])
-            ->orderByDesc('purchase_date')
-            ->get();
+        $query = Product::with('inventory')->where('is_active', true);
 
-        $totalSpent = $purchases->sum('total_amount');
-        $totalItems = $purchases->sum(function ($p) {
-            return $p->items->sum('quantity');
-        });
+        if ($sub === 'materials') {
+            $query->where('item_type', 'material');
+        } elseif ($sub === 'products') {
+            $query->where('item_type', 'made_product');
+        }
 
-        return [
-            'stockInData' => [
-                'transactions' => $purchases->count(),
-                'totalSpent' => $totalSpent,
-                'totalItems' => (float) $totalItems,
-                'avgTransaction' => $purchases->count() > 0 ? $totalSpent / $purchases->count() : 0,
-            ],
-            'purchaseRecords' => $purchases,
+        $products = $query->orderBy('name')->orderBy('variation')->get();
+
+        $rows = [];
+
+        foreach ($products as $product) {
+            $inventoryIds = $product->inventory->pluck('inventory_id');
+
+            if ($inventoryIds->isEmpty()) {
+                $rows[] = [
+                    'name' => $product->display_name,
+                    'unit' => $product->stock_unit,
+                    'beginning' => 0.0,
+                    'stock_in' => 0.0,
+                    'stock_out' => 0.0,
+                    'remaining' => 0.0,
+                ];
+                continue;
+            }
+
+            // Beginning = sum of all changes before the period start
+            $beginning = (float) InventoryTransaction::whereIn('inventory_id', $inventoryIds)
+                ->where('transaction_date', '<', $from)
+                ->sum('quantity_change');
+
+            // Stock-in during period
+            $stockIn = (float) InventoryTransaction::whereIn('inventory_id', $inventoryIds)
+                ->whereBetween('transaction_date', [$from, $to])
+                ->where('quantity_change', '>', 0)
+                ->sum('quantity_change');
+
+            // Stock-out during period (abs value)
+            $stockOut = abs((float) InventoryTransaction::whereIn('inventory_id', $inventoryIds)
+                ->whereBetween('transaction_date', [$from, $to])
+                ->where('quantity_change', '<', 0)
+                ->sum('quantity_change'));
+
+            // Remaining = beginning + stock_in - stock_out
+            $remaining = $beginning + $stockIn - $stockOut;
+
+            $rows[] = [
+                'name' => $product->display_name,
+                'unit' => $product->stock_unit,
+                'beginning' => $beginning,
+                'stock_in' => $stockIn,
+                'stock_out' => $stockOut,
+                'remaining' => $remaining,
+            ];
+        }
+
+        $totals = [
+            'beginning' => collect($rows)->sum('beginning'),
+            'stock_in' => collect($rows)->sum('stock_in'),
+            'stock_out' => collect($rows)->sum('stock_out'),
+            'remaining' => collect($rows)->sum('remaining'),
         ];
-    }
-
-    private function productionData(Carbon $from, Carbon $to): array
-    {
-        $productions = Production::with(['product', 'producedBy'])
-            ->whereBetween('production_date', [$from, $to])
-            ->orderByDesc('production_date')
-            ->get();
-
-        $totalQuantity = $productions->sum('quantity_produced');
-        $uniqueProducts = $productions->pluck('product_id')->unique()->count();
 
         return [
-            'productionData' => [
-                'batches' => $productions->count(),
-                'totalQuantity' => (float) $totalQuantity,
-                'uniqueProducts' => $uniqueProducts,
-                'avgBatch' => $productions->count() > 0 ? $totalQuantity / $productions->count() : 0,
-            ],
-            'productionRecords' => $productions,
+            'ledgerRows' => $rows,
+            'ledgerTotals' => $totals,
         ];
     }
 }

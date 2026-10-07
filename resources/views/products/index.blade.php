@@ -41,12 +41,10 @@
     <a href="{{ route('products.index', ['item_type' => 'product']) }}"
        class="item-tab {{ $itemType === 'product' ? 'active' : '' }}">
         Products
-        <span class="item-tab-count">{{ $productCount }}</span>
     </a>
     <a href="{{ route('products.index', ['item_type' => 'material']) }}"
        class="item-tab {{ $itemType === 'material' ? 'active' : '' }}">
         Materials
-        <span class="item-tab-count">{{ $materialCount }}</span>
     </a>
 </div>
 

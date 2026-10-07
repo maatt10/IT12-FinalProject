@@ -4,255 +4,390 @@
 
 @section('content')
 
-{{-- ==============================
-     WELCOME HEADER
-     ============================== --}}
 <div class="page-header">
     <div>
         <h1>Dashboard</h1>
-        <p style="color: #64748B; font-size: 14px; margin-top: 4px;">
-            Welcome back, <strong style="color: #E85D75;">{{ auth()->user()->full_name }}</strong>.
-        </p>
+        <p>Welcome back, <strong style="color: #E85D75;">{{ auth()->user()->full_name }}</strong>.</p>
     </div>
 </div>
 
-{{-- ==============================
-     STAT CARDS
-     ============================== --}}
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; margin-bottom: 24px;">
+{{-- ============================================
+     STAT CARDS — icon left, values right
+     ============================================ --}}
+<div class="stats-grid">
 
-    {{-- Today's Sales --}}
     <div class="stat-card">
-        <div class="stat-icon">
+        <div class="stat-icon rose">
             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
         </div>
-        <div style="text-align: right;">
-            <p class="stat-label">Today's Sales</p>
-            <p class="stat-value">₱{{ number_format((float) $todaySales, 2) }}</p>
+        <div class="stat-content">
+            <p class="stat-label">Today's Revenue</p>
+            <p class="stat-value">₱{{ number_format($todayRevenue, 2) }}</p>
         </div>
     </div>
 
-    {{-- Today's Transactions --}}
-    <div class="stat-card green-accent">
-        <div class="stat-icon">
+    <div class="stat-card">
+        <div class="stat-icon green">
             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
         </div>
-        <div style="text-align: right;">
-            <p class="stat-label">Today's Transactions</p>
+        <div class="stat-content">
+            <p class="stat-label">Transactions</p>
             <p class="stat-value">{{ $todayTransactions }}</p>
         </div>
     </div>
 
-</div>
-
-{{-- ==============================
-     PENDING ONLINE ORDERS (OWNER ONLY)
-     ============================== --}}
-@if(auth()->user()->role === 'owner')
-<div class="card" style="margin-bottom: 24px;  #D4AF37;">
-
-    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
-        <div>
-            <h2 style="font-size: 17px; font-weight: 700; color: #212121; display: flex; align-items: center; gap: 8px;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#D4AF37" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-                Pending Online Orders
-            </h2>
-            <p style="font-size: 13px; color: #64748B; margin-top: 4px;">
-                Orders that still require processing.
-            </p>
+    <div class="stat-card">
+        <div class="stat-icon gold">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
         </div>
-        <a href="{{ route('orders.index') }}" style="font-size: 13px; font-weight: 600; color: #E85D75; text-decoration: none; padding: 8px 14px; border-radius: 8px; background: #FCE4EC;">
-            View All →
-        </a>
+        <div class="stat-content">
+            <p class="stat-label">Items Sold</p>
+            <p class="stat-value">{{ (float) $todayItemsSold }}</p>
+        </div>
     </div>
 
-    @if($pendingOrders->isEmpty())
-    <p style="font-size: 13px; color: #64748B; padding: 20px; text-align: center; background: #FEFCF9; border-radius: 10px;">
-        No pending online orders. ✨
-    </p>
-    @else
-    <div style="overflow-x: auto;">
-        <table class="dashboard-table">
-            <thead>
-                <tr>
-                    <th>Order</th>
-                    <th>Customer</th>
-                    <th>Status</th>
-                    <th>Total</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($pendingOrders as $order)
-                <tr>
-                    <td style="font-weight: 600; color: #E85D75;">#{{ $order->order_id }}</td>
-                    <td>{{ $order->customer->full_name ?? 'Unknown Customer' }}</td>
-                    <td>
-                        <span class="status-badge rose">{{ str_replace('_', ' ', $order->order_status) }}</span>
-                    </td>
-                    <td style="font-weight: 600;">₱{{ number_format((float) $order->total_amount, 2) }}</td>
-                    <td>
-                        <a href="{{ route('orders.show', $order) }}" style="color: #2E5A3B; font-weight: 600; text-decoration: none;">
-                            View →
-                        </a>
-                    </td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
+    @if($isOwner)
+    <div class="stat-card">
+        <div class="stat-icon berry">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            </svg>
+        </div>
+        <div class="stat-content">
+            <p class="stat-label">Today's Online Orders</p>
+            <p class="stat-value">{{ $todayOnlineOrders }}</p>
+        </div>
     </div>
-
-    @if($pendingOrders->hasPages())
-    <div class="dashboard-pagination">
-        {{ $pendingOrders->links() }}
-    </div>
-    @endif
     @endif
 
 </div>
+
+{{-- ============================================
+     OWNER VIEW
+     ============================================ --}}
+@if($isOwner)
+
+    {{-- SALES OVERVIEW --}}
+    <div class="card dash-card">
+        <div class="dash-card-header">
+            <div>
+                <h2>Sales Overview</h2>
+                <p>Walk-in sales and online orders combined.</p>
+            </div>
+
+            <div class="range-toggle">
+                <a href="{{ route('dashboard', ['range' => 7]) }}"
+                   class="range-btn {{ $range === 7 ? 'active' : '' }}">7 Days</a>
+                <a href="{{ route('dashboard', ['range' => 30]) }}"
+                   class="range-btn {{ $range === 30 ? 'active' : '' }}">30 Days</a>
+            </div>
+        </div>
+
+        {{-- 3-TILE METRIC ROW --}}
+        <div class="metric-row">
+            <div class="metric-tile">
+                <span class="metric-label">Total Revenue</span>
+                <span class="metric-value">₱{{ number_format($rangeRevenue, 2) }}</span>
+            </div>
+            <div class="metric-tile">
+                <span class="metric-label">Best Day</span>
+                <span class="metric-value">
+                    {{ $bestDay['label'] }} · ₱{{ number_format($bestDay['revenue'], 2) }}
+                </span>
+            </div>
+            <div class="metric-tile">
+                <span class="metric-label">Daily Average</span>
+                <span class="metric-value">₱{{ number_format($rangeAverage, 2) }}</span>
+            </div>
+        </div>
+
+        {{-- CHART --}}
+        <div class="chart-wrap range-{{ $range }}">
+            <div class="chart-gridlines">
+                <div class="gridline-label"><span>₱{{ number_format($maxRevenue, 0) }}</span></div>
+                <div class="gridline-label"><span>₱{{ number_format($maxRevenue * 0.5, 0) }}</span></div>
+                <div class="gridline-label"><span>₱0</span></div>
+            </div>
+
+            <div class="chart-bars">
+                @foreach($chartData as $index => $day)
+                    @php
+                        $height = $maxRevenue > 0 ? ($day['revenue'] / $maxRevenue) * 100 : 0;
+                        $isToday = $index === $chartData->count() - 1;
+                        $showLabel = $range <= 7 || $index % 5 === 0 || $isToday;
+                    @endphp
+                    <div class="chart-col {{ $isToday ? 'today' : '' }}">
+                        <div class="chart-tooltip">
+                            {{ $day['full_label'] }}<br>
+                            <strong>₱{{ number_format($day['revenue'], 2) }}</strong>
+                            @if($day['walk_in'] > 0 || $day['online'] > 0)
+                                <div class="tooltip-split">
+                                    Walk-in: ₱{{ number_format($day['walk_in'], 2) }}<br>
+                                    Online: ₱{{ number_format($day['online'], 2) }}
+                                </div>
+                            @endif
+                        </div>
+                        <div class="chart-bar-track">
+                            <div class="chart-bar {{ $day['revenue'] > 0 ? '' : 'empty' }}"
+                                 style="height: {{ max($height, 2) }}%;">
+                            </div>
+                        </div>
+                        <div class="chart-col-label">
+                            {{ $showLabel ? $day['label'] : '' }}
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </div>
+
+    {{-- LOW STOCK ALERTS --}}
+    <div class="card dash-card">
+        <div class="dash-card-header">
+            <div>
+                <h2>Low Stock Alerts</h2>
+                <p>Items at or below their reorder threshold.</p>
+            </div>
+            <a href="{{ route('products.index') }}" class="dash-text-link">View Inventory →</a>
+        </div>
+
+        @if($lowStockItems->isEmpty())
+            <div class="dash-empty">
+                All items are sufficiently stocked.
+            </div>
+        @else
+            <table class="dash-table">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Type</th>
+                        <th class="num">Retail</th>
+                        <th class="num">Production</th>
+                        <th>Unit</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($lowStockItems as $item)
+                        <tr>
+                            <td style="font-weight: 600;">
+                                {{ $item->name }}@if($item->variation) — {{ $item->variation }}@endif
+                            </td>
+                            <td class="muted">
+                                {{ $item->item_type === 'material' ? 'Material' : 'Product' }}
+                            </td>
+                            <td class="num {{ $item->retail_low ? 'danger' : 'muted' }}">
+                                @if($item->has_retail)
+                                    {{ $item->retail_stock }}
+                                    @if($item->retail_low) <span class="low-tag">LOW</span> @endif
+                                @else
+                                    <span class="dash-muted">—</span>
+                                @endif
+                            </td>
+                            <td class="num {{ $item->production_low ? 'danger' : 'muted' }}">
+                                @if($item->has_production)
+                                    {{ $item->production_stock }}
+                                    @if($item->production_low) <span class="low-tag">LOW</span> @endif
+                                @else
+                                    <span class="dash-muted">—</span>
+                                @endif
+                            </td>
+                            <td class="muted">{{ $item->stock_unit }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        @endif
+    </div>
+
+    {{-- ONLINE ORDER STATUS --}}
+    <div class="card dash-card">
+        <div class="dash-card-header">
+            <div>
+                <h2>Online Order Status</h2>
+                <p>Current distribution of online bouquet orders.</p>
+            </div>
+            <a href="{{ route('records.index', ['tab' => 'sales', 'sub' => 'online']) }}" class="dash-text-link">View Orders →</a>
+        </div>
+
+        <div class="status-grid">
+            <div class="status-tile status-pending">
+                <div class="status-label">Pending</div>
+                <div class="status-value">{{ $orderStatusCounts['pending'] }}</div>
+            </div>
+            <div class="status-tile status-completed">
+                <div class="status-label">Completed</div>
+                <div class="status-value">{{ $orderStatusCounts['completed'] }}</div>
+            </div>
+            <div class="status-tile status-cancelled">
+                <div class="status-label">Cancelled</div>
+                <div class="status-value">{{ $orderStatusCounts['cancelled'] }}</div>
+            </div>
+        </div>
+    </div>
+
+{{-- ============================================
+     EMPLOYEE VIEW
+     ============================================ --}}
+@else
+
+    {{-- RECENT SALES --}}
+    <div class="card dash-card">
+        <div class="dash-card-header">
+            <div>
+                <h2>Recent Sales</h2>
+                <p>Latest recorded sales transactions.</p>
+            </div>
+            <a href="{{ route('pos.index') }}" class="dash-text-link">Open POS →</a>
+        </div>
+
+        @if($recentSales->isEmpty())
+            <div class="dash-empty">
+                No sales have been recorded yet.
+            </div>
+        @else
+            <table class="dash-table">
+                <thead>
+                    <tr>
+                        <th>Receipt No.</th>
+                        <th>Date &amp; Time</th>
+                        <th>Customer</th>
+                        <th>Payment</th>
+                        <th class="num">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($recentSales as $sale)
+                        <tr>
+                            <td class="mono">{{ $sale->reference_code }}</td>
+                            <td class="muted">{{ $sale->sale_date->format('M d, Y h:i A') }}</td>
+                            <td>{{ $sale->customer->full_name ?? 'Walk-in' }}</td>
+                            <td class="muted">{{ str_replace('_', ' ', $sale->payment_method) }}</td>
+                            <td class="num strong">₱{{ number_format($sale->total_amount, 2) }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        @endif
+    </div>
+
+    {{-- LOW STOCK ALERTS --}}
+    <div class="card dash-card">
+        <div class="dash-card-header">
+            <div>
+                <h2>Low Stock Alerts</h2>
+                <p>Items at or below their reorder threshold.</p>
+            </div>
+            <a href="{{ route('products.index') }}" class="dash-text-link">View Inventory →</a>
+        </div>
+
+        @if($lowStockItems->isEmpty())
+            <div class="dash-empty">
+                All items are sufficiently stocked.
+            </div>
+        @else
+            <table class="dash-table">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Type</th>
+                        <th class="num">Retail</th>
+                        <th class="num">Production</th>
+                        <th>Unit</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($lowStockItems as $item)
+                        <tr>
+                            <td style="font-weight: 600;">
+                                {{ $item->name }}@if($item->variation) — {{ $item->variation }}@endif
+                            </td>
+                            <td class="muted">
+                                {{ $item->item_type === 'material' ? 'Material' : 'Product' }}
+                            </td>
+                            <td class="num {{ $item->retail_low ? 'danger' : 'muted' }}">
+                                @if($item->has_retail)
+                                    {{ $item->retail_stock }}
+                                    @if($item->retail_low) <span class="low-tag">LOW</span> @endif
+                                @else
+                                    <span class="dash-muted">—</span>
+                                @endif
+                            </td>
+                            <td class="num {{ $item->production_low ? 'danger' : 'muted' }}">
+                                @if($item->has_production)
+                                    {{ $item->production_stock }}
+                                    @if($item->production_low) <span class="low-tag">LOW</span> @endif
+                                @else
+                                    <span class="dash-muted">—</span>
+                                @endif
+                            </td>
+                            <td class="muted">{{ $item->stock_unit }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        @endif
+    </div>
+
 @endif
 
-{{-- ==============================
-     RECENT SALES
-     ============================== --}}
-<div class="card" style="margin-bottom: 24px;">
-
-    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
-        <div>
-            <h2 style="font-size: 17px; font-weight: 700; color: #212121; display: flex; align-items: center; gap: 8px;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#E85D75" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-                Recent Sales
-            </h2>
-            <p style="font-size: 13px; color: #64748B; margin-top: 4px;">
-                Latest recorded sales transactions.
-            </p>
-        </div>
-        <a href="{{ route('sales.create') }}" style="font-size: 13px; font-weight: 600; color: #FFFFFF; text-decoration: none; padding: 8px 16px; border-radius: 8px; background: #E85D75; box-shadow: 0 2px 6px rgba(232, 93, 117, 0.3);">
-            + New Sale
-        </a>
-    </div>
-
-    @if($recentSales->isEmpty())
-    <p style="font-size: 13px; color: #64748B; padding: 20px; text-align: center; background: #FEFCF9; border-radius: 10px;">
-        No sales transactions have been recorded yet.
-    </p>
-    @else
-    <div style="overflow-x: auto;">
-        <table class="dashboard-table">
-            <thead>
-                <tr>
-                    <th>Date &amp; Time</th>
-                    <th>Customer</th>
-                    <th>Payment</th>
-                    <th>Total</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($recentSales as $sale)
-                <tr>
-                    <td>{{ $sale->sale_date?->format('M d, Y h:i A') }}</td>
-                    <td>{{ $sale->customer->full_name ?? 'Walk-in Customer' }}</td>
-                    <td>
-                        <span class="payment-text">{{ str_replace('_', ' ', $sale->payment_method) }}</span>
-                    </td>
-                    <td style="font-weight: 700; color: #2E5A3B;">
-                        ₱{{ number_format((float) $sale->total_amount, 2) }}
-                    </td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
-    </div>
-
-    @if($recentSales->hasPages())
-    <div class="dashboard-pagination">
-        {{ $recentSales->links() }}
-    </div>
-    @endif
-    @endif
-
-</div>
-
-{{-- ==============================
+{{-- ============================================
      QUICK ACTIONS
-     ============================== --}}
-<div class="card">
-    <h2 style="font-size: 17px; font-weight: 700; color: #212121; margin-bottom: 18px; display: flex; align-items: center; gap: 8px;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#D4AF37" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-        </svg>
-        Quick Actions
-    </h2>
+     ============================================ --}}
+<div class="card dash-card">
+    <div class="dash-card-header">
+        <div>
+            <h2>Quick Actions</h2>
+            <p>Frequently used tasks.</p>
+        </div>
+    </div>
 
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
+    <div class="quick-actions">
 
-        <a href="{{ route('sales.create') }}" class="quick-action">
+        <a href="{{ route('pos.index') }}" class="quick-action">
             <div class="qa-icon" style="background: #FCE4EC; color: #E85D75;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
             </div>
-            <p class="qa-title">New Sale</p>
-            <p class="qa-desc">Record a customer purchase</p>
+            <p class="qa-title">POS</p>
+            <p class="qa-desc">Process a sale</p>
         </a>
 
-        <a href="{{ route('inventory.index') }}" class="quick-action">
+        <a href="{{ route('products.index') }}" class="quick-action">
             <div class="qa-icon" style="background: #E8F5E9; color: #2E5A3B;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                 </svg>
             </div>
             <p class="qa-title">Inventory</p>
-            <p class="qa-desc">View current stock</p>
+            <p class="qa-desc">View stock and items</p>
         </a>
 
-        <a href="{{ route('customers.index') }}" class="quick-action">
-            <div class="qa-icon" style="background: #FFF8E1; color: #D4AF37;">
+        <a href="{{ route('reports.index') }}" class="quick-action">
+            <div class="qa-icon" style="background: #FFF8E1; color: #B8860B;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
             </div>
-            <p class="qa-title">Customers</p>
-            <p class="qa-desc">Manage customer records</p>
+            <p class="qa-title">Reports</p>
+            <p class="qa-desc">View sales and stock</p>
         </a>
 
-        <a href="{{ route('purchases.index') }}" class="quick-action">
-            <div class="qa-icon" style="background: #FCE4EC; color: #E85D75;">
+        @if($isOwner)
+        <a href="{{ route('records.index') }}" class="quick-action">
+            <div class="qa-icon" style="background: #F1F5F9; color: #475569;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
             </div>
-            <p class="qa-title">Purchases</p>
-            <p class="qa-desc">Record purchases</p>
-        </a>
-
-        <a href="{{ route('production.index') }}" class="quick-action">
-            <div class="qa-icon" style="background: #E8F5E9; color: #2E5A3B;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-                </svg>
-            </div>
-            <p class="qa-title">Production</p>
-            <p class="qa-desc">Record product production</p>
-        </a>
-
-        @if(auth()->user()->role === 'owner')
-        <a href="{{ route('orders.index') }}" class="quick-action">
-            <div class="qa-icon" style="background: #FFF8E1; color: #D4AF37;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                </svg>
-            </div>
-            <p class="qa-title">Online Orders</p>
-            <p class="qa-desc">Manage bouquet orders</p>
+            <p class="qa-title">Records</p>
+            <p class="qa-desc">Browse all transactions</p>
         </a>
         @endif
 
@@ -261,18 +396,436 @@
 
 <style>
     /* ===============================
-       QUICK ACTION CARDS
+       STAT CARDS — icon left, value right
        =============================== */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .stat-card {
+        background: #FFFFFF;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        cursor: default;
+        user-select: none;
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .stat-icon.rose { background: #FCE4EC; color: #E85D75; }
+    .stat-icon.green { background: #E8F5E9; color: #2E5A3B; }
+    .stat-icon.gold { background: #FFF8E1; color: #B8860B; }
+    .stat-icon.berry { background: #EEF2FF; color: #4F46E5; }
+
+    .stat-content {
+        flex: 1;
+        min-width: 0;
+        text-align: right;
+    }
+    .stat-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: #94A3B8;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 4px;
+    }
+    .stat-value {
+        font-size: 22px;
+        font-weight: 700;
+        color: #212121;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* ===============================
+       DASH CARDS
+       =============================== */
+    .dash-card { margin-bottom: 24px; }
+
+    .dash-card-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 18px;
+        flex-wrap: wrap;
+    }
+    .dash-card-header h2 {
+        font-size: 16px;
+        font-weight: 700;
+        color: #212121;
+        margin: 0;
+    }
+    .dash-card-header p {
+        font-size: 13px;
+        color: #64748B;
+        margin: 4px 0 0;
+    }
+
+    .dash-text-link {
+        font-size: 13px;
+        font-weight: 600;
+        color: #E85D75;
+        text-decoration: none;
+        transition: all 0.15s ease;
+        white-space: nowrap;
+        align-self: center;
+    }
+    .dash-text-link:hover { color: #D14A62; }
+
+    .dash-empty {
+        text-align: center;
+        padding: 30px 20px;
+        color: #94A3B8;
+        font-size: 13px;
+        background: #FEFCF9;
+        border-radius: 10px;
+    }
+
+    /* ===============================
+       RANGE TOGGLE
+       =============================== */
+    .range-toggle {
+        display: inline-flex;
+        background: #FAF7F3;
+        border-radius: 8px;
+        padding: 4px;
+        gap: 2px;
+        align-self: center;
+    }
+    .range-btn {
+        padding: 7px 16px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #64748B;
+        text-decoration: none;
+        transition: all 0.15s ease;
+        white-space: nowrap;
+    }
+    .range-btn:hover { color: #E85D75; }
+    .range-btn.active {
+        background: #FFFFFF;
+        color: #E85D75;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    /* ===============================
+       3-TILE METRIC ROW
+       =============================== */
+    .metric-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .metric-tile {
+        background: #FAF7F3;
+        border-radius: 10px;
+        padding: 14px 18px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .metric-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: #64748B;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        white-space: nowrap;
+    }
+
+    .metric-value {
+        font-size: 16px;
+        font-weight: 700;
+        color: #212121;
+        white-space: nowrap;
+        text-align: right;
+    }
+
+    /* ===============================
+       CHART
+       =============================== */
+    .chart-wrap {
+        display: flex;
+        gap: 12px;
+        height: 220px;
+        padding-top: 8px;
+    }
+
+    .chart-gridlines {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding-bottom: 26px;
+        width: 60px;
+        flex-shrink: 0;
+    }
+    .gridline-label {
+        display: flex;
+        justify-content: flex-end;
+        position: relative;
+    }
+    .gridline-label span {
+        font-size: 10px;
+        font-weight: 600;
+        color: #94A3B8;
+        background: #FFFFFF;
+        padding-right: 6px;
+    }
+
+    .chart-bars {
+        flex: 1;
+        display: flex;
+        gap: 12px;
+        padding-bottom: 26px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .chart-bars::before,
+    .chart-bars::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: #F0E6DD;
+        pointer-events: none;
+        z-index: 0;
+    }
+    .chart-bars::before { top: 0; }
+    .chart-bars::after { bottom: 26px; }
+
+    .range-30 .chart-bars { gap: 3px; }
+
+    .chart-col {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-end;
+        position: relative;
+        z-index: 1;
+        min-width: 0;
+    }
+
+    .chart-bar-track {
+        width: 100%;
+        height: 194px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+    }
+
+    .chart-bar {
+        width: 100%;
+        max-width: 44px;
+        min-height: 3px;
+        background: linear-gradient(180deg, #E85D75 0%, #F8BBD0 100%);
+        border-radius: 6px 6px 0 0;
+        transition: all 0.2s ease;
+    }
+    .chart-bar.empty { background: #F0E6DD; }
+    .chart-col.today .chart-bar {
+        background: #E85D75;
+        box-shadow: 0 4px 12px rgba(232, 93, 117, 0.4);
+    }
+    .chart-col:hover .chart-bar { filter: brightness(1.05); }
+
+    /* Tooltip */
+    .chart-tooltip {
+        position: absolute;
+        top: -8px;
+        left: 50%;
+        transform: translateX(-50%) translateY(-100%);
+        background: #212121;
+        color: #FFFFFF;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 500;
+        white-space: nowrap;
+        text-align: center;
+        line-height: 1.5;
+        opacity: 0;
+        pointer-events: none;
+        transition: all 0.15s ease;
+        z-index: 5;
+    }
+    .chart-tooltip strong { color: #F8BBD0; font-weight: 700; font-size: 13px; }
+    .tooltip-split {
+        margin-top: 6px;
+        padding-top: 6px;
+        border-top: 1px dashed rgba(255, 255, 255, 0.2);
+        color: #CBD5E1;
+        font-size: 10px;
+    }
+    .chart-tooltip::after {
+        content: '';
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 4px solid transparent;
+        border-top-color: #212121;
+    }
+    .chart-col:hover .chart-tooltip {
+        opacity: 1;
+        top: 0;
+    }
+
+    .chart-col-label {
+        position: absolute;
+        bottom: 0;
+        font-size: 10px;
+        font-weight: 700;
+        color: #94A3B8;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+    }
+    .chart-col.today .chart-col-label { color: #E85D75; }
+
+    /* ===============================
+       TABLES
+       =============================== */
+    .dash-table { width: 100%; border-collapse: collapse; }
+    .dash-table thead th {
+        text-align: left;
+        padding: 10px 12px;
+        font-size: 10px;
+        font-weight: 700;
+        color: #E85D75;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        background: #FCE4EC;
+        border-bottom: 2px solid #F8BBD0;
+    }
+    .dash-table thead th:first-child { border-top-left-radius: 8px; }
+    .dash-table thead th:last-child { border-top-right-radius: 8px; }
+    .dash-table thead th.num { text-align: right; }
+
+    .dash-table tbody td {
+        padding: 10px 12px;
+        font-size: 13px;
+        color: #212121;
+        border-bottom: 1px solid #F5EEE4;
+    }
+    .dash-table tbody tr:last-child td { border-bottom: none; }
+    .dash-table tbody tr:hover { background: #FFF9FB; }
+    .dash-table tbody td.num { text-align: right; white-space: nowrap; }
+    .dash-table tbody td.muted { color: #64748B; }
+    .dash-table tbody td.strong { font-weight: 700; color: #2E5A3B; }
+    .dash-table tbody td.danger { color: #DC3545; font-weight: 700; }
+    .dash-table tbody td.mono {
+        font-family: 'SF Mono', Consolas, monospace;
+        color: #E85D75;
+        font-weight: 600;
+        font-size: 12px;
+    }
+
+    .dash-muted { color: #CBD5E1; }
+
+    .low-tag {
+        display: inline-block;
+        font-size: 9px;
+        font-weight: 700;
+        color: #DC3545;
+        background: #FDECEA;
+        padding: 1px 5px;
+        border-radius: 3px;
+        margin-left: 4px;
+        letter-spacing: 0.5px;
+    }
+
+    /* ===============================
+       ORDER STATUS
+       =============================== */
+    .status-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 12px;
+    }
+
+    .status-tile {
+        border-radius: 10px;
+        padding: 18px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+    }
+    .status-tile.status-pending {
+        background: #FFF8E1;
+        border: 1px solid #FFECB3;
+    }
+    .status-tile.status-pending .status-label,
+    .status-tile.status-pending .status-value { color: #B8860B; }
+
+    .status-tile.status-completed {
+        background: #E8F5E9;
+        border: 1px solid #C8E6C9;
+    }
+    .status-tile.status-completed .status-label,
+    .status-tile.status-completed .status-value { color: #2E5A3B; }
+
+    .status-tile.status-cancelled {
+        background: #FDECEA;
+        border: 1px solid #F8D7DA;
+    }
+    .status-tile.status-cancelled .status-label,
+    .status-tile.status-cancelled .status-value { color: #DC3545; }
+
+    .status-label {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .status-value {
+        font-size: 24px;
+        font-weight: 700;
+    }
+
+    /* ===============================
+       QUICK ACTIONS
+       =============================== */
+    .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+    }
+
     .quick-action {
         display: block;
         padding: 16px;
-        border: 1px solid #F0E6DD;
+        border: 1.5px solid #F0E6DD;
         border-radius: 10px;
         text-decoration: none;
         background: #FFFFFF;
         transition: all 0.2s ease;
     }
-
     .quick-action:hover {
         background: #FEFCF9;
         border-color: #E85D75;
@@ -292,202 +845,26 @@
 
     .qa-title {
         font-size: 14px;
-        font-weight: 600;
+        font-weight: 700;
         color: #212121;
         margin-bottom: 2px;
     }
-
     .qa-desc {
         font-size: 12px;
         color: #64748B;
     }
 
     /* ===============================
-       STAT CARDS (non-clickable)
+       RESPONSIVE
        =============================== */
-    .stat-card {
-        background: #FFFFFF;
-        border-radius: 12px;
-        padding: 22px;
-        border: 1px solid #F0E6DD;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-        cursor: default;
-        user-select: none;
-    }
-
-    .stat-card.green-accent {
-        border-top-color: #2E5A3B;
-    }
-
-    .stat-card .stat-icon {
-        width: 44px;
-        height: 44px;
-        border-radius: 50%;
-        background: #FCE4EC;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #E85D75;
-        flex-shrink: 0;
-    }
-
-    .stat-card.green-accent .stat-icon {
-        background: #E8F5E9;
-        color: #2E5A3B;
-    }
-
-    .stat-card .stat-label {
-        font-size: 11px;
-        font-weight: 600;
-        color: #94A3B8;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-
-    .stat-card .stat-value {
-        font-size: 24px;
-        font-weight: 700;
-        color: #212121;
-        margin-top: 4px;
-    }
-
-    /* ===============================
-       STATUS BADGES (non-clickable)
-       =============================== */
-    .status-badge {
-        display: inline-block;
-        padding: 2px 10px;
-        border-radius: 4px;
-        font-size: 11px;
-        font-weight: 600;
-        text-transform: capitalize;
-        letter-spacing: 0.3px;
-        cursor: default;
-        user-select: none;
-    }
-
-    .status-badge.rose {
-        background: #FCE4EC;
-        color: #E85D75;
-    }
-
-    /* Payment method - plain text */
-    .payment-text {
-        font-size: 12px;
-        font-weight: 600;
-        color: #2E5A3B;
-        text-transform: capitalize;
-        cursor: default;
-        user-select: none;
-    }
-
-    /* ===============================
-       DASHBOARD COMPACT TABLES
-       =============================== */
-    .dashboard-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 13px;
-    }
-
-    .dashboard-table thead {
-        background: #FDF2F4;
-    }
-
-    .dashboard-table th {
-        background: #FDF2F4;
-        color: #E85D75;
-        font-weight: 700;
-        text-transform: uppercase;
-        font-size: 10px;
-        letter-spacing: 1.2px;
-        padding: 12px;
-        text-align: left;
-        ;
-    }
-
-    .dashboard-table th:first-child {
-        border-top-left-radius: 8px;
-    }
-
-    .dashboard-table th:last-child {
-        border-top-right-radius: 8px;
-    }
-
-    .dashboard-table td {
-        padding: 12px;
-        text-align: left;
-        border-bottom: 1px solid #F5EEE4;
-        font-size: 13px;
-        color: #212121;
-    }
-
-    .dashboard-table tbody tr:last-child td {
-        border-bottom: none;
-    }
-
-    .dashboard-table tbody tr:hover {
-        background: #FEFCF9;
-    }
-
-    /* ===============================
-       DASHBOARD PAGINATION
-       =============================== */
-    .dashboard-pagination {
-        margin-top: 16px;
-        display: flex;
-        justify-content: flex-end;
-    }
-
-    .dashboard-pagination nav {
-        display: flex;
-        gap: 4px;
-    }
-
-    .dashboard-pagination nav>div {
-        display: flex;
-        gap: 4px;
-    }
-
-    .dashboard-pagination a,
-    .dashboard-pagination span {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 34px;
-        height: 34px;
-        padding: 0 10px;
-        font-size: 13px;
-        font-weight: 500;
-        border-radius: 8px;
-        background: #FFFFFF;
-        color: #64748B;
-        border: 1px solid #F0E6DD;
-        text-decoration: none;
-        cursor: pointer;
-    }
-
-    .dashboard-pagination a:hover {
-        background: #FCE4EC;
-        color: #E85D75;
-        border-color: #F8BBD0;
-    }
-
-    .dashboard-pagination span[aria-current="page"]>span,
-    .dashboard-pagination .active span {
-        background: #E85D75;
-        color: #FFFFFF;
-        border-color: #E85D75;
-        font-weight: 700;
-    }
-
-    .dashboard-pagination svg {
-        width: 14px;
-        height: 14px;
+    @media (max-width: 640px) {
+        .chart-bars { gap: 6px; }
+        .range-30 .chart-bars { gap: 2px; }
+        .chart-gridlines { width: 44px; }
+        .gridline-label span { font-size: 9px; }
+        .chart-tooltip { font-size: 10px; padding: 6px 8px; }
+        .metric-tile { padding: 12px 14px; }
+        .metric-value { font-size: 14px; }
     }
 </style>
 

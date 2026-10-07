@@ -3,14 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ match($report) {
-        'sales' => 'Sales Report',
-        'online-orders' => 'Online Orders Report',
-        'stock' => 'Overall Stock Report',
-        'stock-in' => 'Stock-in Report',
-        'production' => 'Production Report',
-        default => 'Report',
-    } }} — {{ $periodLabel }}</title>
+    <title>
+        @if($report === 'sales')
+            @switch($sub)
+                @case('walk-in') Walk-in Sales Report @break
+                @case('online') Online Orders Report @break
+                @case('overall') Overall Sales Report @break
+            @endswitch
+        @else
+            @switch($sub)
+                @case('materials') Materials Stock Report @break
+                @case('products') Products Stock Report @break
+                @case('overall') Overall Stock Report @break
+            @endswitch
+        @endif
+        — {{ $periodLabel }}
+    </title>
+
+    @php
+        $fmtQty = function ($val) {
+            if ($val === null || $val === '') return '—';
+            $num = (float) $val;
+            $formatted = number_format($num, 2, '.', ',');
+            $trimmed = rtrim(rtrim($formatted, '0'), '.');
+            return $trimmed === '' ? '0' : $trimmed;
+        };
+
+        $fmtMoney = fn($val) => number_format((float) $val, 2);
+    @endphp
 
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -28,12 +48,11 @@
             max-width: 900px;
             margin: 0 auto;
             background: #FFFFFF;
-            padding: 40px 40px;
+            padding: 40px;
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(46, 90, 59, 0.08);
         }
 
-        /* HEADER */
         .report-header {
             display: flex;
             align-items: center;
@@ -42,80 +61,38 @@
             border-bottom: 2px solid #2E5A3B;
             margin-bottom: 24px;
         }
-        .report-header-logo {
-            width: 64px;
-            height: 64px;
-            object-fit: contain;
-            flex-shrink: 0;
-        }
+        .report-header-logo { width: 64px; height: 64px; object-fit: contain; flex-shrink: 0; }
         .report-header-info { flex: 1; }
-        .report-header-store {
-            font-size: 20px;
-            font-weight: 700;
-            color: #2E5A3B;
-            letter-spacing: 0.3px;
-        }
+        .report-header-store { font-size: 20px; font-weight: 700; color: #2E5A3B; }
         .report-header-sub {
-            font-size: 9px;
-            font-weight: 700;
-            color: #D4AF37;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            margin-top: 2px;
+            font-size: 9px; font-weight: 700; color: #D4AF37;
+            letter-spacing: 3px; text-transform: uppercase; margin-top: 2px;
         }
-        .report-header-meta {
-            font-size: 10px;
-            color: #64748B;
-            margin-top: 6px;
-        }
-        .report-header-right {
-            text-align: right;
-            font-size: 10px;
-            color: #64748B;
-        }
+        .report-header-meta { font-size: 10px; color: #64748B; margin-top: 6px; }
+        .report-header-right { text-align: right; font-size: 10px; color: #64748B; }
         .report-header-right strong {
-            display: block;
-            font-size: 11px;
-            color: #212121;
-            margin-bottom: 2px;
+            display: block; font-size: 11px; color: #212121; margin-bottom: 2px;
         }
 
-        /* TITLE */
-        .report-title {
-            margin-bottom: 24px;
-        }
+        .report-title { margin-bottom: 24px; }
         .report-title h1 {
-            font-size: 18px;
-            font-weight: 700;
-            color: #212121;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            margin-bottom: 4px;
+            font-size: 18px; font-weight: 700; color: #212121;
+            text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 4px;
         }
         .report-title .period {
-            display: inline-block;
-            font-size: 11px;
-            font-weight: 600;
-            color: #E85D75;
-            background: #FCE4EC;
-            padding: 3px 12px;
-            border-radius: 4px;
-            letter-spacing: 0.5px;
+            display: inline-block; font-size: 11px; font-weight: 600;
+            color: #E85D75; background: #FCE4EC;
+            padding: 3px 12px; border-radius: 4px; letter-spacing: 0.5px;
         }
 
-        /* SECTION */
         .section-label {
-            font-size: 10px;
-            font-weight: 700;
-            color: #94A3B8;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
+            font-size: 10px; font-weight: 700; color: #94A3B8;
+            text-transform: uppercase; letter-spacing: 1.5px;
             margin: 24px 0 10px;
             padding-bottom: 6px;
             border-bottom: 1px solid #F0E6DD;
         }
 
-        /* SUMMARY */
         .summary-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -126,22 +103,32 @@
             border: 1px solid #F0E6DD;
             border-radius: 8px;
             padding: 12px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
         }
         .summary-tile-label {
-            font-size: 9px;
-            font-weight: 700;
-            color: #94A3B8;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 4px;
+            font-size: 9px; font-weight: 700; color: #94A3B8;
+            text-transform: uppercase; letter-spacing: 0.8px;
+            line-height: 1.3;
+            min-width: 0;
+            word-break: break-word;
         }
         .summary-tile-value {
-            font-size: 16px;
-            font-weight: 700;
-            color: #212121;
+            font-size: 14px; font-weight: 700; color: #212121;
+            white-space: nowrap;
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+            flex-shrink: 0;
         }
 
-        /* TABLE */
+        .table-scroll {
+            width: 100%;
+            overflow-x: auto;
+        }
+
         .report-table {
             width: 100%;
             border-collapse: collapse;
@@ -157,6 +144,7 @@
             font-size: 9px;
             letter-spacing: 0.8px;
             border-bottom: 2px solid #F8BBD0;
+            white-space: nowrap;
         }
         .report-table thead th.num { text-align: right; }
         .report-table tbody td {
@@ -165,114 +153,99 @@
             vertical-align: top;
         }
         .report-table tbody tr:nth-child(even) { background: #FEFCF9; }
-        .report-table tbody td.num { text-align: right; white-space: nowrap; }
+        .report-table tbody td.num {
+            text-align: right;
+            white-space: nowrap;
+            font-variant-numeric: tabular-nums;
+        }
         .report-table tbody td.muted { color: #64748B; }
         .report-table tbody td.strong { font-weight: 700; color: #2E5A3B; }
         .report-table tbody td.mono {
             font-family: 'SF Mono', Consolas, monospace;
             color: #E85D75;
             font-weight: 600;
+            white-space: nowrap;
         }
 
-        .low-tag {
-            display: inline-block;
-            font-size: 8px;
+        /* LEDGER TABLE */
+        .ledger-table { table-layout: fixed; }
+        .ledger-item-col { width: 34%; }
+        .ledger-num-col { width: 16.5%; }
+
+        .ledger-item-cell { word-break: break-word; }
+        .ledger-item-name { font-weight: 600; color: #212121; line-height: 1.3; }
+        .ledger-item-unit { font-size: 10px; color: #94A3B8; margin-top: 2px; }
+        .ledger-in { color: #2E5A3B; font-weight: 600; }
+        .ledger-out { color: #DC3545; font-weight: 600; }
+
+        .report-table tfoot td {
+            padding: 10px 8px;
+            background: #FAF7F3;
+            border-top: 2px solid #F8BBD0;
             font-weight: 700;
-            color: #DC3545;
-            background: #FDECEA;
-            padding: 1px 4px;
-            border-radius: 3px;
-            margin-left: 3px;
-            letter-spacing: 0.5px;
         }
+        .report-table tfoot td.num {
+            text-align: right;
+            white-space: nowrap;
+            font-variant-numeric: tabular-nums;
+        }
+        .ledger-total-label { font-weight: 700; color: #212121; }
+        .ledger-remaining { color: #E85D75; font-size: 13px; }
 
-        /* FOOTER */
         .report-footer {
-            margin-top: 40px;
-            padding-top: 20px;
+            margin-top: 40px; padding-top: 20px;
             border-top: 2px solid #F0E6DD;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            gap: 20px;
-            font-size: 10px;
-            color: #64748B;
+            display: flex; justify-content: space-between;
+            align-items: flex-end; gap: 20px;
+            font-size: 10px; color: #64748B;
         }
         .report-footer strong {
-            display: block;
-            color: #212121;
-            font-size: 11px;
-            margin-bottom: 4px;
+            display: block; color: #212121; font-size: 11px; margin-bottom: 4px;
         }
         .signature-line {
-            margin-top: 30px;
-            padding-top: 4px;
+            margin-top: 30px; padding-top: 4px;
             border-top: 1px solid #212121;
-            min-width: 200px;
-            text-align: center;
-            color: #212121;
-            font-size: 10px;
+            min-width: 200px; text-align: center;
+            color: #212121; font-size: 10px;
         }
 
         .empty-text {
-            text-align: center;
-            padding: 40px 20px;
-            color: #94A3B8;
-            font-size: 12px;
+            text-align: center; padding: 40px 20px;
+            color: #94A3B8; font-size: 12px;
         }
 
-        /* SCREEN BUTTONS */
         .screen-actions {
-            max-width: 900px;
-            margin: 20px auto 0;
-            display: flex;
-            gap: 10px;
-            justify-content: center;
+            max-width: 900px; margin: 20px auto 0;
+            display: flex; gap: 10px; justify-content: center;
         }
         .screen-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 10px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            text-decoration: none;
-            font-family: inherit;
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 12px 24px; border: none; border-radius: 10px;
+            font-size: 14px; font-weight: 600; cursor: pointer;
+            text-decoration: none; font-family: inherit;
             transition: all 0.2s ease;
         }
         .screen-btn.primary {
-            background: #E85D75;
-            color: #FFFFFF;
+            background: #E85D75; color: #FFFFFF;
             box-shadow: 0 4px 12px rgba(232, 93, 117, 0.3);
         }
         .screen-btn.primary:hover { background: #D14A62; }
         .screen-btn.secondary {
-            background: #FFFFFF;
-            color: #64748B;
+            background: #FFFFFF; color: #64748B;
             border: 1.5px solid #F0E6DD;
         }
         .screen-btn.secondary:hover {
-            background: #FEFCF9;
-            border-color: #E85D75;
-            color: #E85D75;
+            background: #FEFCF9; border-color: #E85D75; color: #E85D75;
         }
 
-        /* PRINT */
         @page { size: A4 portrait; margin: 15mm; }
 
         @media print {
             body { background: #FFFFFF; padding: 0; font-size: 10px; }
-            .report-sheet {
-                box-shadow: none;
-                border-radius: 0;
-                padding: 0;
-                max-width: 100%;
-            }
+            .report-sheet { box-shadow: none; border-radius: 0; padding: 0; max-width: 100%; }
             .screen-actions { display: none !important; }
             .report-table tbody tr:nth-child(even) { background: #FAFAFA; }
+            .table-scroll { overflow: visible; }
         }
     </style>
 </head>
@@ -281,7 +254,6 @@
 
     <div class="report-sheet">
 
-        {{-- HEADER --}}
         <div class="report-header">
             <img src="{{ asset('images/logo.png') }}" alt="Lara's Flowershop" class="report-header-logo">
             <div class="report-header-info">
@@ -296,28 +268,27 @@
             </div>
         </div>
 
-        {{-- TITLE --}}
         <div class="report-title">
             <h1>
-                @switch($report)
-                    @case('sales') Sales Report @break
-                    @case('online-orders') Online Orders Report @break
-                    @case('stock') Overall Stock Report @break
-                    @case('stock-in') Stock-in Report @break
-                    @case('production') Production Report @break
-                @endswitch
-            </h1>
-            <span class="period">
-                @if($report === 'stock')
-                    Snapshot as of {{ now()->format('F d, Y h:i A') }}
+                @if($report === 'sales')
+                    @switch($sub)
+                        @case('walk-in') Walk-in Sales Report @break
+                        @case('online') Online Orders Report @break
+                        @case('overall') Overall Sales Report @break
+                    @endswitch
                 @else
-                    {{ ucfirst($period) }} · {{ $periodLabel }}
+                    @switch($sub)
+                        @case('materials') Materials Stock Report @break
+                        @case('products') Products Stock Report @break
+                        @case('overall') Overall Stock Report @break
+                    @endswitch
                 @endif
-            </span>
+            </h1>
+            <span class="period">{{ ucfirst($period) }} · {{ $periodLabel }}</span>
         </div>
 
-        {{-- ==================== SALES ==================== --}}
-        @if($report === 'sales')
+        {{-- ==================== SALES > WALK-IN ==================== --}}
+        @if($report === 'sales' && $sub === 'walk-in')
             <div class="section-label">Summary</div>
             <div class="summary-grid">
                 <div class="summary-tile">
@@ -326,23 +297,23 @@
                 </div>
                 <div class="summary-tile">
                     <div class="summary-tile-label">Items Sold</div>
-                    <div class="summary-tile-value">{{ (float) $salesData['itemsSold'] }}</div>
+                    <div class="summary-tile-value">{{ $fmtQty($salesData['itemsSold']) }}</div>
                 </div>
                 <div class="summary-tile">
-                    <div class="summary-tile-label">Gross Sales</div>
-                    <div class="summary-tile-value">₱{{ number_format($salesData['gross'], 2) }}</div>
+                    <div class="summary-tile-label">Gross</div>
+                    <div class="summary-tile-value">₱{{ $fmtMoney($salesData['gross']) }}</div>
                 </div>
                 <div class="summary-tile">
                     <div class="summary-tile-label">Discounts</div>
-                    <div class="summary-tile-value">₱{{ number_format($salesData['discounts'], 2) }}</div>
+                    <div class="summary-tile-value">₱{{ $fmtMoney($salesData['discounts']) }}</div>
                 </div>
                 <div class="summary-tile">
                     <div class="summary-tile-label">Net Sales</div>
-                    <div class="summary-tile-value">₱{{ number_format($salesData['net'], 2) }}</div>
+                    <div class="summary-tile-value">₱{{ $fmtMoney($salesData['net']) }}</div>
                 </div>
                 <div class="summary-tile">
-                    <div class="summary-tile-label">Avg. Order</div>
-                    <div class="summary-tile-value">₱{{ number_format($salesData['avgOrder'], 2) }}</div>
+                    <div class="summary-tile-label">Avg Order</div>
+                    <div class="summary-tile-value">₱{{ $fmtMoney($salesData['avgOrder']) }}</div>
                 </div>
             </div>
 
@@ -350,37 +321,39 @@
             @if($salesRecords->isEmpty())
                 <p class="empty-text">No walk-in sales recorded during this period.</p>
             @else
-                <table class="report-table">
-                    <thead>
-                        <tr>
-                            <th>Receipt No.</th>
-                            <th>Date &amp; Time</th>
-                            <th>Customer</th>
-                            <th>Payment</th>
-                            <th class="num">Subtotal</th>
-                            <th class="num">Discount</th>
-                            <th class="num">Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($salesRecords as $sale)
+                <div class="table-scroll">
+                    <table class="report-table">
+                        <thead>
                             <tr>
-                                <td class="mono">{{ $sale->reference_code }}</td>
-                                <td class="muted">{{ $sale->sale_date->format('M d, Y h:i A') }}</td>
-                                <td>{{ $sale->customer->full_name ?? 'Walk-in' }}</td>
-                                <td class="muted">{{ str_replace('_', ' ', $sale->payment_method) }}</td>
-                                <td class="num muted">₱{{ number_format($sale->subtotal, 2) }}</td>
-                                <td class="num muted">₱{{ number_format($sale->discount_amount, 2) }}</td>
-                                <td class="num strong">₱{{ number_format($sale->total_amount, 2) }}</td>
+                                <th>Receipt No.</th>
+                                <th>Date &amp; Time</th>
+                                <th>Customer</th>
+                                <th>Payment</th>
+                                <th class="num">Subtotal</th>
+                                <th class="num">Discount</th>
+                                <th class="num">Total</th>
                             </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @foreach($salesRecords as $sale)
+                                <tr>
+                                    <td class="mono">{{ $sale->reference_code }}</td>
+                                    <td class="muted">{{ $sale->sale_date->format('M d, Y h:i A') }}</td>
+                                    <td>{{ $sale->customer->full_name ?? 'Walk-in' }}</td>
+                                    <td class="muted">{{ str_replace('_', ' ', $sale->payment_method) }}</td>
+                                    <td class="num muted">₱{{ $fmtMoney($sale->subtotal) }}</td>
+                                    <td class="num muted">₱{{ $fmtMoney($sale->discount_amount) }}</td>
+                                    <td class="num strong">₱{{ $fmtMoney($sale->total_amount) }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
             @endif
         @endif
 
-        {{-- ==================== ONLINE ORDERS ==================== --}}
-        @if($report === 'online-orders')
+        {{-- ==================== SALES > ONLINE ==================== --}}
+        @if($report === 'sales' && $sub === 'online')
             <div class="section-label">Summary</div>
             <div class="summary-grid">
                 <div class="summary-tile">
@@ -397,221 +370,181 @@
                 </div>
                 <div class="summary-tile">
                     <div class="summary-tile-label">Net Revenue</div>
-                    <div class="summary-tile-value">₱{{ number_format($ordersData['net'], 2) }}</div>
+                    <div class="summary-tile-value">₱{{ $fmtMoney($ordersData['net']) }}</div>
                 </div>
                 <div class="summary-tile">
-                    <div class="summary-tile-label">Avg. Order</div>
-                    <div class="summary-tile-value">₱{{ number_format($ordersData['avgOrder'], 2) }}</div>
+                    <div class="summary-tile-label">Avg Order</div>
+                    <div class="summary-tile-value">₱{{ $fmtMoney($ordersData['avgOrder']) }}</div>
                 </div>
-            </div>
-
-            <div class="section-label">Status Breakdown</div>
-            <div class="summary-grid">
-                @foreach($ordersData['statusCounts'] as $status => $count)
-                    <div class="summary-tile">
-                        <div class="summary-tile-label">{{ ucfirst($status) }}</div>
-                        <div class="summary-tile-value">{{ $count }}</div>
-                    </div>
-                @endforeach
             </div>
 
             <div class="section-label">Orders</div>
             @if($orderRecords->isEmpty())
                 <p class="empty-text">No online orders recorded during this period.</p>
             @else
-                <table class="report-table">
-                    <thead>
-                        <tr>
-                            <th>Order No.</th>
-                            <th>Date &amp; Time</th>
-                            <th>Customer</th>
-                            <th>Status</th>
-                            <th>Fulfillment</th>
-                            <th class="num">Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($orderRecords as $order)
+                <div class="table-scroll">
+                    <table class="report-table">
+                        <thead>
                             <tr>
-                                <td class="mono">{{ $order->reference_code }}</td>
-                                <td class="muted">{{ $order->order_date->format('M d, Y h:i A') }}</td>
-                                <td>{{ $order->customer->full_name ?? $order->customer_name ?? 'Unregistered' }}</td>
-                                <td class="muted">{{ ucfirst($order->order_status) }}</td>
-                                <td class="muted">{{ ucfirst($order->fulfillment_type) }}</td>
-                                <td class="num strong">₱{{ number_format($order->total_amount, 2) }}</td>
+                                <th>Order No.</th>
+                                <th>Date &amp; Time</th>
+                                <th>Customer</th>
+                                <th>Status</th>
+                                <th>Fulfillment</th>
+                                <th class="num">Total</th>
                             </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @foreach($orderRecords as $order)
+                                <tr>
+                                    <td class="mono">{{ $order->reference_code }}</td>
+                                    <td class="muted">{{ $order->order_date->format('M d, Y h:i A') }}</td>
+                                    <td>{{ $order->customer->full_name ?? $order->customer_name ?? 'Unregistered' }}</td>
+                                    <td class="muted">{{ ucfirst($order->order_status) }}</td>
+                                    <td class="muted">{{ ucfirst($order->fulfillment_type) }}</td>
+                                    <td class="num strong">₱{{ $fmtMoney($order->total_amount) }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
             @endif
         @endif
 
-        {{-- ==================== STOCK ==================== --}}
-        @if($report === 'stock')
+        {{-- ==================== SALES > OVERALL ==================== --}}
+        @if($report === 'sales' && $sub === 'overall')
+            <div class="section-label">Summary</div>
+            <div class="summary-grid">
+                <div class="summary-tile">
+                    <div class="summary-tile-label">Total Revenue</div>
+                    <div class="summary-tile-value">₱{{ $fmtMoney($overallData['totalRevenue']) }}</div>
+                </div>
+                <div class="summary-tile">
+                    <div class="summary-tile-label">Transactions</div>
+                    <div class="summary-tile-value">{{ $overallData['totalCount'] }}</div>
+                </div>
+                <div class="summary-tile">
+                    <div class="summary-tile-label">Avg Transaction</div>
+                    <div class="summary-tile-value">₱{{ $fmtMoney($overallData['avgTransaction']) }}</div>
+                </div>
+                <div class="summary-tile">
+                    <div class="summary-tile-label">Walk-in</div>
+                    <div class="summary-tile-value">₱{{ $fmtMoney($overallData['walkInRevenue']) }}</div>
+                </div>
+                <div class="summary-tile">
+                    <div class="summary-tile-label">Online</div>
+                    <div class="summary-tile-value">₱{{ $fmtMoney($overallData['onlineRevenue']) }}</div>
+                </div>
+            </div>
+
+            <div class="section-label">All Transactions</div>
+            @if($overallRecords->isEmpty())
+                <p class="empty-text">No transactions recorded during this period.</p>
+            @else
+                <div class="table-scroll">
+                    <table class="report-table">
+                        <thead>
+                            <tr>
+                                <th>Channel</th>
+                                <th>Reference</th>
+                                <th>Date &amp; Time</th>
+                                <th>Customer</th>
+                                <th class="num">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($overallRecords as $record)
+                                <tr>
+                                    <td class="muted">{{ $record['source'] }}</td>
+                                    <td class="mono">{{ $record['reference'] }}</td>
+                                    <td class="muted">{{ $record['date']->format('M d, Y h:i A') }}</td>
+                                    <td>{{ $record['customer'] }}</td>
+                                    <td class="num strong">₱{{ $fmtMoney($record['total']) }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
+        @endif
+
+        {{-- ==================== STOCKS (LEDGER) ==================== --}}
+        @if($report === 'stocks')
             <div class="section-label">Summary</div>
             <div class="summary-grid">
                 <div class="summary-tile">
                     <div class="summary-tile-label">Total Items</div>
-                    <div class="summary-tile-value">{{ $stockData['totalItems'] }}</div>
+                    <div class="summary-tile-value">{{ count($ledgerRows) }}</div>
                 </div>
                 <div class="summary-tile">
-                    <div class="summary-tile-label">Products</div>
-                    <div class="summary-tile-value">{{ $stockData['totalProducts'] }}</div>
+                    <div class="summary-tile-label">Beginning</div>
+                    <div class="summary-tile-value">{{ $fmtQty($ledgerTotals['beginning']) }}</div>
                 </div>
                 <div class="summary-tile">
-                    <div class="summary-tile-label">Materials</div>
-                    <div class="summary-tile-value">{{ $stockData['totalMaterials'] }}</div>
+                    <div class="summary-tile-label">Stock-in</div>
+                    <div class="summary-tile-value">{{ $fmtQty($ledgerTotals['stock_in']) }}</div>
                 </div>
                 <div class="summary-tile">
-                    <div class="summary-tile-label">Low Stock</div>
-                    <div class="summary-tile-value">{{ $stockData['lowStockCount'] }}</div>
+                    <div class="summary-tile-label">Stock-out</div>
+                    <div class="summary-tile-value">{{ $fmtQty($ledgerTotals['stock_out']) }}</div>
                 </div>
                 <div class="summary-tile">
-                    <div class="summary-tile-label">Out of Stock</div>
-                    <div class="summary-tile-value">{{ $stockData['outOfStockCount'] }}</div>
+                    <div class="summary-tile-label">Remaining</div>
+                    <div class="summary-tile-value">{{ $fmtQty($ledgerTotals['remaining']) }}</div>
                 </div>
             </div>
 
-            <div class="section-label">Current Stock</div>
-            @if($stockProducts->isEmpty())
-                <p class="empty-text">No items in inventory.</p>
+            <div class="section-label">Stock Ledger</div>
+            @if(empty($ledgerRows))
+                <p class="empty-text">No items to display.</p>
             @else
-                <table class="report-table">
-                    <thead>
-                        <tr>
-                            <th>Item</th>
-                            <th>Type</th>
-                            <th class="num">Retail</th>
-                            <th class="num">Production</th>
-                            <th class="num">Total</th>
-                            <th>Unit</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($stockProducts as $product)
+                <div class="table-scroll">
+                    <table class="report-table ledger-table">
+                        <thead>
                             <tr>
-                                <td style="font-weight: 600;">
-                                    {{ $product->name }}@if($product->variation) — {{ $product->variation }}@endif
-                                </td>
-                                <td class="muted">{{ $product->item_type === 'material' ? 'Material' : 'Product' }}</td>
-                                <td class="num muted">
-                                    {{ $product->retail_stock }}
-                                    @if($product->retail_low) <span class="low-tag">LOW</span> @endif
-                                </td>
-                                <td class="num muted">
-                                    {{ $product->production_stock }}
-                                    @if($product->production_low) <span class="low-tag">LOW</span> @endif
-                                </td>
-                                <td class="num strong">{{ $product->total_stock }}</td>
-                                <td class="muted">{{ $product->stock_unit }}</td>
+                                <th class="ledger-item-col">Items</th>
+                                <th class="num ledger-num-col">Beginning</th>
+                                <th class="num ledger-num-col">Stock-in</th>
+                                <th class="num ledger-num-col">Stock-out</th>
+                                <th class="num ledger-num-col">Remaining</th>
                             </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @foreach($ledgerRows as $row)
+                                <tr>
+                                    <td class="ledger-item-cell">
+                                        <div class="ledger-item-name">{{ $row['name'] }}</div>
+                                        <div class="ledger-item-unit">{{ $row['unit'] }}</div>
+                                    </td>
+                                    <td class="num muted">{{ $fmtQty($row['beginning']) }}</td>
+                                    <td class="num ledger-in">
+                                        {{ $row['stock_in'] > 0 ? '+' . $fmtQty($row['stock_in']) : '—' }}
+                                    </td>
+                                    <td class="num ledger-out">
+                                        {{ $row['stock_out'] > 0 ? '−' . $fmtQty($row['stock_out']) : '—' }}
+                                    </td>
+                                    <td class="num strong">{{ $fmtQty($row['remaining']) }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td class="ledger-item-cell ledger-total-label">Total</td>
+                                <td class="num ledger-total">{{ $fmtQty($ledgerTotals['beginning']) }}</td>
+                                <td class="num ledger-total ledger-in">
+                                    {{ $ledgerTotals['stock_in'] > 0 ? '+' . $fmtQty($ledgerTotals['stock_in']) : '—' }}
+                                </td>
+                                <td class="num ledger-total ledger-out">
+                                    {{ $ledgerTotals['stock_out'] > 0 ? '−' . $fmtQty($ledgerTotals['stock_out']) : '—' }}
+                                </td>
+                                <td class="num ledger-total ledger-remaining">{{ $fmtQty($ledgerTotals['remaining']) }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
             @endif
         @endif
 
-        {{-- ==================== STOCK-IN ==================== --}}
-        @if($report === 'stock-in')
-            <div class="section-label">Summary</div>
-            <div class="summary-grid">
-                <div class="summary-tile">
-                    <div class="summary-tile-label">Transactions</div>
-                    <div class="summary-tile-value">{{ $stockInData['transactions'] }}</div>
-                </div>
-                <div class="summary-tile">
-                    <div class="summary-tile-label">Items Received</div>
-                    <div class="summary-tile-value">{{ (float) $stockInData['totalItems'] }}</div>
-                </div>
-                <div class="summary-tile">
-                    <div class="summary-tile-label">Total Spent</div>
-                    <div class="summary-tile-value">₱{{ number_format($stockInData['totalSpent'], 2) }}</div>
-                </div>
-                <div class="summary-tile">
-                    <div class="summary-tile-label">Avg. Transaction</div>
-                    <div class="summary-tile-value">₱{{ number_format($stockInData['avgTransaction'], 2) }}</div>
-                </div>
-            </div>
-
-            <div class="section-label">Stock-in Records</div>
-            @if($purchaseRecords->isEmpty())
-                <p class="empty-text">No stock-in records during this period.</p>
-            @else
-                <table class="report-table">
-                    <thead>
-                        <tr>
-                            <th>Date &amp; Time</th>
-                            <th>Supplier</th>
-                            <th>Recorded By</th>
-                            <th class="num">Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($purchaseRecords as $purchase)
-                            <tr>
-                                <td class="muted">{{ $purchase->purchase_date->format('M d, Y h:i A') }}</td>
-                                <td>{{ $purchase->supplier_name ?: '—' }}</td>
-                                <td class="muted">{{ $purchase->user->full_name ?? 'Unknown' }}</td>
-                                <td class="num strong">₱{{ number_format($purchase->total_amount, 2) }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            @endif
-        @endif
-
-        {{-- ==================== PRODUCTION ==================== --}}
-        @if($report === 'production')
-            <div class="section-label">Summary</div>
-            <div class="summary-grid">
-                <div class="summary-tile">
-                    <div class="summary-tile-label">Batches</div>
-                    <div class="summary-tile-value">{{ $productionData['batches'] }}</div>
-                </div>
-                <div class="summary-tile">
-                    <div class="summary-tile-label">Total Produced</div>
-                    <div class="summary-tile-value">{{ (float) $productionData['totalQuantity'] }}</div>
-                </div>
-                <div class="summary-tile">
-                    <div class="summary-tile-label">Unique Products</div>
-                    <div class="summary-tile-value">{{ $productionData['uniqueProducts'] }}</div>
-                </div>
-                <div class="summary-tile">
-                    <div class="summary-tile-label">Avg. per Batch</div>
-                    <div class="summary-tile-value">{{ (float) $productionData['avgBatch'] }}</div>
-                </div>
-            </div>
-
-            <div class="section-label">Production Records</div>
-            @if($productionRecords->isEmpty())
-                <p class="empty-text">No production activity during this period.</p>
-            @else
-                <table class="report-table">
-                    <thead>
-                        <tr>
-                            <th>Date &amp; Time</th>
-                            <th>Product</th>
-                            <th>Produced By</th>
-                            <th class="num">Quantity</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($productionRecords as $production)
-                            <tr>
-                                <td class="muted">{{ $production->production_date->format('M d, Y h:i A') }}</td>
-                                <td style="font-weight: 600;">{{ $production->product->display_name }}</td>
-                                <td class="muted">{{ $production->producedBy->full_name ?? 'Unknown' }}</td>
-                                <td class="num strong">
-                                    {{ (float) $production->quantity_produced }} {{ $production->product->stock_unit }}
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            @endif
-        @endif
-
-        {{-- FOOTER --}}
         <div class="report-footer">
             <div>
                 <strong>Report Generated By</strong>

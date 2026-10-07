@@ -3,14 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo e(match($report) {
-        'sales' => 'Sales Report',
-        'online-orders' => 'Online Orders Report',
-        'stock' => 'Overall Stock Report',
-        'stock-in' => 'Stock-in Report',
-        'production' => 'Production Report',
-        default => 'Report',
-    }); ?> — <?php echo e($periodLabel); ?></title>
+    <title>
+        <?php if($report === 'sales'): ?>
+            <?php switch($sub):
+                case ('walk-in'): ?> Walk-in Sales Report <?php break; ?>
+                <?php case ('online'): ?> Online Orders Report <?php break; ?>
+                <?php case ('overall'): ?> Overall Sales Report <?php break; ?>
+            <?php endswitch; ?>
+        <?php else: ?>
+            <?php switch($sub):
+                case ('materials'): ?> Materials Stock Report <?php break; ?>
+                <?php case ('products'): ?> Products Stock Report <?php break; ?>
+                <?php case ('overall'): ?> Overall Stock Report <?php break; ?>
+            <?php endswitch; ?>
+        <?php endif; ?>
+        — <?php echo e($periodLabel); ?>
+
+    </title>
+
+    <?php
+        $fmtQty = function ($val) {
+            if ($val === null || $val === '') return '—';
+            $num = (float) $val;
+            $formatted = number_format($num, 2, '.', ',');
+            $trimmed = rtrim(rtrim($formatted, '0'), '.');
+            return $trimmed === '' ? '0' : $trimmed;
+        };
+
+        $fmtMoney = fn($val) => number_format((float) $val, 2);
+    ?>
 
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -28,12 +49,11 @@
             max-width: 900px;
             margin: 0 auto;
             background: #FFFFFF;
-            padding: 40px 40px;
+            padding: 40px;
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(46, 90, 59, 0.08);
         }
 
-        /* HEADER */
         .report-header {
             display: flex;
             align-items: center;
@@ -42,80 +62,38 @@
             border-bottom: 2px solid #2E5A3B;
             margin-bottom: 24px;
         }
-        .report-header-logo {
-            width: 64px;
-            height: 64px;
-            object-fit: contain;
-            flex-shrink: 0;
-        }
+        .report-header-logo { width: 64px; height: 64px; object-fit: contain; flex-shrink: 0; }
         .report-header-info { flex: 1; }
-        .report-header-store {
-            font-size: 20px;
-            font-weight: 700;
-            color: #2E5A3B;
-            letter-spacing: 0.3px;
-        }
+        .report-header-store { font-size: 20px; font-weight: 700; color: #2E5A3B; }
         .report-header-sub {
-            font-size: 9px;
-            font-weight: 700;
-            color: #D4AF37;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            margin-top: 2px;
+            font-size: 9px; font-weight: 700; color: #D4AF37;
+            letter-spacing: 3px; text-transform: uppercase; margin-top: 2px;
         }
-        .report-header-meta {
-            font-size: 10px;
-            color: #64748B;
-            margin-top: 6px;
-        }
-        .report-header-right {
-            text-align: right;
-            font-size: 10px;
-            color: #64748B;
-        }
+        .report-header-meta { font-size: 10px; color: #64748B; margin-top: 6px; }
+        .report-header-right { text-align: right; font-size: 10px; color: #64748B; }
         .report-header-right strong {
-            display: block;
-            font-size: 11px;
-            color: #212121;
-            margin-bottom: 2px;
+            display: block; font-size: 11px; color: #212121; margin-bottom: 2px;
         }
 
-        /* TITLE */
-        .report-title {
-            margin-bottom: 24px;
-        }
+        .report-title { margin-bottom: 24px; }
         .report-title h1 {
-            font-size: 18px;
-            font-weight: 700;
-            color: #212121;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            margin-bottom: 4px;
+            font-size: 18px; font-weight: 700; color: #212121;
+            text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 4px;
         }
         .report-title .period {
-            display: inline-block;
-            font-size: 11px;
-            font-weight: 600;
-            color: #E85D75;
-            background: #FCE4EC;
-            padding: 3px 12px;
-            border-radius: 4px;
-            letter-spacing: 0.5px;
+            display: inline-block; font-size: 11px; font-weight: 600;
+            color: #E85D75; background: #FCE4EC;
+            padding: 3px 12px; border-radius: 4px; letter-spacing: 0.5px;
         }
 
-        /* SECTION */
         .section-label {
-            font-size: 10px;
-            font-weight: 700;
-            color: #94A3B8;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
+            font-size: 10px; font-weight: 700; color: #94A3B8;
+            text-transform: uppercase; letter-spacing: 1.5px;
             margin: 24px 0 10px;
             padding-bottom: 6px;
             border-bottom: 1px solid #F0E6DD;
         }
 
-        /* SUMMARY */
         .summary-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -126,22 +104,32 @@
             border: 1px solid #F0E6DD;
             border-radius: 8px;
             padding: 12px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
         }
         .summary-tile-label {
-            font-size: 9px;
-            font-weight: 700;
-            color: #94A3B8;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 4px;
+            font-size: 9px; font-weight: 700; color: #94A3B8;
+            text-transform: uppercase; letter-spacing: 0.8px;
+            line-height: 1.3;
+            min-width: 0;
+            word-break: break-word;
         }
         .summary-tile-value {
-            font-size: 16px;
-            font-weight: 700;
-            color: #212121;
+            font-size: 14px; font-weight: 700; color: #212121;
+            white-space: nowrap;
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+            flex-shrink: 0;
         }
 
-        /* TABLE */
+        .table-scroll {
+            width: 100%;
+            overflow-x: auto;
+        }
+
         .report-table {
             width: 100%;
             border-collapse: collapse;
@@ -157,6 +145,7 @@
             font-size: 9px;
             letter-spacing: 0.8px;
             border-bottom: 2px solid #F8BBD0;
+            white-space: nowrap;
         }
         .report-table thead th.num { text-align: right; }
         .report-table tbody td {
@@ -165,114 +154,99 @@
             vertical-align: top;
         }
         .report-table tbody tr:nth-child(even) { background: #FEFCF9; }
-        .report-table tbody td.num { text-align: right; white-space: nowrap; }
+        .report-table tbody td.num {
+            text-align: right;
+            white-space: nowrap;
+            font-variant-numeric: tabular-nums;
+        }
         .report-table tbody td.muted { color: #64748B; }
         .report-table tbody td.strong { font-weight: 700; color: #2E5A3B; }
         .report-table tbody td.mono {
             font-family: 'SF Mono', Consolas, monospace;
             color: #E85D75;
             font-weight: 600;
+            white-space: nowrap;
         }
 
-        .low-tag {
-            display: inline-block;
-            font-size: 8px;
+        /* LEDGER TABLE */
+        .ledger-table { table-layout: fixed; }
+        .ledger-item-col { width: 34%; }
+        .ledger-num-col { width: 16.5%; }
+
+        .ledger-item-cell { word-break: break-word; }
+        .ledger-item-name { font-weight: 600; color: #212121; line-height: 1.3; }
+        .ledger-item-unit { font-size: 10px; color: #94A3B8; margin-top: 2px; }
+        .ledger-in { color: #2E5A3B; font-weight: 600; }
+        .ledger-out { color: #DC3545; font-weight: 600; }
+
+        .report-table tfoot td {
+            padding: 10px 8px;
+            background: #FAF7F3;
+            border-top: 2px solid #F8BBD0;
             font-weight: 700;
-            color: #DC3545;
-            background: #FDECEA;
-            padding: 1px 4px;
-            border-radius: 3px;
-            margin-left: 3px;
-            letter-spacing: 0.5px;
         }
+        .report-table tfoot td.num {
+            text-align: right;
+            white-space: nowrap;
+            font-variant-numeric: tabular-nums;
+        }
+        .ledger-total-label { font-weight: 700; color: #212121; }
+        .ledger-remaining { color: #E85D75; font-size: 13px; }
 
-        /* FOOTER */
         .report-footer {
-            margin-top: 40px;
-            padding-top: 20px;
+            margin-top: 40px; padding-top: 20px;
             border-top: 2px solid #F0E6DD;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            gap: 20px;
-            font-size: 10px;
-            color: #64748B;
+            display: flex; justify-content: space-between;
+            align-items: flex-end; gap: 20px;
+            font-size: 10px; color: #64748B;
         }
         .report-footer strong {
-            display: block;
-            color: #212121;
-            font-size: 11px;
-            margin-bottom: 4px;
+            display: block; color: #212121; font-size: 11px; margin-bottom: 4px;
         }
         .signature-line {
-            margin-top: 30px;
-            padding-top: 4px;
+            margin-top: 30px; padding-top: 4px;
             border-top: 1px solid #212121;
-            min-width: 200px;
-            text-align: center;
-            color: #212121;
-            font-size: 10px;
+            min-width: 200px; text-align: center;
+            color: #212121; font-size: 10px;
         }
 
         .empty-text {
-            text-align: center;
-            padding: 40px 20px;
-            color: #94A3B8;
-            font-size: 12px;
+            text-align: center; padding: 40px 20px;
+            color: #94A3B8; font-size: 12px;
         }
 
-        /* SCREEN BUTTONS */
         .screen-actions {
-            max-width: 900px;
-            margin: 20px auto 0;
-            display: flex;
-            gap: 10px;
-            justify-content: center;
+            max-width: 900px; margin: 20px auto 0;
+            display: flex; gap: 10px; justify-content: center;
         }
         .screen-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 10px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            text-decoration: none;
-            font-family: inherit;
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 12px 24px; border: none; border-radius: 10px;
+            font-size: 14px; font-weight: 600; cursor: pointer;
+            text-decoration: none; font-family: inherit;
             transition: all 0.2s ease;
         }
         .screen-btn.primary {
-            background: #E85D75;
-            color: #FFFFFF;
+            background: #E85D75; color: #FFFFFF;
             box-shadow: 0 4px 12px rgba(232, 93, 117, 0.3);
         }
         .screen-btn.primary:hover { background: #D14A62; }
         .screen-btn.secondary {
-            background: #FFFFFF;
-            color: #64748B;
+            background: #FFFFFF; color: #64748B;
             border: 1.5px solid #F0E6DD;
         }
         .screen-btn.secondary:hover {
-            background: #FEFCF9;
-            border-color: #E85D75;
-            color: #E85D75;
+            background: #FEFCF9; border-color: #E85D75; color: #E85D75;
         }
 
-        /* PRINT */
         @page { size: A4 portrait; margin: 15mm; }
 
         @media print {
             body { background: #FFFFFF; padding: 0; font-size: 10px; }
-            .report-sheet {
-                box-shadow: none;
-                border-radius: 0;
-                padding: 0;
-                max-width: 100%;
-            }
+            .report-sheet { box-shadow: none; border-radius: 0; padding: 0; max-width: 100%; }
             .screen-actions { display: none !important; }
             .report-table tbody tr:nth-child(even) { background: #FAFAFA; }
+            .table-scroll { overflow: visible; }
         }
     </style>
 </head>
@@ -281,7 +255,6 @@
 
     <div class="report-sheet">
 
-        
         <div class="report-header">
             <img src="<?php echo e(asset('images/logo.png')); ?>" alt="Lara's Flowershop" class="report-header-logo">
             <div class="report-header-info">
@@ -297,30 +270,27 @@
             </div>
         </div>
 
-        
         <div class="report-title">
             <h1>
-                <?php switch($report):
-                    case ('sales'): ?> Sales Report <?php break; ?>
-                    <?php case ('online-orders'): ?> Online Orders Report <?php break; ?>
-                    <?php case ('stock'): ?> Overall Stock Report <?php break; ?>
-                    <?php case ('stock-in'): ?> Stock-in Report <?php break; ?>
-                    <?php case ('production'): ?> Production Report <?php break; ?>
-                <?php endswitch; ?>
-            </h1>
-            <span class="period">
-                <?php if($report === 'stock'): ?>
-                    Snapshot as of <?php echo e(now()->format('F d, Y h:i A')); ?>
-
+                <?php if($report === 'sales'): ?>
+                    <?php switch($sub):
+                        case ('walk-in'): ?> Walk-in Sales Report <?php break; ?>
+                        <?php case ('online'): ?> Online Orders Report <?php break; ?>
+                        <?php case ('overall'): ?> Overall Sales Report <?php break; ?>
+                    <?php endswitch; ?>
                 <?php else: ?>
-                    <?php echo e(ucfirst($period)); ?> · <?php echo e($periodLabel); ?>
-
+                    <?php switch($sub):
+                        case ('materials'): ?> Materials Stock Report <?php break; ?>
+                        <?php case ('products'): ?> Products Stock Report <?php break; ?>
+                        <?php case ('overall'): ?> Overall Stock Report <?php break; ?>
+                    <?php endswitch; ?>
                 <?php endif; ?>
-            </span>
+            </h1>
+            <span class="period"><?php echo e(ucfirst($period)); ?> · <?php echo e($periodLabel); ?></span>
         </div>
 
         
-        <?php if($report === 'sales'): ?>
+        <?php if($report === 'sales' && $sub === 'walk-in'): ?>
             <div class="section-label">Summary</div>
             <div class="summary-grid">
                 <div class="summary-tile">
@@ -329,23 +299,23 @@
                 </div>
                 <div class="summary-tile">
                     <div class="summary-tile-label">Items Sold</div>
-                    <div class="summary-tile-value"><?php echo e((float) $salesData['itemsSold']); ?></div>
+                    <div class="summary-tile-value"><?php echo e($fmtQty($salesData['itemsSold'])); ?></div>
                 </div>
                 <div class="summary-tile">
-                    <div class="summary-tile-label">Gross Sales</div>
-                    <div class="summary-tile-value">₱<?php echo e(number_format($salesData['gross'], 2)); ?></div>
+                    <div class="summary-tile-label">Gross</div>
+                    <div class="summary-tile-value">₱<?php echo e($fmtMoney($salesData['gross'])); ?></div>
                 </div>
                 <div class="summary-tile">
                     <div class="summary-tile-label">Discounts</div>
-                    <div class="summary-tile-value">₱<?php echo e(number_format($salesData['discounts'], 2)); ?></div>
+                    <div class="summary-tile-value">₱<?php echo e($fmtMoney($salesData['discounts'])); ?></div>
                 </div>
                 <div class="summary-tile">
                     <div class="summary-tile-label">Net Sales</div>
-                    <div class="summary-tile-value">₱<?php echo e(number_format($salesData['net'], 2)); ?></div>
+                    <div class="summary-tile-value">₱<?php echo e($fmtMoney($salesData['net'])); ?></div>
                 </div>
                 <div class="summary-tile">
-                    <div class="summary-tile-label">Avg. Order</div>
-                    <div class="summary-tile-value">₱<?php echo e(number_format($salesData['avgOrder'], 2)); ?></div>
+                    <div class="summary-tile-label">Avg Order</div>
+                    <div class="summary-tile-value">₱<?php echo e($fmtMoney($salesData['avgOrder'])); ?></div>
                 </div>
             </div>
 
@@ -353,37 +323,39 @@
             <?php if($salesRecords->isEmpty()): ?>
                 <p class="empty-text">No walk-in sales recorded during this period.</p>
             <?php else: ?>
-                <table class="report-table">
-                    <thead>
-                        <tr>
-                            <th>Receipt No.</th>
-                            <th>Date &amp; Time</th>
-                            <th>Customer</th>
-                            <th>Payment</th>
-                            <th class="num">Subtotal</th>
-                            <th class="num">Discount</th>
-                            <th class="num">Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php $__currentLoopData = $salesRecords; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $sale): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <div class="table-scroll">
+                    <table class="report-table">
+                        <thead>
                             <tr>
-                                <td class="mono"><?php echo e($sale->reference_code); ?></td>
-                                <td class="muted"><?php echo e($sale->sale_date->format('M d, Y h:i A')); ?></td>
-                                <td><?php echo e($sale->customer->full_name ?? 'Walk-in'); ?></td>
-                                <td class="muted"><?php echo e(str_replace('_', ' ', $sale->payment_method)); ?></td>
-                                <td class="num muted">₱<?php echo e(number_format($sale->subtotal, 2)); ?></td>
-                                <td class="num muted">₱<?php echo e(number_format($sale->discount_amount, 2)); ?></td>
-                                <td class="num strong">₱<?php echo e(number_format($sale->total_amount, 2)); ?></td>
+                                <th>Receipt No.</th>
+                                <th>Date &amp; Time</th>
+                                <th>Customer</th>
+                                <th>Payment</th>
+                                <th class="num">Subtotal</th>
+                                <th class="num">Discount</th>
+                                <th class="num">Total</th>
                             </tr>
-                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            <?php $__currentLoopData = $salesRecords; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $sale): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <tr>
+                                    <td class="mono"><?php echo e($sale->reference_code); ?></td>
+                                    <td class="muted"><?php echo e($sale->sale_date->format('M d, Y h:i A')); ?></td>
+                                    <td><?php echo e($sale->customer->full_name ?? 'Walk-in'); ?></td>
+                                    <td class="muted"><?php echo e(str_replace('_', ' ', $sale->payment_method)); ?></td>
+                                    <td class="num muted">₱<?php echo e($fmtMoney($sale->subtotal)); ?></td>
+                                    <td class="num muted">₱<?php echo e($fmtMoney($sale->discount_amount)); ?></td>
+                                    <td class="num strong">₱<?php echo e($fmtMoney($sale->total_amount)); ?></td>
+                                </tr>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                        </tbody>
+                    </table>
+                </div>
             <?php endif; ?>
         <?php endif; ?>
 
         
-        <?php if($report === 'online-orders'): ?>
+        <?php if($report === 'sales' && $sub === 'online'): ?>
             <div class="section-label">Summary</div>
             <div class="summary-grid">
                 <div class="summary-tile">
@@ -400,224 +372,185 @@
                 </div>
                 <div class="summary-tile">
                     <div class="summary-tile-label">Net Revenue</div>
-                    <div class="summary-tile-value">₱<?php echo e(number_format($ordersData['net'], 2)); ?></div>
+                    <div class="summary-tile-value">₱<?php echo e($fmtMoney($ordersData['net'])); ?></div>
                 </div>
                 <div class="summary-tile">
-                    <div class="summary-tile-label">Avg. Order</div>
-                    <div class="summary-tile-value">₱<?php echo e(number_format($ordersData['avgOrder'], 2)); ?></div>
+                    <div class="summary-tile-label">Avg Order</div>
+                    <div class="summary-tile-value">₱<?php echo e($fmtMoney($ordersData['avgOrder'])); ?></div>
                 </div>
-            </div>
-
-            <div class="section-label">Status Breakdown</div>
-            <div class="summary-grid">
-                <?php $__currentLoopData = $ordersData['statusCounts']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $status => $count): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                    <div class="summary-tile">
-                        <div class="summary-tile-label"><?php echo e(ucfirst($status)); ?></div>
-                        <div class="summary-tile-value"><?php echo e($count); ?></div>
-                    </div>
-                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </div>
 
             <div class="section-label">Orders</div>
             <?php if($orderRecords->isEmpty()): ?>
                 <p class="empty-text">No online orders recorded during this period.</p>
             <?php else: ?>
-                <table class="report-table">
-                    <thead>
-                        <tr>
-                            <th>Order No.</th>
-                            <th>Date &amp; Time</th>
-                            <th>Customer</th>
-                            <th>Status</th>
-                            <th>Fulfillment</th>
-                            <th class="num">Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php $__currentLoopData = $orderRecords; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $order): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <div class="table-scroll">
+                    <table class="report-table">
+                        <thead>
                             <tr>
-                                <td class="mono"><?php echo e($order->reference_code); ?></td>
-                                <td class="muted"><?php echo e($order->order_date->format('M d, Y h:i A')); ?></td>
-                                <td><?php echo e($order->customer->full_name ?? $order->customer_name ?? 'Unregistered'); ?></td>
-                                <td class="muted"><?php echo e(ucfirst($order->order_status)); ?></td>
-                                <td class="muted"><?php echo e(ucfirst($order->fulfillment_type)); ?></td>
-                                <td class="num strong">₱<?php echo e(number_format($order->total_amount, 2)); ?></td>
+                                <th>Order No.</th>
+                                <th>Date &amp; Time</th>
+                                <th>Customer</th>
+                                <th>Status</th>
+                                <th>Fulfillment</th>
+                                <th class="num">Total</th>
                             </tr>
-                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            <?php $__currentLoopData = $orderRecords; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $order): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <tr>
+                                    <td class="mono"><?php echo e($order->reference_code); ?></td>
+                                    <td class="muted"><?php echo e($order->order_date->format('M d, Y h:i A')); ?></td>
+                                    <td><?php echo e($order->customer->full_name ?? $order->customer_name ?? 'Unregistered'); ?></td>
+                                    <td class="muted"><?php echo e(ucfirst($order->order_status)); ?></td>
+                                    <td class="muted"><?php echo e(ucfirst($order->fulfillment_type)); ?></td>
+                                    <td class="num strong">₱<?php echo e($fmtMoney($order->total_amount)); ?></td>
+                                </tr>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                        </tbody>
+                    </table>
+                </div>
             <?php endif; ?>
         <?php endif; ?>
 
         
-        <?php if($report === 'stock'): ?>
+        <?php if($report === 'sales' && $sub === 'overall'): ?>
+            <div class="section-label">Summary</div>
+            <div class="summary-grid">
+                <div class="summary-tile">
+                    <div class="summary-tile-label">Total Revenue</div>
+                    <div class="summary-tile-value">₱<?php echo e($fmtMoney($overallData['totalRevenue'])); ?></div>
+                </div>
+                <div class="summary-tile">
+                    <div class="summary-tile-label">Transactions</div>
+                    <div class="summary-tile-value"><?php echo e($overallData['totalCount']); ?></div>
+                </div>
+                <div class="summary-tile">
+                    <div class="summary-tile-label">Avg Transaction</div>
+                    <div class="summary-tile-value">₱<?php echo e($fmtMoney($overallData['avgTransaction'])); ?></div>
+                </div>
+                <div class="summary-tile">
+                    <div class="summary-tile-label">Walk-in</div>
+                    <div class="summary-tile-value">₱<?php echo e($fmtMoney($overallData['walkInRevenue'])); ?></div>
+                </div>
+                <div class="summary-tile">
+                    <div class="summary-tile-label">Online</div>
+                    <div class="summary-tile-value">₱<?php echo e($fmtMoney($overallData['onlineRevenue'])); ?></div>
+                </div>
+            </div>
+
+            <div class="section-label">All Transactions</div>
+            <?php if($overallRecords->isEmpty()): ?>
+                <p class="empty-text">No transactions recorded during this period.</p>
+            <?php else: ?>
+                <div class="table-scroll">
+                    <table class="report-table">
+                        <thead>
+                            <tr>
+                                <th>Channel</th>
+                                <th>Reference</th>
+                                <th>Date &amp; Time</th>
+                                <th>Customer</th>
+                                <th class="num">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php $__currentLoopData = $overallRecords; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $record): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <tr>
+                                    <td class="muted"><?php echo e($record['source']); ?></td>
+                                    <td class="mono"><?php echo e($record['reference']); ?></td>
+                                    <td class="muted"><?php echo e($record['date']->format('M d, Y h:i A')); ?></td>
+                                    <td><?php echo e($record['customer']); ?></td>
+                                    <td class="num strong">₱<?php echo e($fmtMoney($record['total'])); ?></td>
+                                </tr>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php endif; ?>
+        <?php endif; ?>
+
+        
+        <?php if($report === 'stocks'): ?>
             <div class="section-label">Summary</div>
             <div class="summary-grid">
                 <div class="summary-tile">
                     <div class="summary-tile-label">Total Items</div>
-                    <div class="summary-tile-value"><?php echo e($stockData['totalItems']); ?></div>
+                    <div class="summary-tile-value"><?php echo e(count($ledgerRows)); ?></div>
                 </div>
                 <div class="summary-tile">
-                    <div class="summary-tile-label">Products</div>
-                    <div class="summary-tile-value"><?php echo e($stockData['totalProducts']); ?></div>
+                    <div class="summary-tile-label">Beginning</div>
+                    <div class="summary-tile-value"><?php echo e($fmtQty($ledgerTotals['beginning'])); ?></div>
                 </div>
                 <div class="summary-tile">
-                    <div class="summary-tile-label">Materials</div>
-                    <div class="summary-tile-value"><?php echo e($stockData['totalMaterials']); ?></div>
+                    <div class="summary-tile-label">Stock-in</div>
+                    <div class="summary-tile-value"><?php echo e($fmtQty($ledgerTotals['stock_in'])); ?></div>
                 </div>
                 <div class="summary-tile">
-                    <div class="summary-tile-label">Low Stock</div>
-                    <div class="summary-tile-value"><?php echo e($stockData['lowStockCount']); ?></div>
+                    <div class="summary-tile-label">Stock-out</div>
+                    <div class="summary-tile-value"><?php echo e($fmtQty($ledgerTotals['stock_out'])); ?></div>
                 </div>
                 <div class="summary-tile">
-                    <div class="summary-tile-label">Out of Stock</div>
-                    <div class="summary-tile-value"><?php echo e($stockData['outOfStockCount']); ?></div>
+                    <div class="summary-tile-label">Remaining</div>
+                    <div class="summary-tile-value"><?php echo e($fmtQty($ledgerTotals['remaining'])); ?></div>
                 </div>
             </div>
 
-            <div class="section-label">Current Stock</div>
-            <?php if($stockProducts->isEmpty()): ?>
-                <p class="empty-text">No items in inventory.</p>
+            <div class="section-label">Stock Ledger</div>
+            <?php if(empty($ledgerRows)): ?>
+                <p class="empty-text">No items to display.</p>
             <?php else: ?>
-                <table class="report-table">
-                    <thead>
-                        <tr>
-                            <th>Item</th>
-                            <th>Type</th>
-                            <th class="num">Retail</th>
-                            <th class="num">Production</th>
-                            <th class="num">Total</th>
-                            <th>Unit</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php $__currentLoopData = $stockProducts; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $product): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <div class="table-scroll">
+                    <table class="report-table ledger-table">
+                        <thead>
                             <tr>
-                                <td style="font-weight: 600;">
-                                    <?php echo e($product->name); ?><?php if($product->variation): ?> — <?php echo e($product->variation); ?><?php endif; ?>
-                                </td>
-                                <td class="muted"><?php echo e($product->item_type === 'material' ? 'Material' : 'Product'); ?></td>
-                                <td class="num muted">
-                                    <?php echo e($product->retail_stock); ?>
-
-                                    <?php if($product->retail_low): ?> <span class="low-tag">LOW</span> <?php endif; ?>
-                                </td>
-                                <td class="num muted">
-                                    <?php echo e($product->production_stock); ?>
-
-                                    <?php if($product->production_low): ?> <span class="low-tag">LOW</span> <?php endif; ?>
-                                </td>
-                                <td class="num strong"><?php echo e($product->total_stock); ?></td>
-                                <td class="muted"><?php echo e($product->stock_unit); ?></td>
+                                <th class="ledger-item-col">Items</th>
+                                <th class="num ledger-num-col">Beginning</th>
+                                <th class="num ledger-num-col">Stock-in</th>
+                                <th class="num ledger-num-col">Stock-out</th>
+                                <th class="num ledger-num-col">Remaining</th>
                             </tr>
-                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            <?php $__currentLoopData = $ledgerRows; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $row): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <tr>
+                                    <td class="ledger-item-cell">
+                                        <div class="ledger-item-name"><?php echo e($row['name']); ?></div>
+                                        <div class="ledger-item-unit"><?php echo e($row['unit']); ?></div>
+                                    </td>
+                                    <td class="num muted"><?php echo e($fmtQty($row['beginning'])); ?></td>
+                                    <td class="num ledger-in">
+                                        <?php echo e($row['stock_in'] > 0 ? '+' . $fmtQty($row['stock_in']) : '—'); ?>
+
+                                    </td>
+                                    <td class="num ledger-out">
+                                        <?php echo e($row['stock_out'] > 0 ? '−' . $fmtQty($row['stock_out']) : '—'); ?>
+
+                                    </td>
+                                    <td class="num strong"><?php echo e($fmtQty($row['remaining'])); ?></td>
+                                </tr>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td class="ledger-item-cell ledger-total-label">Total</td>
+                                <td class="num ledger-total"><?php echo e($fmtQty($ledgerTotals['beginning'])); ?></td>
+                                <td class="num ledger-total ledger-in">
+                                    <?php echo e($ledgerTotals['stock_in'] > 0 ? '+' . $fmtQty($ledgerTotals['stock_in']) : '—'); ?>
+
+                                </td>
+                                <td class="num ledger-total ledger-out">
+                                    <?php echo e($ledgerTotals['stock_out'] > 0 ? '−' . $fmtQty($ledgerTotals['stock_out']) : '—'); ?>
+
+                                </td>
+                                <td class="num ledger-total ledger-remaining"><?php echo e($fmtQty($ledgerTotals['remaining'])); ?></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
             <?php endif; ?>
         <?php endif; ?>
 
-        
-        <?php if($report === 'stock-in'): ?>
-            <div class="section-label">Summary</div>
-            <div class="summary-grid">
-                <div class="summary-tile">
-                    <div class="summary-tile-label">Transactions</div>
-                    <div class="summary-tile-value"><?php echo e($stockInData['transactions']); ?></div>
-                </div>
-                <div class="summary-tile">
-                    <div class="summary-tile-label">Items Received</div>
-                    <div class="summary-tile-value"><?php echo e((float) $stockInData['totalItems']); ?></div>
-                </div>
-                <div class="summary-tile">
-                    <div class="summary-tile-label">Total Spent</div>
-                    <div class="summary-tile-value">₱<?php echo e(number_format($stockInData['totalSpent'], 2)); ?></div>
-                </div>
-                <div class="summary-tile">
-                    <div class="summary-tile-label">Avg. Transaction</div>
-                    <div class="summary-tile-value">₱<?php echo e(number_format($stockInData['avgTransaction'], 2)); ?></div>
-                </div>
-            </div>
-
-            <div class="section-label">Stock-in Records</div>
-            <?php if($purchaseRecords->isEmpty()): ?>
-                <p class="empty-text">No stock-in records during this period.</p>
-            <?php else: ?>
-                <table class="report-table">
-                    <thead>
-                        <tr>
-                            <th>Date &amp; Time</th>
-                            <th>Supplier</th>
-                            <th>Recorded By</th>
-                            <th class="num">Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php $__currentLoopData = $purchaseRecords; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $purchase): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                            <tr>
-                                <td class="muted"><?php echo e($purchase->purchase_date->format('M d, Y h:i A')); ?></td>
-                                <td><?php echo e($purchase->supplier_name ?: '—'); ?></td>
-                                <td class="muted"><?php echo e($purchase->user->full_name ?? 'Unknown'); ?></td>
-                                <td class="num strong">₱<?php echo e(number_format($purchase->total_amount, 2)); ?></td>
-                            </tr>
-                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                    </tbody>
-                </table>
-            <?php endif; ?>
-        <?php endif; ?>
-
-        
-        <?php if($report === 'production'): ?>
-            <div class="section-label">Summary</div>
-            <div class="summary-grid">
-                <div class="summary-tile">
-                    <div class="summary-tile-label">Batches</div>
-                    <div class="summary-tile-value"><?php echo e($productionData['batches']); ?></div>
-                </div>
-                <div class="summary-tile">
-                    <div class="summary-tile-label">Total Produced</div>
-                    <div class="summary-tile-value"><?php echo e((float) $productionData['totalQuantity']); ?></div>
-                </div>
-                <div class="summary-tile">
-                    <div class="summary-tile-label">Unique Products</div>
-                    <div class="summary-tile-value"><?php echo e($productionData['uniqueProducts']); ?></div>
-                </div>
-                <div class="summary-tile">
-                    <div class="summary-tile-label">Avg. per Batch</div>
-                    <div class="summary-tile-value"><?php echo e((float) $productionData['avgBatch']); ?></div>
-                </div>
-            </div>
-
-            <div class="section-label">Production Records</div>
-            <?php if($productionRecords->isEmpty()): ?>
-                <p class="empty-text">No production activity during this period.</p>
-            <?php else: ?>
-                <table class="report-table">
-                    <thead>
-                        <tr>
-                            <th>Date &amp; Time</th>
-                            <th>Product</th>
-                            <th>Produced By</th>
-                            <th class="num">Quantity</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php $__currentLoopData = $productionRecords; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $production): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                            <tr>
-                                <td class="muted"><?php echo e($production->production_date->format('M d, Y h:i A')); ?></td>
-                                <td style="font-weight: 600;"><?php echo e($production->product->display_name); ?></td>
-                                <td class="muted"><?php echo e($production->producedBy->full_name ?? 'Unknown'); ?></td>
-                                <td class="num strong">
-                                    <?php echo e((float) $production->quantity_produced); ?> <?php echo e($production->product->stock_unit); ?>
-
-                                </td>
-                            </tr>
-                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                    </tbody>
-                </table>
-            <?php endif; ?>
-        <?php endif; ?>
-
-        
         <div class="report-footer">
             <div>
                 <strong>Report Generated By</strong>

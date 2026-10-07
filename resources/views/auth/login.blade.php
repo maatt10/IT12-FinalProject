@@ -307,11 +307,6 @@
                     Log In
                 </button>
             </form>
-
-            <div class="login-footer">
-                Sales &amp; Inventory System
-            </div>
-
         </div>
     </div>
 
