@@ -8,18 +8,16 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('purchases', function (Blueprint $table) {
-            $table->id('purchase_id');
+        Schema::create('expenses', function (Blueprint $table) {
+            $table->id('expense_id');
 
-            $table->string('supplier_name')->nullable();
+            $table->date('expense_date');
+            $table->decimal('amount', 10, 2);
+            $table->text('notes')->nullable();
 
-            $table->foreignId('user_id')
+            $table->foreignId('recorded_by')
                 ->constrained('users', 'user_id')
                 ->restrictOnDelete();
-
-            $table->date('purchase_date');
-
-            $table->decimal('total_amount', 10, 2);
 
             $table->timestamps();
         });
@@ -27,6 +25,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('purchases');
+        Schema::dropIfExists('expenses');
     }
 };

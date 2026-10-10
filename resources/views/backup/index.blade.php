@@ -83,7 +83,7 @@
 <div class="card backup-restore-card">
     <h2>How to restore a backup</h2>
     <ol class="backup-restore-list">
-        <li>Open <strong>phpMyAdmin</strong> and select the <code>lf_db</code> database.</li>
+        <li>Open <strong>phpMyAdmin</strong> and select the <code>{{ config('database.connections.' . config('database.default') . '.database') }}</code> database.</li>
         <li>Click the <strong>Import</strong> tab.</li>
         <li>Choose the downloaded <code>.sql</code> file and click <strong>Import</strong>.</li>
         <li>Wait for the import to finish, then verify key data (users, products, sales).</li>

@@ -12,10 +12,17 @@ return new class extends Migration
             $table->id('production_id');
 
             $table->foreignId('product_id')
+                ->nullable()
                 ->constrained('products', 'product_id')
-                ->restrictOnDelete();
+                ->nullOnDelete();
+
+            $table->foreignId('order_id')
+                ->nullable()
+                ->constrained('orders', 'order_id')
+                ->nullOnDelete();
 
             $table->decimal('quantity_produced', 10, 2);
+            $table->text('notes')->nullable();
 
             $table->foreignId('produced_by')
                 ->constrained('users', 'user_id')

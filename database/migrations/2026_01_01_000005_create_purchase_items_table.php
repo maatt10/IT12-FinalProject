@@ -8,11 +8,11 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('order_items', function (Blueprint $table) {
-            $table->id('order_item_id');
+        Schema::create('purchase_items', function (Blueprint $table) {
+            $table->id('purchase_item_id');
 
-            $table->foreignId('order_id')
-                ->constrained('orders', 'order_id')
+            $table->foreignId('purchase_id')
+                ->constrained('purchases', 'purchase_id')
                 ->cascadeOnDelete();
 
             $table->foreignId('product_id')
@@ -20,12 +20,9 @@ return new class extends Migration
                 ->restrictOnDelete();
 
             $table->decimal('quantity', 10, 2);
+            $table->decimal('unit_cost', 10, 2);
 
-            $table->decimal('unit_price', 10, 2);
-
-            $table->text('customization_details')->nullable();
-
-            $table->decimal('line_total', 10, 2);
+            $table->enum('reserve_type', ['retail', 'production']);
 
             $table->timestamps();
         });
@@ -33,6 +30,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('order_items');
+        Schema::dropIfExists('purchase_items');
     }
 };

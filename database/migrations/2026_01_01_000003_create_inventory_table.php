@@ -18,7 +18,6 @@ return new class extends Migration
             $table->enum('reserve_type', ['retail', 'production']);
 
             $table->decimal('current_quantity', 10, 2)->default(0);
-
             $table->timestamp('last_updated')->nullable();
 
             $table->timestamps();

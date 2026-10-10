@@ -8,34 +8,29 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('order_reservations', function (Blueprint $table) {
-            $table->id('reservation_id');
+        Schema::create('order_items', function (Blueprint $table) {
+            $table->id('order_item_id');
 
             $table->foreignId('order_id')
                 ->constrained('orders', 'order_id')
                 ->cascadeOnDelete();
 
             $table->foreignId('product_id')
+                ->nullable()
                 ->constrained('products', 'product_id')
-                ->restrictOnDelete();
+                ->nullOnDelete();
 
-            $table->enum('reserve_type', ['retail', 'production']);
             $table->decimal('quantity', 10, 2);
-
-            $table->enum('status', ['active', 'consumed', 'released'])
-                ->default('active');
-
-            $table->timestamp('resolved_at')->nullable();
+            $table->decimal('unit_price', 10, 2);
+            $table->text('customization_details')->nullable();
+            $table->decimal('line_total', 10, 2);
 
             $table->timestamps();
-
-            $table->index(['order_id', 'status']);
-            $table->index(['product_id', 'reserve_type', 'status']);
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('order_reservations');
+        Schema::dropIfExists('order_items');
     }
 };

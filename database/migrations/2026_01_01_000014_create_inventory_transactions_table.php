@@ -22,14 +22,14 @@ return new class extends Migration
                 'production_output',
                 'return_in',
                 'manual_addition',
-                'adjustment'
+                'adjustment',
             ]);
 
             $table->decimal('quantity_change', 10, 2);
 
             $table->unsignedBigInteger('reference_id')->nullable();
-
             $table->string('reference_type')->nullable();
+            $table->text('notes')->nullable();
 
             $table->dateTime('transaction_date');
 

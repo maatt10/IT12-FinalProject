@@ -20,6 +20,10 @@ return new class extends Migration
 
             $table->boolean('is_regular')->default(false);
 
+            $table->enum('discount_type', ['none', 'pwd', 'senior'])
+                ->default('none');
+            $table->string('discount_id_number', 30)->nullable();
+
             $table->timestamps();
         });
     }

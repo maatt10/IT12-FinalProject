@@ -19,10 +19,7 @@ return new class extends Migration
 
             $table->decimal('quantity_required', 10, 2);
 
-            $table->primary([
-                'parent_product_id',
-                'material_product_id'
-            ]);
+            $table->primary(['parent_product_id', 'material_product_id']);
         });
     }
 

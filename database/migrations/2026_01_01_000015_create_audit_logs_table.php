@@ -15,18 +15,12 @@ return new class extends Migration
                 ->constrained('users', 'user_id')
                 ->restrictOnDelete();
 
-            $table->enum('action_type', [
-                'create',
-                'update',
-                'delete'
-            ]);
+            $table->enum('action_type', ['create', 'update', 'delete']);
 
             $table->string('table_affected');
-
             $table->unsignedBigInteger('record_id');
 
             $table->dateTime('action_timestamp');
-
             $table->text('details')->nullable();
 
             $table->timestamps();
