@@ -115,12 +115,12 @@
     }
 
     .action-btn.edit {
-        background: #FCE4EC;
-        color: #E85D75;
+        background: #EFEBF7;
+        color: #6B5B95;
     }
     .action-btn.edit:hover {
-        background: #F8BBD0;
-        color: #D14A62;
+        background: #D5C9E8;
+        color: #594B7D;
     }
 
     /* Empty state */

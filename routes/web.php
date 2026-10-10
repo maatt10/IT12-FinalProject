@@ -16,6 +16,8 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PosController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\RecordsController;
+use App\Http\Controllers\UserController;
+
 
 
 Route::get('/login', [AuthController::class, 'showLogin'])
@@ -88,7 +90,6 @@ Route::middleware(['auth', 'role:owner,employee'])->group(function () {
     /* REPORTS */
     Route::get('/reports', [ReportsController::class, 'index'])->name('reports.index');
     Route::get('/reports/print', [ReportsController::class, 'print'])->name('reports.print');
-    Route::get('/reports/export', [ReportsController::class, 'exportCsv'])->name('reports.export');
 });
 
 Route::middleware(['auth', 'role:owner'])->group(function () {
@@ -100,7 +101,6 @@ Route::middleware(['auth', 'role:owner'])->group(function () {
     Route::get('/purchases/{purchase}', [PurchaseController::class, 'show'])->name('purchases.show');
 
     /* ONLINE ORDERS */
-    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/create', [OrderController::class, 'create'])->name('orders.create');
     Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
     Route::get('/orders/{order}/edit', [OrderController::class, 'edit'])->name('orders.edit');
@@ -121,9 +121,17 @@ Route::middleware(['auth', 'role:owner'])->group(function () {
     Route::get('/audit-trail', [AuditLogController::class, 'index'])->name('audit.index');
 
     /* BACKUP */
-    Route::get('/backup-recovery', [BackupController::class, 'index'])->name('backup.index');
-    Route::post('/backup-recovery/create', [BackupController::class, 'create'])->name('backup.create');
-    Route::get('/backup-recovery/download/{filename}', [BackupController::class, 'download'])->name('backup.download');
+    Route::get('/backup', [BackupController::class, 'index'])->name('backup.index');
+    Route::get('/backup/download', [BackupController::class, 'download'])->name('backup.download');
+
+    /* USER MANAGEMENT */
+    Route::get('/users', [UserController::class, 'index'])->name('users.index');
+    Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
+    Route::post('/users', [UserController::class, 'store'])->name('users.store');
+    Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
+    Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
+    Route::delete('/users/{user}', [UserController::class, 'archive'])->name('users.archive');
+    Route::post('/users/{user}/restore', [UserController::class, 'restore'])->name('users.restore');
 });
 
 Route::redirect('/', '/login');

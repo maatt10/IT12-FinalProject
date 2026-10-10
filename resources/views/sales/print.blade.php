@@ -74,9 +74,9 @@
         /* REFERENCE BADGE */
         .reference-badge {
             text-align: center;
-            margin: 14px 0 14px;
+            margin: 14px 0 10px;
             padding: 10px;
-            background: #FCE4EC;
+            background: #EFEBF7;
             border-radius: 6px;
         }
 
@@ -84,7 +84,7 @@
             display: block;
             font-size: 9px;
             font-weight: 700;
-            color: #E85D75;
+            color: #6B5B95;
             letter-spacing: 2px;
             text-transform: uppercase;
             margin-bottom: 2px;
@@ -94,9 +94,25 @@
             display: block;
             font-size: 16px;
             font-weight: 700;
-            color: #E85D75;
+            color: #6B5B95;
             letter-spacing: 2px;
             font-family: 'Instrument Sans', Arial, sans-serif;
+        }
+
+        /* PROVISIONAL NOTICE */
+        .provisional-notice {
+            text-align: center;
+            font-size: 9px;
+            font-weight: 600;
+            color: #94A3B8;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            padding: 6px 8px;
+            margin-bottom: 12px;
+            border: 1px solid #F0E6DD;
+            border-radius: 4px;
+            background: #FEFCF9;
+            line-height: 1.4;
         }
 
         /* META */
@@ -134,8 +150,7 @@
         .items-table thead th {
             text-align: left;
             padding: 6px 2px;
-            ;
-            color: #E85D75;
+            color: #6B5B95;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.8px;
@@ -204,7 +219,7 @@
         .total-row.grand .value {
             font-size: 16px;
             font-weight: 700;
-            color: #E85D75;
+            color: #6B5B95;
         }
 
         .total-row.change .value {
@@ -226,7 +241,6 @@
             margin-top: 14px;
             padding: 10px 12px;
             background: #FFF8E1;
-            solid #D4AF37;
             border-radius: 4px;
             font-size: 10px;
         }
@@ -278,11 +292,21 @@
             color: #94A3B8;
         }
 
-        /* PRINT */
+        .footer-notice {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px dashed #F0E6DD;
+            font-size: 9px;
+            color: #94A3B8;
+            line-height: 1.4;
+        }
+
+        /* PRINT — everything black, no colors */
         @media print {
             body {
                 background: #FFFFFF;
                 padding: 0;
+                color: #000;
             }
 
             .receipt {
@@ -294,6 +318,54 @@
             .no-print {
                 display: none !important;
             }
+
+            /* Force all colored text to black */
+            .store-name,
+            .store-sub,
+            .store-info,
+            .ref-label,
+            .ref-value,
+            .provisional-notice,
+            .meta-label,
+            .meta-value,
+            .items-table thead th,
+            .item-name,
+            .total-row .label,
+            .total-row .value,
+            .total-row.grand .label,
+            .total-row.grand .value,
+            .total-row.change .value,
+            .total-row.discount-line .label,
+            .total-row.discount-line .value,
+            .discount-info-title,
+            .discount-info-row span:first-child,
+            .discount-info-row span:last-child,
+            .thank-you,
+            .powered-by,
+            .footer-notice {
+                color: #000 !important;
+            }
+
+            /* Force all colored backgrounds to white */
+            .reference-badge,
+            .discount-info,
+            .provisional-notice {
+                background: #FFFFFF !important;
+                border: 1px solid #000 !important;
+            }
+
+            /* Make sure borders are visible but subtle */
+            .header,
+            .meta,
+            .totals,
+            .footer,
+            .footer-notice {
+                border-color: #000 !important;
+            }
+
+            .items-table tbody td {
+                border-bottom: 1px solid #CCC !important;
+            }
         }
 
         /* SCREEN BUTTONS */
@@ -303,7 +375,7 @@
             max-width: 100%;
             margin: 16px auto 0;
             padding: 12px;
-            background: #E85D75;
+            background: #6B5B95;
             color: #FFFFFF;
             border: none;
             border-radius: 10px;
@@ -315,7 +387,7 @@
         }
 
         .print-button:hover {
-            background: #D14A62;
+            background: #594B7D;
         }
 
         .back-link {
@@ -331,7 +403,7 @@
         }
 
         .back-link:hover {
-            color: #E85D75;
+            color: #6B5B95;
         }
     </style>
 </head>
@@ -354,6 +426,11 @@
         <div class="reference-badge">
             <span class="ref-label">Receipt No.</span>
             <span class="ref-value">{{ $sale->reference_code }}</span>
+        </div>
+
+        {{-- PROVISIONAL NOTICE --}}
+        <div class="provisional-notice">
+            Provisional Receipt
         </div>
 
         {{-- META --}}
@@ -478,6 +555,10 @@
             <div class="thank-you">Thank you! Come again!</div>
             <div class="powered-by">
                 Lara's Flowershop
+            </div>
+            <div class="footer-notice">
+                This document is a provisional receipt issued by Lara's Flowershop
+                and is not an official BIR-registered receipt (OR).
             </div>
         </div>
 

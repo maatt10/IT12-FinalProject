@@ -10,10 +10,10 @@
     /* ============================================
        LALA'S FLOWERSHOP BRAND COLORS
        ============================================ */
-    --color-lala-rose: #E85D75;
-    --color-lala-rose-dark: #D14A62;
-    --color-lala-pink: #F8BBD0;
-    --color-lala-pink-soft: #FCE4EC;
+    --color-lala-rose: #6B5B95;
+    --color-lala-rose-dark: #594B7D;
+    --color-lala-pink: #D5C9E8;
+    --color-lala-pink-soft: #EFEBF7;
     --color-lala-leaf: #2E5A3B;
     --color-lala-leaf-light: #80B918;
     --color-lala-gold: #D4AF37;
@@ -27,5 +27,5 @@
 /* Custom scrollbar */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: #F9F6F0; }
-::-webkit-scrollbar-thumb { background: #E85D75; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #D14A62; }
+::-webkit-scrollbar-thumb { background: #6B5B95; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #594B7D; }

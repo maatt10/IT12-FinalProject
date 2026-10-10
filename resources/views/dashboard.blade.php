@@ -7,12 +7,12 @@
 <div class="page-header">
     <div>
         <h1>Dashboard</h1>
-        <p>Welcome back, <strong style="color: #E85D75;">{{ auth()->user()->full_name }}</strong>.</p>
+        <p>Welcome back, <strong style="color: #6B5B95;">{{ auth()->user()->full_name }}</strong>.</p>
     </div>
 </div>
 
 {{-- ============================================
-     STAT CARDS — icon left, values right
+     STAT CARDS
      ============================================ --}}
 <div class="stats-grid">
 
@@ -60,12 +60,72 @@
             </svg>
         </div>
         <div class="stat-content">
-            <p class="stat-label">Today's Online Orders</p>
+            <p class="stat-label">Today's Orders</p>
             <p class="stat-value">{{ $todayOnlineOrders }}</p>
         </div>
     </div>
     @endif
 
+</div>
+
+{{-- ============================================
+     LOW STOCK ALERTS (common to both roles)
+     ============================================ --}}
+<div class="card dash-card">
+    <div class="dash-card-header">
+        <div>
+            <h2>Low Stock Alerts</h2>
+            <p>Items at or below their reorder threshold.</p>
+        </div>
+        <a href="{{ route('products.index') }}" class="dash-text-link">View Inventory →</a>
+    </div>
+
+    @if($lowStockItems->isEmpty())
+        <div class="dash-empty">
+            All items are sufficiently stocked.
+        </div>
+    @else
+        <table class="dash-table">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Type</th>
+                    <th class="num">Retail</th>
+                    <th class="num">Production</th>
+                    <th>Unit</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($lowStockItems as $item)
+                    <tr>
+                        <td style="font-weight: 600;">
+                            {{ $item->name }}@if($item->variation) — {{ $item->variation }}@endif
+                        </td>
+                        <td class="muted">
+                            {{ $item->item_type === 'material' ? 'Material' : 'Product' }}
+                        </td>
+                        <td class="num {{ $item->retail_low ? 'danger' : 'muted' }}">
+                            @if($item->has_retail)
+                                {{ $item->retail_stock }}
+                                @if($item->retail_low) <span class="low-tag">LOW</span> @endif
+                            @else
+                                <span class="dash-muted">—</span>
+                            @endif
+                        </td>
+                        <td class="num {{ $item->production_low ? 'danger' : 'muted' }}">
+                            @if($item->has_production)
+                                {{ $item->production_stock }}
+                                @if($item->production_low) <span class="low-tag">LOW</span> @endif
+                            @else
+                                <span class="dash-muted">—</span>
+                            @endif
+                        </td>
+                        <td class="muted">{{ $item->stock_unit }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    @endif
 </div>
 
 {{-- ============================================
@@ -78,7 +138,7 @@
         <div class="dash-card-header">
             <div>
                 <h2>Sales Overview</h2>
-                <p>Walk-in sales and online orders combined.</p>
+                <p>Walk-in sales and orders combined.</p>
             </div>
 
             <div class="range-toggle">
@@ -147,70 +207,12 @@
         </div>
     </div>
 
-    {{-- LOW STOCK ALERTS --}}
+    {{-- ORDER STATUS --}}
     <div class="card dash-card">
         <div class="dash-card-header">
             <div>
-                <h2>Low Stock Alerts</h2>
-                <p>Items at or below their reorder threshold.</p>
-            </div>
-            <a href="{{ route('products.index') }}" class="dash-text-link">View Inventory →</a>
-        </div>
-
-        @if($lowStockItems->isEmpty())
-            <div class="dash-empty">
-                All items are sufficiently stocked.
-            </div>
-        @else
-            <table class="dash-table">
-                <thead>
-                    <tr>
-                        <th>Item</th>
-                        <th>Type</th>
-                        <th class="num">Retail</th>
-                        <th class="num">Production</th>
-                        <th>Unit</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($lowStockItems as $item)
-                        <tr>
-                            <td style="font-weight: 600;">
-                                {{ $item->name }}@if($item->variation) — {{ $item->variation }}@endif
-                            </td>
-                            <td class="muted">
-                                {{ $item->item_type === 'material' ? 'Material' : 'Product' }}
-                            </td>
-                            <td class="num {{ $item->retail_low ? 'danger' : 'muted' }}">
-                                @if($item->has_retail)
-                                    {{ $item->retail_stock }}
-                                    @if($item->retail_low) <span class="low-tag">LOW</span> @endif
-                                @else
-                                    <span class="dash-muted">—</span>
-                                @endif
-                            </td>
-                            <td class="num {{ $item->production_low ? 'danger' : 'muted' }}">
-                                @if($item->has_production)
-                                    {{ $item->production_stock }}
-                                    @if($item->production_low) <span class="low-tag">LOW</span> @endif
-                                @else
-                                    <span class="dash-muted">—</span>
-                                @endif
-                            </td>
-                            <td class="muted">{{ $item->stock_unit }}</td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        @endif
-    </div>
-
-    {{-- ONLINE ORDER STATUS --}}
-    <div class="card dash-card">
-        <div class="dash-card-header">
-            <div>
-                <h2>Online Order Status</h2>
-                <p>Current distribution of online bouquet orders.</p>
+                <h2>Order Status</h2>
+                <p>Current distribution of bouquet orders.</p>
             </div>
             <a href="{{ route('records.index', ['tab' => 'sales', 'sub' => 'online']) }}" class="dash-text-link">View Orders →</a>
         </div>
@@ -276,64 +278,6 @@
         @endif
     </div>
 
-    {{-- LOW STOCK ALERTS --}}
-    <div class="card dash-card">
-        <div class="dash-card-header">
-            <div>
-                <h2>Low Stock Alerts</h2>
-                <p>Items at or below their reorder threshold.</p>
-            </div>
-            <a href="{{ route('products.index') }}" class="dash-text-link">View Inventory →</a>
-        </div>
-
-        @if($lowStockItems->isEmpty())
-            <div class="dash-empty">
-                All items are sufficiently stocked.
-            </div>
-        @else
-            <table class="dash-table">
-                <thead>
-                    <tr>
-                        <th>Item</th>
-                        <th>Type</th>
-                        <th class="num">Retail</th>
-                        <th class="num">Production</th>
-                        <th>Unit</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($lowStockItems as $item)
-                        <tr>
-                            <td style="font-weight: 600;">
-                                {{ $item->name }}@if($item->variation) — {{ $item->variation }}@endif
-                            </td>
-                            <td class="muted">
-                                {{ $item->item_type === 'material' ? 'Material' : 'Product' }}
-                            </td>
-                            <td class="num {{ $item->retail_low ? 'danger' : 'muted' }}">
-                                @if($item->has_retail)
-                                    {{ $item->retail_stock }}
-                                    @if($item->retail_low) <span class="low-tag">LOW</span> @endif
-                                @else
-                                    <span class="dash-muted">—</span>
-                                @endif
-                            </td>
-                            <td class="num {{ $item->production_low ? 'danger' : 'muted' }}">
-                                @if($item->has_production)
-                                    {{ $item->production_stock }}
-                                    @if($item->production_low) <span class="low-tag">LOW</span> @endif
-                                @else
-                                    <span class="dash-muted">—</span>
-                                @endif
-                            </td>
-                            <td class="muted">{{ $item->stock_unit }}</td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        @endif
-    </div>
-
 @endif
 
 {{-- ============================================
@@ -350,7 +294,7 @@
     <div class="quick-actions">
 
         <a href="{{ route('pos.index') }}" class="quick-action">
-            <div class="qa-icon" style="background: #FCE4EC; color: #E85D75;">
+            <div class="qa-icon" style="background: #EFEBF7; color: #6B5B95;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
@@ -358,6 +302,18 @@
             <p class="qa-title">POS</p>
             <p class="qa-desc">Process a sale</p>
         </a>
+
+        @if($isOwner)
+        <a href="{{ route('orders.create') }}" class="quick-action">
+            <div class="qa-icon" style="background: #FCE8EF; color: #D14A7A;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+            </div>
+            <p class="qa-title">Record Order</p>
+            <p class="qa-desc">Log a new bouquet order</p>
+        </a>
+        @endif
 
         <a href="{{ route('products.index') }}" class="quick-action">
             <div class="qa-icon" style="background: #E8F5E9; color: #2E5A3B;">
@@ -396,7 +352,7 @@
 
 <style>
     /* ===============================
-       STAT CARDS — icon left, value right
+       STAT CARDS
        =============================== */
     .stats-grid {
         display: grid;
@@ -426,7 +382,7 @@
         justify-content: center;
         flex-shrink: 0;
     }
-    .stat-icon.rose { background: #FCE4EC; color: #E85D75; }
+    .stat-icon.rose { background: #EFEBF7; color: #6B5B95; }
     .stat-icon.green { background: #E8F5E9; color: #2E5A3B; }
     .stat-icon.gold { background: #FFF8E1; color: #B8860B; }
     .stat-icon.berry { background: #EEF2FF; color: #4F46E5; }
@@ -481,13 +437,13 @@
     .dash-text-link {
         font-size: 13px;
         font-weight: 600;
-        color: #E85D75;
+        color: #6B5B95;
         text-decoration: none;
         transition: all 0.15s ease;
         white-space: nowrap;
         align-self: center;
     }
-    .dash-text-link:hover { color: #D14A62; }
+    .dash-text-link:hover { color: #594B7D; }
 
     .dash-empty {
         text-align: center;
@@ -519,10 +475,10 @@
         transition: all 0.15s ease;
         white-space: nowrap;
     }
-    .range-btn:hover { color: #E85D75; }
+    .range-btn:hover { color: #6B5B95; }
     .range-btn.active {
         background: #FFFFFF;
-        color: #E85D75;
+        color: #6B5B95;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
     }
 
@@ -642,18 +598,17 @@
         width: 100%;
         max-width: 44px;
         min-height: 3px;
-        background: linear-gradient(180deg, #E85D75 0%, #F8BBD0 100%);
+        background: linear-gradient(180deg, #6B5B95 0%, #D5C9E8 100%);
         border-radius: 6px 6px 0 0;
         transition: all 0.2s ease;
     }
     .chart-bar.empty { background: #F0E6DD; }
     .chart-col.today .chart-bar {
-        background: #E85D75;
-        box-shadow: 0 4px 12px rgba(232, 93, 117, 0.4);
+        background: #6B5B95;
+        box-shadow: 0 4px 12px rgba(107, 91, 149, 0.4);
     }
     .chart-col:hover .chart-bar { filter: brightness(1.05); }
 
-    /* Tooltip */
     .chart-tooltip {
         position: absolute;
         top: -8px;
@@ -673,7 +628,7 @@
         transition: all 0.15s ease;
         z-index: 5;
     }
-    .chart-tooltip strong { color: #F8BBD0; font-weight: 700; font-size: 13px; }
+    .chart-tooltip strong { color: #D5C9E8; font-weight: 700; font-size: 13px; }
     .tooltip-split {
         margin-top: 6px;
         padding-top: 6px;
@@ -705,7 +660,7 @@
         letter-spacing: 0.5px;
         white-space: nowrap;
     }
-    .chart-col.today .chart-col-label { color: #E85D75; }
+    .chart-col.today .chart-col-label { color: #6B5B95; }
 
     /* ===============================
        TABLES
@@ -716,11 +671,11 @@
         padding: 10px 12px;
         font-size: 10px;
         font-weight: 700;
-        color: #E85D75;
+        color: #6B5B95;
         text-transform: uppercase;
         letter-spacing: 1px;
-        background: #FCE4EC;
-        border-bottom: 2px solid #F8BBD0;
+        background: #EFEBF7;
+        border-bottom: 2px solid #D5C9E8;
     }
     .dash-table thead th:first-child { border-top-left-radius: 8px; }
     .dash-table thead th:last-child { border-top-right-radius: 8px; }
@@ -740,7 +695,7 @@
     .dash-table tbody td.danger { color: #DC3545; font-weight: 700; }
     .dash-table tbody td.mono {
         font-family: 'SF Mono', Consolas, monospace;
-        color: #E85D75;
+        color: #6B5B95;
         font-weight: 600;
         font-size: 12px;
     }
@@ -828,9 +783,9 @@
     }
     .quick-action:hover {
         background: #FEFCF9;
-        border-color: #E85D75;
+        border-color: #6B5B95;
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(232, 93, 117, 0.12);
+        box-shadow: 0 4px 12px rgba(107, 91, 149, 0.12);
     }
 
     .qa-icon {

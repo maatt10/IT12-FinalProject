@@ -139,9 +139,9 @@
         }
         input:focus {
             outline: none;
-            border-color: #E85D75;
+            border-color: #6B5B95;
             background: #FFFFFF;
-            box-shadow: 0 0 0 3px rgba(232, 93, 117, 0.12);
+            box-shadow: 0 0 0 3px rgba(107, 91, 149, 0.12);
         }
         input::placeholder {
             color: #B0A99F;
@@ -154,18 +154,18 @@
             border: none;
             border-radius: 8px;
             cursor: pointer;
-            background: #E85D75;
+            background: #6B5B95;
             color: #FFFFFF;
             font-size: 15px;
             font-weight: 600;
             letter-spacing: 0.5px;
-            box-shadow: 0 4px 12px rgba(232, 93, 117, 0.3);
+            box-shadow: 0 4px 12px rgba(107, 91, 149, 0.3);
             transition: all 0.2s ease;
             margin-top: 8px;
         }
         button:hover {
-            background: #D14A62;
-            box-shadow: 0 6px 16px rgba(232, 93, 117, 0.4);
+            background: #594B7D;
+            box-shadow: 0 6px 16px rgba(107, 91, 149, 0.4);
             transform: translateY(-1px);
         }
         button:active {
@@ -195,70 +195,70 @@
 
     <!-- Decorative Flowers -->
     <svg class="flower flower-tl" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-        <ellipse cx="50" cy="25" rx="6" ry="12" fill="#E85D75"/>
-        <ellipse cx="50" cy="25" rx="12" ry="6" fill="#F8BBD0"/>
-        <ellipse cx="35" cy="35" rx="6" ry="12" fill="#E85D75" transform="rotate(-40 35 35)"/>
-        <ellipse cx="65" cy="35" rx="6" ry="12" fill="#E85D75" transform="rotate(40 65 35)"/>
-        <ellipse cx="40" cy="50" rx="6" ry="12" fill="#F8BBD0" transform="rotate(-70 40 50)"/>
-        <ellipse cx="60" cy="50" rx="6" ry="12" fill="#F8BBD0" transform="rotate(70 60 50)"/>
+        <ellipse cx="50" cy="25" rx="6" ry="12" fill="#6B5B95"/>
+        <ellipse cx="50" cy="25" rx="12" ry="6" fill="#D5C9E8"/>
+        <ellipse cx="35" cy="35" rx="6" ry="12" fill="#6B5B95" transform="rotate(-40 35 35)"/>
+        <ellipse cx="65" cy="35" rx="6" ry="12" fill="#6B5B95" transform="rotate(40 65 35)"/>
+        <ellipse cx="40" cy="50" rx="6" ry="12" fill="#D5C9E8" transform="rotate(-70 40 50)"/>
+        <ellipse cx="60" cy="50" rx="6" ry="12" fill="#D5C9E8" transform="rotate(70 60 50)"/>
         <circle cx="50" cy="38" r="5" fill="#D4AF37"/>
         <path d="M50 50 Q55 70, 60 92" stroke="#2E5A3B" stroke-width="1.5" fill="none"/>
         <ellipse cx="58" cy="75" rx="6" ry="3" fill="#80B918" transform="rotate(30 58 75)"/>
     </svg>
 
     <svg class="flower flower-tr" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-        <ellipse cx="50" cy="25" rx="7" ry="14" fill="#F8BBD0"/>
-        <ellipse cx="50" cy="25" rx="14" ry="7" fill="#E85D75"/>
-        <ellipse cx="32" cy="38" rx="7" ry="14" fill="#F8BBD0" transform="rotate(-40 32 38)"/>
-        <ellipse cx="68" cy="38" rx="7" ry="14" fill="#E85D75" transform="rotate(40 68 38)"/>
-        <ellipse cx="38" cy="55" rx="7" ry="14" fill="#E85D75" transform="rotate(-70 38 55)"/>
-        <ellipse cx="62" cy="55" rx="7" ry="14" fill="#F8BBD0" transform="rotate(70 62 55)"/>
+        <ellipse cx="50" cy="25" rx="7" ry="14" fill="#D5C9E8"/>
+        <ellipse cx="50" cy="25" rx="14" ry="7" fill="#6B5B95"/>
+        <ellipse cx="32" cy="38" rx="7" ry="14" fill="#D5C9E8" transform="rotate(-40 32 38)"/>
+        <ellipse cx="68" cy="38" rx="7" ry="14" fill="#6B5B95" transform="rotate(40 68 38)"/>
+        <ellipse cx="38" cy="55" rx="7" ry="14" fill="#6B5B95" transform="rotate(-70 38 55)"/>
+        <ellipse cx="62" cy="55" rx="7" ry="14" fill="#D5C9E8" transform="rotate(70 62 55)"/>
         <circle cx="50" cy="40" r="5" fill="#D4AF37"/>
     </svg>
 
     <svg class="flower flower-bl" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-        <ellipse cx="50" cy="25" rx="6" ry="13" fill="#E85D75"/>
-        <ellipse cx="50" cy="25" rx="13" ry="6" fill="#F8BBD0"/>
-        <ellipse cx="34" cy="36" rx="6" ry="13" fill="#E85D75" transform="rotate(-40 34 36)"/>
-        <ellipse cx="66" cy="36" rx="6" ry="13" fill="#F8BBD0" transform="rotate(40 66 36)"/>
-        <ellipse cx="40" cy="52" rx="6" ry="13" fill="#F8BBD0" transform="rotate(-70 40 52)"/>
-        <ellipse cx="60" cy="52" rx="6" ry="13" fill="#E85D75" transform="rotate(70 60 52)"/>
+        <ellipse cx="50" cy="25" rx="6" ry="13" fill="#6B5B95"/>
+        <ellipse cx="50" cy="25" rx="13" ry="6" fill="#D5C9E8"/>
+        <ellipse cx="34" cy="36" rx="6" ry="13" fill="#6B5B95" transform="rotate(-40 34 36)"/>
+        <ellipse cx="66" cy="36" rx="6" ry="13" fill="#D5C9E8" transform="rotate(40 66 36)"/>
+        <ellipse cx="40" cy="52" rx="6" ry="13" fill="#D5C9E8" transform="rotate(-70 40 52)"/>
+        <ellipse cx="60" cy="52" rx="6" ry="13" fill="#6B5B95" transform="rotate(70 60 52)"/>
         <circle cx="50" cy="38" r="4.5" fill="#D4AF37"/>
         <path d="M50 50 Q45 70, 40 92" stroke="#2E5A3B" stroke-width="1.5" fill="none"/>
         <ellipse cx="43" cy="72" rx="6" ry="3" fill="#80B918" transform="rotate(-30 43 72)"/>
     </svg>
 
     <svg class="flower flower-br" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-        <ellipse cx="50" cy="25" rx="6" ry="12" fill="#F8BBD0"/>
-        <ellipse cx="50" cy="25" rx="12" ry="6" fill="#E85D75"/>
-        <ellipse cx="36" cy="36" rx="6" ry="12" fill="#E85D75" transform="rotate(-40 36 36)"/>
-        <ellipse cx="64" cy="36" rx="6" ry="12" fill="#F8BBD0" transform="rotate(40 64 36)"/>
-        <ellipse cx="40" cy="50" rx="6" ry="12" fill="#F8BBD0" transform="rotate(-70 40 50)"/>
-        <ellipse cx="60" cy="50" rx="6" ry="12" fill="#E85D75" transform="rotate(70 60 50)"/>
+        <ellipse cx="50" cy="25" rx="6" ry="12" fill="#D5C9E8"/>
+        <ellipse cx="50" cy="25" rx="12" ry="6" fill="#6B5B95"/>
+        <ellipse cx="36" cy="36" rx="6" ry="12" fill="#6B5B95" transform="rotate(-40 36 36)"/>
+        <ellipse cx="64" cy="36" rx="6" ry="12" fill="#D5C9E8" transform="rotate(40 64 36)"/>
+        <ellipse cx="40" cy="50" rx="6" ry="12" fill="#D5C9E8" transform="rotate(-70 40 50)"/>
+        <ellipse cx="60" cy="50" rx="6" ry="12" fill="#6B5B95" transform="rotate(70 60 50)"/>
         <circle cx="50" cy="38" r="4" fill="#D4AF37"/>
     </svg>
 
     <svg class="flower-sm flower-sm-1" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-        <ellipse cx="50" cy="28" rx="5" ry="10" fill="#E85D75"/>
-        <ellipse cx="50" cy="28" rx="10" ry="5" fill="#F8BBD0"/>
-        <ellipse cx="38" cy="38" rx="5" ry="10" fill="#F8BBD0" transform="rotate(-40 38 38)"/>
-        <ellipse cx="62" cy="38" rx="5" ry="10" fill="#E85D75" transform="rotate(40 62 38)"/>
+        <ellipse cx="50" cy="28" rx="5" ry="10" fill="#6B5B95"/>
+        <ellipse cx="50" cy="28" rx="10" ry="5" fill="#D5C9E8"/>
+        <ellipse cx="38" cy="38" rx="5" ry="10" fill="#D5C9E8" transform="rotate(-40 38 38)"/>
+        <ellipse cx="62" cy="38" rx="5" ry="10" fill="#6B5B95" transform="rotate(40 62 38)"/>
         <circle cx="50" cy="38" r="3.5" fill="#D4AF37"/>
     </svg>
 
     <svg class="flower-sm flower-sm-2" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-        <ellipse cx="50" cy="28" rx="5" ry="10" fill="#F8BBD0"/>
-        <ellipse cx="50" cy="28" rx="10" ry="5" fill="#E85D75"/>
-        <ellipse cx="38" cy="38" rx="5" ry="10" fill="#E85D75" transform="rotate(-40 38 38)"/>
-        <ellipse cx="62" cy="38" rx="5" ry="10" fill="#F8BBD0" transform="rotate(40 62 38)"/>
+        <ellipse cx="50" cy="28" rx="5" ry="10" fill="#D5C9E8"/>
+        <ellipse cx="50" cy="28" rx="10" ry="5" fill="#6B5B95"/>
+        <ellipse cx="38" cy="38" rx="5" ry="10" fill="#6B5B95" transform="rotate(-40 38 38)"/>
+        <ellipse cx="62" cy="38" rx="5" ry="10" fill="#D5C9E8" transform="rotate(40 62 38)"/>
         <circle cx="50" cy="38" r="3.5" fill="#D4AF37"/>
     </svg>
 
     <svg class="flower-sm flower-sm-3" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-        <ellipse cx="50" cy="28" rx="5" ry="10" fill="#E85D75"/>
-        <ellipse cx="50" cy="28" rx="10" ry="5" fill="#F8BBD0"/>
-        <ellipse cx="38" cy="38" rx="5" ry="10" fill="#F8BBD0" transform="rotate(-40 38 38)"/>
-        <ellipse cx="62" cy="38" rx="5" ry="10" fill="#E85D75" transform="rotate(40 62 38)"/>
+        <ellipse cx="50" cy="28" rx="5" ry="10" fill="#6B5B95"/>
+        <ellipse cx="50" cy="28" rx="10" ry="5" fill="#D5C9E8"/>
+        <ellipse cx="38" cy="38" rx="5" ry="10" fill="#D5C9E8" transform="rotate(-40 38 38)"/>
+        <ellipse cx="62" cy="38" rx="5" ry="10" fill="#6B5B95" transform="rotate(40 62 38)"/>
         <circle cx="50" cy="38" r="3.5" fill="#D4AF37"/>
     </svg>
 

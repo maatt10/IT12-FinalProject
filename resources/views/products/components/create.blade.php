@@ -12,7 +12,7 @@
 
     <p>
         Add a material required to produce
-        <strong style="color: #E85D75;">{{ $product->display_name }}</strong>.
+        <strong style="color: #6B5B95;">{{ $product->display_name }}</strong>.
     </p>
 </div>
 
@@ -117,7 +117,7 @@
 <style>
 
     .req {
-        color: #E85D75;
+        color: #6B5B95;
         margin-left: 2px;
     }
 

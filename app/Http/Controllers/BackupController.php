@@ -2,224 +2,163 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\File;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use PDO;
 
 class BackupController extends Controller
 {
     public function index()
     {
-        $backupDirectory = storage_path('app/backups');
+        $lastBackup = null;
+        $metaPath = 'backup_meta.json';
 
-        if (!File::exists($backupDirectory)) {
-            File::makeDirectory(
-                $backupDirectory,
-                0755,
-                true
-            );
+        if (Storage::exists($metaPath)) {
+            try {
+                $lastBackup = json_decode(Storage::get($metaPath), true);
+            } catch (\Throwable $e) {
+                $lastBackup = null;
+            }
         }
 
-        $backups = collect(File::files($backupDirectory))
-            ->filter(function ($file) {
-                return strtolower($file->getExtension()) === 'sql';
-            })
-            ->sortByDesc(function ($file) {
-                return $file->getMTime();
-            })
-            ->values();
-
-        return view('backup.index', compact('backups'));
+        return view('backup.index', compact('lastBackup'));
     }
 
-    public function create()
+    public function download(Request $request)
     {
-        $backupDirectory = storage_path('app/backups');
+        $connection = config('database.default');
+        $driver = config("database.connections.{$connection}.driver");
 
-        if (!File::exists($backupDirectory)) {
-            File::makeDirectory(
-                $backupDirectory,
-                0755,
-                true
-            );
+        if ($driver !== 'mysql') {
+            return back()->with('error', 'Database backup is only supported for MySQL connections.');
         }
 
-        $filename = 'lara_flowershop_backup_' .
-            now()->format('Y-m-d_His') .
-            '.sql';
+        $host = config("database.connections.{$connection}.host", '127.0.0.1');
+        $port = config("database.connections.{$connection}.port", 3306);
+        $database = config("database.connections.{$connection}.database");
+        $username = config("database.connections.{$connection}.username");
+        $password = (string) config("database.connections.{$connection}.password");
 
-        $backupPath = $backupDirectory .
-            DIRECTORY_SEPARATOR .
-            $filename;
+        $filename = 'laras-flowershop-backup-' . now()->format('Y-m-d_His') . '.sql';
 
         try {
-            $sql = $this->generateBackup();
+            $sql = $this->generateDump($host, $port, $database, $username, $password);
 
-            File::put($backupPath, $sql);
+            Storage::put('backup_meta.json', json_encode([
+                'last_backup_at' => now()->toDateTimeString(),
+                'last_backup_by' => auth()->user()->full_name ?? 'Unknown',
+                'filename' => $filename,
+                'size_bytes' => strlen($sql),
+            ], JSON_PRETTY_PRINT));
+
+            return response()->streamDownload(function () use ($sql) {
+                echo $sql;
+            }, $filename, [
+                'Content-Type' => 'application/octet-stream',
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                'Cache-Control' => 'no-cache, no-store, must-revalidate',
+                'Pragma' => 'no-cache',
+                'Expires' => '0',
+            ]);
         } catch (\Throwable $e) {
-            if (File::exists($backupPath)) {
-                File::delete($backupPath);
-            }
-
-            return redirect()
-                ->route('backup.index')
-                ->with(
-                    'error',
-                    'Database backup failed: ' .
-                    $e->getMessage()
-                );
+            return back()->with('error', 'Backup failed: ' . $e->getMessage());
         }
-
-        return redirect()
-            ->route('backup.index')
-            ->with(
-                'success',
-                'Database backup created successfully.'
-            );
     }
 
-    private function generateBackup(): string
+    /**
+     * Generate a full SQL dump of the database using PDO only.
+     * No process spawning, no mysqldump binary required.
+     */
+    private function generateDump(string $host, string $port, string $database, string $username, string $password): string
     {
-        $databaseName = config(
-            'database.connections.mysql.database'
-        );
+        $dsn = "mysql:host={$host};port={$port};dbname={$database};charset=utf8mb4";
 
-        $tables = DB::select('SHOW TABLES');
+        $pdo = new PDO($dsn, $username, $password, [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES => false,
+        ]);
 
-        $tableColumn = 'Tables_in_' . $databaseName;
+        $out = [];
+        $out[] = "-- Lara's Flowershop — Database Backup";
+        $out[] = "-- Generated: " . now()->toDateTimeString();
+        $out[] = "-- Database: {$database}";
+        $out[] = "-- Generator: PHP PDO (no mysqldump)";
+        $out[] = "";
+        $out[] = "SET FOREIGN_KEY_CHECKS=0;";
+        $out[] = "SET SQL_MODE='NO_AUTO_VALUE_ON_ZERO';";
+        $out[] = "SET NAMES utf8mb4;";
+        $out[] = "";
 
-        $sql = '';
+        // Get all tables
+        $tables = $pdo->query('SHOW FULL TABLES')->fetchAll(PDO::FETCH_NUM);
 
-        $sql .= "-- Lara's Flowershop Database Backup\n";
-        $sql .= "-- Database: {$databaseName}\n";
-        $sql .= "-- Generated: " . now()->format('Y-m-d H:i:s') . "\n";
-        $sql .= "-- Laravel PHP-native database backup\n\n";
+        foreach ($tables as $row) {
+            $tableName = $row[0];
+            $tableType = $row[1]; // 'BASE TABLE' or 'VIEW'
 
-        $sql .= "SET FOREIGN_KEY_CHECKS=0;\n";
-        $sql .= "SET SQL_MODE='NO_AUTO_VALUE_ON_ZERO';\n\n";
-
-        foreach ($tables as $table) {
-            $tableName = $table->{$tableColumn};
-
-            $escapedTableName = str_replace(
-                '`',
-                '``',
-                $tableName
-            );
-
-            /*
-             * Get the original CREATE TABLE statement.
-             */
-            $createResult = DB::select(
-                "SHOW CREATE TABLE `{$escapedTableName}`"
-            );
-
-            if (empty($createResult)) {
-                continue;
+            if ($tableType !== 'BASE TABLE') {
+                continue; // skip views
             }
 
-            $createStatement = $createResult[0]->{'Create Table'};
+            $out[] = "--";
+            $out[] = "-- Table structure for `{$tableName}`";
+            $out[] = "--";
+            $out[] = "DROP TABLE IF EXISTS `{$tableName}`;";
 
-            $sql .= "-- ----------------------------------------\n";
-            $sql .= "-- Table: `{$tableName}`\n";
-            $sql .= "-- ----------------------------------------\n\n";
+            $createResult = $pdo->query("SHOW CREATE TABLE `{$tableName}`")->fetch(PDO::FETCH_NUM);
+            $out[] = $createResult[1] . ";";
+            $out[] = "";
 
-            $sql .= "DROP TABLE IF EXISTS `{$escapedTableName}`;\n";
-            $sql .= $createStatement . ";\n\n";
+            $countResult = $pdo->query("SELECT COUNT(*) FROM `{$tableName}`")->fetch(PDO::FETCH_NUM);
+            $rowCount = (int) $countResult[0];
 
-            /*
-             * Retrieve all rows from the table.
-             */
-            $rows = DB::table($tableName)->get();
+            if ($rowCount > 0) {
+                $out[] = "--";
+                $out[] = "-- Data for `{$tableName}` ({$rowCount} rows)";
+                $out[] = "--";
 
-            if ($rows->isEmpty()) {
-                continue;
-            }
+                $stmt = $pdo->query("SELECT * FROM `{$tableName}`");
 
-            $columns = array_keys(
-                get_object_vars($rows->first())
-            );
+                $batch = [];
+                $batchSize = 100;
+                $columns = null;
 
-            $escapedColumns = array_map(
-                function ($column) {
-                    return '`' .
-                        str_replace('`', '``', $column) .
-                        '`';
-                },
-                $columns
-            );
-
-            $columnList = implode(
-                ', ',
-                $escapedColumns
-            );
-
-            foreach ($rows as $row) {
-                $values = [];
-
-                foreach ($columns as $column) {
-                    $value = $row->{$column};
-
-                    if ($value === null) {
-                        $values[] = 'NULL';
-                        continue;
+                while ($dataRow = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                    // Capture the column list once, from the first actual row
+                    if ($columns === null) {
+                        $columns = '`' . implode('`, `', array_keys($dataRow)) . '`';
                     }
 
-                    if (
-                        is_int($value) ||
-                        is_float($value)
-                    ) {
-                        $values[] = (string) $value;
-                        continue;
+                    $values = array_map(function ($value) use ($pdo) {
+                        if ($value === null) return 'NULL';
+                        if (is_int($value) || is_float($value)) return $value;
+                        return $pdo->quote((string) $value);
+                    }, $dataRow);
+
+                    $batch[] = '(' . implode(', ', $values) . ')';
+
+                    if (count($batch) >= $batchSize) {
+                        $out[] = "INSERT INTO `{$tableName}` ({$columns}) VALUES";
+                        $out[] = implode(",\n", $batch) . ";";
+                        $batch = [];
                     }
-
-                    /*
-                     * Use the active MySQL connection to safely
-                     * quote string/text/date values.
-                     */
-                    $quotedValue = DB::connection()
-                        ->getPdo()
-                        ->quote((string) $value);
-
-                    $values[] = $quotedValue;
                 }
 
-                $sql .= "INSERT INTO `{$escapedTableName}` " .
-                    "({$columnList}) VALUES (" .
-                    implode(', ', $values) .
-                    ");\n";
+                // Flush remaining rows
+                if (!empty($batch) && $columns !== null) {
+                    $out[] = "INSERT INTO `{$tableName}` ({$columns}) VALUES";
+                    $out[] = implode(",\n", $batch) . ";";
+                }
+
+                $out[] = "";
             }
-
-            $sql .= "\n";
         }
 
-        $sql .= "SET FOREIGN_KEY_CHECKS=1;\n";
+        $out[] = "SET FOREIGN_KEY_CHECKS=1;";
+        $out[] = "";
+        $out[] = "-- End of backup";
 
-        return $sql;
-    }
-
-    public function download(
-        string $filename
-    ): BinaryFileResponse {
-        if (
-            $filename === '' ||
-            basename($filename) !== $filename ||
-            !str_ends_with(
-                strtolower($filename),
-                '.sql'
-            )
-        ) {
-            abort(404);
-        }
-
-        $backupPath = storage_path(
-            'app/backups/' . $filename
-        );
-
-        if (!File::exists($backupPath)) {
-            abort(404);
-        }
-
-        return response()->download($backupPath);
+        return implode("\n", $out);
     }
 }

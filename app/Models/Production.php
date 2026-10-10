@@ -10,7 +10,9 @@ class Production extends Model
 
     protected $fillable = [
         'product_id',
+        'order_id',
         'quantity_produced',
+        'notes',
         'produced_by',
         'production_date',
     ];
@@ -29,6 +31,15 @@ class Production extends Model
             Product::class,
             'product_id',
             'product_id'
+        );
+    }
+
+    public function order()
+    {
+        return $this->belongsTo(
+            Order::class,
+            'order_id',
+            'order_id'
         );
     }
 

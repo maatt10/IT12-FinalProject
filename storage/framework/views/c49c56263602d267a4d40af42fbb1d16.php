@@ -124,10 +124,10 @@
         }
 
         .nav-link.active {
-            background: #E85D75;
+            background: #6B5B95;
             color: #FFFFFF;
             font-weight: 600;
-            box-shadow: 0 2px 8px rgba(232, 93, 117, 0.5);
+            box-shadow: 0 2px 8px rgba(107, 91, 149, 0.5);
         }
 
         .nav-link svg {
@@ -180,13 +180,12 @@
         }
 
         .logout-btn:hover {
-            background: #E85D75;
+            background: #6B5B95;
             color: #FFFFFF;
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(232, 93, 117, 0.4);
+            box-shadow: 0 4px 12px rgba(107, 91, 149, 0.4);
         }
 
-        /* MAIN WRAPPER */
         .main-wrapper {
             flex: 1;
             display: flex;
@@ -230,7 +229,7 @@
         }
 
         .clock-time span.seconds {
-            color: #E85D75;
+            color: #6B5B95;
             font-size: 15px;
             margin-left: 2px;
         }
@@ -249,13 +248,13 @@
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background: #FCE4EC;
-            border: 2px solid #E85D75;
+            background: #EFEBF7;
+            border: 2px solid #6B5B95;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
-            color: #E85D75;
+            color: #6B5B95;
         }
 
         .user-details {
@@ -330,14 +329,14 @@
         }
 
         .btn-primary {
-            background: #E85D75;
+            background: #6B5B95;
             color: #FFFFFF;
-            box-shadow: 0 2px 6px rgba(232, 93, 117, 0.3);
+            box-shadow: 0 2px 6px rgba(107, 91, 149, 0.3);
         }
 
         .btn-primary:hover {
-            background: #D14A62;
-            box-shadow: 0 4px 10px rgba(232, 93, 117, 0.4);
+            background: #594B7D;
+            box-shadow: 0 4px 10px rgba(107, 91, 149, 0.4);
         }
 
         .btn-secondary {
@@ -371,13 +370,12 @@
         }
 
         th {
-            background: #FCE4EC;
-            color: #E85D75;
+            background: #EFEBF7;
+            color: #6B5B95;
             font-weight: 600;
             text-transform: uppercase;
             font-size: 11px;
             letter-spacing: 1px;
-            ;
         }
 
         td {
@@ -386,7 +384,7 @@
         }
 
         tbody tr:hover {
-            background: #FFF9FB;
+            background: #FDFBFF;
         }
 
         .alert {
@@ -400,13 +398,13 @@
         .alert-success {
             background: #E8F5E9;
             color: #2E5A3B;
-            solid #80B918;
+            border-left: 4px solid #80B918;
         }
 
         .alert-error {
             background: #FDECEA;
             color: #C0392B;
-            solid #DC3545;
+            border-left: 4px solid #DC3545;
         }
 
         .form-group {
@@ -434,11 +432,10 @@
 
         .form-control:focus {
             outline: none;
-            border-color: #E85D75;
-            box-shadow: 0 0 0 3px rgba(232, 93, 117, 0.1);
+            border-color: #6B5B95;
+            box-shadow: 0 0 0 3px rgba(107, 91, 149, 0.1);
         }
 
-        /* Centered form pages */
         .form-page {
             max-width: 720px;
             margin: 0 auto;
@@ -514,8 +511,8 @@
             <div class="brand-sub">Est. 2021</div>
 
             <div class="sidebar-nav">
-                <div class="nav-title">Main</div>
 
+                <div class="nav-title">Main</div>
 
                 
                 <a href="<?php echo e(route('dashboard')); ?>"
@@ -527,13 +524,24 @@
                 </a>
 
                 
-                <a href="<?php echo e(route('pos.index')); ?>"
-                    class="nav-link <?php echo e(request()->routeIs('pos.*') ? 'active' : ''); ?>">
+                <a href="<?php echo e(route('sales.create')); ?>"
+                    class="nav-link <?php echo e(request()->routeIs('sales.create') ? 'active' : ''); ?>">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
                     POS
                 </a>
+
+                
+                <?php if(auth()->user()->role === 'owner'): ?>
+                <a href="<?php echo e(route('orders.create')); ?>"
+                    class="nav-link <?php echo e(request()->routeIs('orders.create') ? 'active' : ''); ?>">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                    </svg>
+                    Record Order
+                </a>
+                <?php endif; ?>
 
                 
                 <a href="<?php echo e(route('products.index')); ?>"
@@ -564,7 +572,10 @@
                 </a>
 
                 <div class="nav-title">System</div>
-
+                <a href="<?php echo e(route('users.index')); ?>"
+                    class="nav-link sub <?php echo e(request()->routeIs('users.*') ? 'active' : ''); ?>">
+                    User Management
+                </a>
                 <a href="<?php echo e(route('audit.index')); ?>"
                     class="nav-link sub <?php echo e(request()->routeIs('audit.*') ? 'active' : ''); ?>">
                     Audit Trail

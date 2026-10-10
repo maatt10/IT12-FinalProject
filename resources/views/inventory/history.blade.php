@@ -9,7 +9,7 @@
         <h1>Inventory History</h1>
         <p>
             Transaction history for
-            <strong style="color: #E85D75;">{{ $product->name }}</strong>
+            <strong style="color: #6B5B95;">{{ $product->name }}</strong>
             @if($product->variation)
             — {{ $product->variation }}
             @endif
@@ -101,7 +101,7 @@
     }
 
     .alloc-retail {
-        color: #E85D75;
+        color: #6B5B95;
     }
 
     .alloc-production {

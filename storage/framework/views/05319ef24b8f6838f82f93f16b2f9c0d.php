@@ -29,7 +29,7 @@
         <table>
             <thead>
                 <tr>
-                    <th>Order Date &amp; Time</th>
+                    <th>Date &amp; Time</th>
                     <th>User</th>
                     <th>Action</th>
                     <th>Table</th>
@@ -117,7 +117,7 @@
     }
 
     .action-login {
-        color: #E85D75;
+        color: #6B5B95;
     }
 
     .action-logout {

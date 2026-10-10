@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
-use App\Models\Product;
 use App\Models\Inventory;
 use App\Models\InventoryTransaction;
+use App\Models\Product;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Services\AuditLogger;
@@ -34,11 +34,11 @@ class SaleController extends Controller
                     'name' => $product->display_name,
                     'price' => (float) $product->selling_price,
                     'unit' => $product->stock_unit,
-                    'stock' => $retailInventory
-                        ? (float) $retailInventory->current_quantity
-                        : 0,
+                    'stock' => $retailInventory ? (float) $retailInventory->current_quantity : 0,
                 ];
             })
+            // Hide items with no physical stock
+            ->filter(fn($p) => $p['stock'] > 0)
             ->values();
 
         $customers = Customer::orderBy('last_name')
@@ -63,26 +63,16 @@ class SaleController extends Controller
         $validated = $request->validate([
             'customer_id' => ['nullable', 'exists:customers,customer_id'],
             'payment_method' => ['required', 'in:cash,gcash'],
-            'gcash_reference' => [
-                'nullable',
-                'required_if:payment_method,gcash',
-                'digits:13',
-            ],
+            'gcash_reference' => ['nullable', 'required_if:payment_method,gcash', 'digits:13'],
             'discount_type' => ['required', 'in:none,pwd,senior'],
             'discount_name' => ['nullable', 'string', 'max:120'],
-            'discount_id_number' => [
-                'nullable',
-                'required_unless:discount_type,none',
-                'string',
-                'max:30',
-            ],
+            'discount_id_number' => ['nullable', 'required_unless:discount_type,none', 'string', 'max:30'],
             'discount_amount' => ['required', 'numeric', 'min:0'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'exists:products,product_id'],
             'items.*.quantity' => ['required', 'numeric', 'gt:0'],
         ]);
 
-        // Extra ID validation before transaction
         if ($validated['discount_type'] === 'pwd') {
             $raw = preg_replace('/\D/', '', $validated['discount_id_number'] ?? '');
             if (strlen($raw) !== 16) {
@@ -109,13 +99,10 @@ class SaleController extends Controller
                 $subtotal = 0;
 
                 foreach ($validated['items'] as $item) {
-
                     $product = Product::findOrFail($item['product_id']);
 
                     if (!in_array($product->stock_purpose, ['retail', 'both'])) {
-                        throw new \Exception(
-                            "{$product->name} is not available for sale."
-                        );
+                        throw new \Exception("{$product->name} is not available for sale.");
                     }
 
                     $inventory = Inventory::where('product_id', $product->product_id)
@@ -124,22 +111,17 @@ class SaleController extends Controller
                         ->first();
 
                     if (!$inventory) {
-                        throw new \Exception(
-                            "{$product->name} has no retail inventory."
-                        );
+                        throw new \Exception("{$product->name} has no retail inventory.");
                     }
 
                     $quantity = (float) $item['quantity'];
 
                     if ($inventory->current_quantity < $quantity) {
-                        throw new \Exception(
-                            "Insufficient retail stock for {$product->name}."
-                        );
+                        throw new \Exception("Insufficient retail stock for {$product->name}.");
                     }
 
                     $unitPrice = (float) $product->selling_price;
                     $lineTotal = $quantity * $unitPrice;
-
                     $subtotal += $lineTotal;
                 }
 
@@ -166,9 +148,7 @@ class SaleController extends Controller
                     'receipt_issued' => true,
                 ]);
 
-                // Generate the reference code (DDMMYY-NNNNN)
                 $datePart = $sale->sale_date->format('dmy');
-
                 $lastToday = Sale::where('reference_code', 'LIKE', $datePart . '-%')
                     ->orderByDesc('reference_code')
                     ->value('reference_code');
@@ -186,9 +166,7 @@ class SaleController extends Controller
                 $saleId = $sale->sale_id;
 
                 foreach ($validated['items'] as $item) {
-
                     $product = Product::findOrFail($item['product_id']);
-
                     $inventory = Inventory::where('product_id', $product->product_id)
                         ->where('reserve_type', 'retail')
                         ->lockForUpdate()
@@ -223,9 +201,7 @@ class SaleController extends Controller
                     ]);
                 }
 
-                $customerName = $sale->customer
-                    ? $sale->customer->full_name
-                    : 'Walk-in Customer';
+                $customerName = $sale->customer ? $sale->customer->full_name : 'Walk-in Customer';
 
                 app(AuditLogger::class)->log(
                     'create',

@@ -40,7 +40,7 @@
     </a>
     <a href="{{ route('records.index', ['tab' => 'sales', 'sub' => 'online']) }}"
         class="record-sub-tab {{ $sub === 'online' ? 'active' : '' }}">
-        Online Orders
+        Orders
     </a>
 </div>
 @endif
@@ -90,7 +90,7 @@
                         {{ $sale->customer->full_name ?? 'Walk-in' }}
                     </td>
                     <td>
-                        <span style="font-size: 12px; font-weight: 600; text-transform: capitalize; color: {{ $sale->payment_method === 'cash' ? '#E85D75' : '#2E5A3B' }};">
+                        <span style="font-size: 12px; font-weight: 600; text-transform: capitalize; color: {{ $sale->payment_method === 'cash' ? '#6B5B95' : '#2E5A3B' }};">
                             {{ str_replace('_', ' ', $sale->payment_method) }}
                         </span>
                     </td>
@@ -109,9 +109,7 @@
         </table>
     </div>
 
-    <div class="pagination-wrap">
-        {{ $sales->appends(['tab' => 'sales', 'sub' => 'walk-in'])->links() }}
-    </div>
+    @include('partials.pagination', ['paginator' => $sales->appends(['tab' => 'sales', 'sub' => 'walk-in'])])
     @endif
 
     {{-- ONLINE ORDERS --}}
@@ -119,8 +117,8 @@
 
     @if($orders->isEmpty())
     <div class="empty-state">
-        <h3>No online orders yet</h3>
-        <p>Orders recorded through Messenger will appear here.</p>
+        <h3>No orders yet</h3>
+        <p>Orders recorded will appear here.</p>
     </div>
     @else
     <div style="overflow-x: auto;">
@@ -130,6 +128,7 @@
                     <th>Order No.</th>
                     <th>Date &amp; Time</th>
                     <th>Customer</th>
+                    <th>Channel</th>
                     <th>Status</th>
                     <th class="num">Total</th>
                     <th class="num">Actions</th>
@@ -146,6 +145,9 @@
                     </td>
                     <td style="font-weight: 500;">
                         {{ $order->customer->full_name ?? $order->customer_name ?? 'Unregistered' }}
+                    </td>
+                    <td style="color: #64748B;">
+                        {{ $order->channel === 'walk_in' ? 'Walk-in' : 'Online' }}
                     </td>
                     <td>
                         <span style="font-size: 12px; font-weight: 600; text-transform: capitalize;
@@ -177,9 +179,7 @@
         </table>
     </div>
 
-    <div class="pagination-wrap">
-        {{ $orders->appends(['tab' => 'sales', 'sub' => 'online'])->links() }}
-    </div>
+    @include('partials.pagination', ['paginator' => $orders->appends(['tab' => 'sales', 'sub' => 'online'])])
     @endif
 
     {{-- PURCHASES --}}
@@ -228,9 +228,7 @@
         </table>
     </div>
 
-    <div class="pagination-wrap">
-        {{ $purchases->appends(['tab' => 'purchases'])->links() }}
-    </div>
+    @include('partials.pagination', ['paginator' => $purchases->appends(['tab' => 'purchases'])])
     @endif
 
     {{-- PRODUCTION --}}
@@ -248,8 +246,9 @@
                 <tr>
                     <th>Date &amp; Time</th>
                     <th>Product</th>
+                    <th>Type</th>
                     <th>Produced By</th>
-                    <th class="num">Quantity Produced</th>
+                    <th class="num">Quantity</th>
                 </tr>
             </thead>
             <tbody>
@@ -259,13 +258,33 @@
                         {{ $production->production_date->format('M d, Y h:i A') }}
                     </td>
                     <td style="font-weight: 600;">
+                        @if($production->product)
                         {{ $production->product->display_name }}
+                        @else
+                        <span style="font-style: italic; color: #64748B;">Custom Bouquet</span>
+                        @if($production->order)
+                        <div style="font-size: 11px; color: #94A3B8; font-family: 'SF Mono', Consolas, monospace; margin-top: 2px;">
+                            {{ $production->order->reference_code }}
+                        </div>
+                        @endif
+                        @endif
+                    </td>
+                    <td style="color: #64748B;">
+                        @if($production->order_id && !$production->product_id)
+                        Custom
+                        @else
+                        Standard
+                        @endif
                     </td>
                     <td style="color: #64748B;">
                         {{ $production->producedBy->full_name ?? 'Unknown' }}
                     </td>
                     <td class="num" style="font-weight: 700; color: #2E5A3B;">
+                        @if($production->product)
                         {{ (float) $production->quantity_produced }} {{ $production->product->stock_unit }}
+                        @else
+                        {{ (float) $production->quantity_produced }} bouquet{{ $production->quantity_produced > 1 ? 's' : '' }}
+                        @endif
                     </td>
                 </tr>
                 @endforeach
@@ -273,9 +292,7 @@
         </table>
     </div>
 
-    <div class="pagination-wrap">
-        {{ $productions->appends(['tab' => 'production'])->links() }}
-    </div>
+    @include('partials.pagination', ['paginator' => $productions->appends(['tab' => 'production'])])
     @endif
 
     {{-- CUSTOMERS --}}
@@ -329,9 +346,7 @@
         </table>
     </div>
 
-    <div class="pagination-wrap">
-        {{ $customers->appends(['tab' => 'customers'])->links() }}
-    </div>
+    @include('partials.pagination', ['paginator' => $customers->appends(['tab' => 'customers'])])
     @endif
 
     @endif
@@ -360,12 +375,12 @@
     }
 
     .record-tab:hover {
-        color: #E85D75;
+        color: #6B5B95;
     }
 
     .record-tab.active {
-        color: #E85D75;
-        border-bottom-color: #E85D75;
+        color: #6B5B95;
+        border-bottom-color: #6B5B95;
     }
 
     .record-sub-tabs {
@@ -391,12 +406,12 @@
 
     .record-sub-tab:hover {
         background: #FEFCF9;
-        color: #E85D75;
+        color: #6B5B95;
     }
 
     .record-sub-tab.active {
-        background: #FCE4EC;
-        color: #E85D75;
+        background: #EFEBF7;
+        color: #6B5B95;
     }
 
     .tab-action-row {
@@ -426,13 +441,13 @@
     }
 
     .action-btn.view {
-        background: #FCE4EC;
-        color: #E85D75;
+        background: #EFEBF7;
+        color: #6B5B95;
     }
 
     .action-btn.view:hover {
-        background: #F8BBD0;
-        color: #D14A62;
+        background: #D5C9E8;
+        color: #594B7D;
     }
 
     .action-btn.receipt {
@@ -462,10 +477,73 @@
         font-size: 14px;
     }
 
-    .pagination-wrap {
-        margin-top: 20px;
+    /* ===============================
+       CLEAN PAGINATION
+       =============================== */
+    .clean-pagination {
         display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding-top: 16px;
+        margin-top: 20px;
+        border-top: 1px solid #F0E6DD;
+        flex-wrap: wrap;
+    }
+
+    .clean-pagination .pagination-info {
+        font-size: 12px;
+        color: #64748B;
+        font-weight: 400;
+    }
+
+    .clean-pagination .pagination-info strong {
+        color: #212121;
+        font-weight: 700;
+        font-size: 12px;
+    }
+
+    .clean-pagination .pagination-controls {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .clean-pagination .page-btn {
+        display: inline-flex;
+        align-items: center;
         justify-content: center;
+        padding: 6px 14px;
+        border-radius: 6px;
+        background: #FFFFFF;
+        border: 1.5px solid #F0E6DD;
+        color: #64748B;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: inherit;
+        text-decoration: none;
+        transition: all 0.15s ease;
+        white-space: nowrap;
+    }
+
+    .clean-pagination .page-btn:hover:not(:disabled) {
+        border-color: #6B5B95;
+        color: #6B5B95;
+    }
+
+    .clean-pagination .page-btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+
+    .clean-pagination .page-indicator {
+        font-size: 12px;
+        font-weight: 700;
+        color: #212121;
+        padding: 0 6px;
+        min-width: 50px;
+        text-align: center;
     }
 
     @media (max-width: 640px) {
@@ -477,6 +555,15 @@
         .record-tab {
             font-size: 13px;
             white-space: nowrap;
+        }
+
+        .clean-pagination {
+            justify-content: center;
+        }
+
+        .clean-pagination .pagination-info {
+            width: 100%;
+            text-align: center;
         }
     }
 </style>

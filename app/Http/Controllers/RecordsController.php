@@ -33,27 +33,23 @@ class RecordsController extends Controller
         if ($tab === 'sales' && $sub === 'walk-in') {
             $data['sales'] = Sale::with(['customer', 'user'])
                 ->orderByDesc('sale_date')
-                ->paginate(15, ['*'], 'page');
-
+                ->paginate(10, ['*'], 'page');
         } elseif ($tab === 'sales' && $sub === 'online') {
             $data['orders'] = Order::with(['customer'])
                 ->orderByDesc('order_date')
-                ->paginate(15, ['*'], 'page');
-
+                ->paginate(10, ['*'], 'page');
         } elseif ($tab === 'purchases') {
             $data['purchases'] = Purchase::with('user')
                 ->orderByDesc('purchase_date')
-                ->paginate(15, ['*'], 'page');
-
+                ->paginate(10, ['*'], 'page');
         } elseif ($tab === 'production') {
-            $data['productions'] = Production::with(['product', 'producedBy'])
+            $data['productions'] = Production::with(['product', 'producedBy', 'order'])
                 ->orderByDesc('production_date')
-                ->paginate(15, ['*'], 'page');
-
+                ->paginate(10, ['*'], 'page');
         } elseif ($tab === 'customers') {
             $data['customers'] = Customer::orderBy('last_name')
                 ->orderBy('first_name')
-                ->paginate(15, ['*'], 'page');
+                ->paginate(10, ['*'], 'page');
         }
 
         return view('records.index', $data);

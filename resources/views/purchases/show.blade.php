@@ -16,10 +16,10 @@
 </div>
 
 {{-- PURCHASE INFO CARD --}}
-<div class="card" style="margin-bottom: 20px;  #E85D75;">
+<div class="card" style="margin-bottom: 20px;  #6B5B95;">
 
     <h2 class="card-heading">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#E85D75" stroke-width="2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#6B5B95" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
         </svg>
         Purchase Information
@@ -175,7 +175,7 @@
     }
 
     .alloc-retail {
-        color: #E85D75;
+        color: #6B5B95;
     }
 
     .alloc-production {

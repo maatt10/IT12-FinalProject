@@ -28,42 +28,40 @@ class InventoryController extends Controller
 
     public function storeInitialStock(Request $request, Product $product)
     {
-        $validated = $request->validate([
-            'retail_quantity' => ['required', 'numeric', 'min:0'],
-            'production_quantity' => ['required', 'numeric', 'min:0'],
-        ]);
+        // Determine which pools are allowed by the product's stock purpose
+        $showRetail = in_array($product->stock_purpose, ['retail', 'both']);
+        $showProduction = in_array($product->stock_purpose, ['production', 'both']);
 
-        $retailQuantity = (float) $validated['retail_quantity'];
-        $productionQuantity = (float) $validated['production_quantity'];
+        $rules = [
+            'retail_quantity' => [$showRetail ? 'required' : 'nullable', 'numeric', 'min:0'],
+            'production_quantity' => [$showProduction ? 'required' : 'nullable', 'numeric', 'min:0'],
+        ];
+
+        $validated = $request->validate($rules);
+
+        // Force zero on any pool the product isn't allowed to use
+        $retailQuantity = $showRetail ? (float) ($validated['retail_quantity'] ?? 0) : 0;
+        $productionQuantity = $showProduction ? (float) ($validated['production_quantity'] ?? 0) : 0;
 
         if ($retailQuantity == 0 && $productionQuantity == 0) {
             return back()
                 ->withErrors([
-                    'retail_quantity' =>
-                    'At least one initial stock quantity must be greater than zero.',
+                    'retail_quantity' => 'At least one initial stock quantity must be greater than zero.',
                 ])
                 ->withInput();
         }
 
-        $alreadyInitialized = Inventory::where(
-            'product_id',
-            $product->product_id
-        )->exists();
+        $alreadyInitialized = Inventory::where('product_id', $product->product_id)->exists();
 
         if ($alreadyInitialized) {
             return back()
                 ->withErrors([
-                    'retail_quantity' =>
-                    'Initial stock has already been initialized for this product.',
+                    'retail_quantity' => 'Initial stock has already been initialized for this product.',
                 ])
                 ->withInput();
         }
 
-        DB::transaction(function () use (
-            $product,
-            $retailQuantity,
-            $productionQuantity
-        ) {
+        DB::transaction(function () use ($product, $retailQuantity, $productionQuantity) {
             $quantities = [
                 'retail' => $retailQuantity,
                 'production' => $productionQuantity,
@@ -96,19 +94,17 @@ class InventoryController extends Controller
                 'create',
                 'inventory',
                 $product->product_id,
-                'Initial stock recorded for ' .
-                    $product->display_name .
-                    '. Retail: ' .
-                    $retailQuantity .
-                    ', Production: ' .
-                    $productionQuantity
+                'Initial stock recorded for ' . $product->display_name .
+                    '. Retail: ' . $retailQuantity .
+                    ', Production: ' . $productionQuantity
             );
         });
+
         return redirect()
             ->route('products.index', [
                 'item_type' => $product->item_type === 'material' ? 'material' : 'product',
             ])
-            ->with('success', 'Stock adjustment recorded successfully.');
+            ->with('success', 'Initial stock recorded successfully.');
     }
 
     public function adjustment(Product $product)
@@ -126,21 +122,27 @@ class InventoryController extends Controller
             'notes' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        $inventory = Inventory::where(
-            'product_id',
-            $product->product_id
-        )
-            ->where(
-                'reserve_type',
-                $validated['reserve_type']
-            )
+        // Guard: reject allocations not allowed by stock purpose
+        if ($validated['reserve_type'] === 'retail' && !in_array($product->stock_purpose, ['retail', 'both'])) {
+            return back()->withErrors([
+                'reserve_type' => 'This item is not tracked as retail stock.',
+            ])->withInput();
+        }
+
+        if ($validated['reserve_type'] === 'production' && !in_array($product->stock_purpose, ['production', 'both'])) {
+            return back()->withErrors([
+                'reserve_type' => 'This item is not tracked as production stock.',
+            ])->withInput();
+        }
+
+        $inventory = Inventory::where('product_id', $product->product_id)
+            ->where('reserve_type', $validated['reserve_type'])
             ->first();
 
         if (!$inventory) {
             return back()
                 ->withErrors([
-                    'reserve_type' =>
-                    'This stock allocation has not been initialized yet.',
+                    'reserve_type' => 'This stock allocation has not been initialized yet.',
                 ])
                 ->withInput();
         }
@@ -153,8 +155,7 @@ class InventoryController extends Controller
         if ($adjustment == 0) {
             return back()
                 ->withErrors([
-                    'actual_quantity' =>
-                    'No adjustment is needed because the physical quantity matches the recorded quantity.',
+                    'actual_quantity' => 'No adjustment is needed because the physical quantity matches the recorded quantity.',
                 ])
                 ->withInput();
         }
@@ -189,17 +190,10 @@ class InventoryController extends Controller
                 'update',
                 'inventory',
                 $product->product_id,
-                'Inventory adjusted for ' .
-                    $product->display_name .
-                    ' (' .
-                    ucfirst($validated['reserve_type']) .
-                    '). Previous: ' .
-                    $previousQuantity .
-                    ', New: ' .
-                    $actualQuantity .
-                    ($validated['notes']
-                        ? '. Notes: ' . $validated['notes']
-                        : '.')
+                'Inventory adjusted for ' . $product->display_name .
+                    ' (' . ucfirst($validated['reserve_type']) . '). Previous: ' .
+                    $previousQuantity . ', New: ' . $actualQuantity .
+                    ($validated['notes'] ? '. Notes: ' . $validated['notes'] : '.')
             );
         });
 
@@ -220,21 +214,24 @@ class InventoryController extends Controller
             ->flatMap(function ($inventory) {
                 return $inventory->transactions->map(function ($transaction) use ($inventory) {
                     $transaction->reserve_type = $inventory->reserve_type;
-
                     return $transaction;
                 });
             })
             ->sortByDesc('transaction_date')
             ->values();
 
-        return view('inventory.history', compact(
-            'product',
-            'transactions'
-        ));
+        return view('inventory.history', compact('product', 'transactions'));
     }
 
     public function storeTransfer(Request $request, Product $product)
     {
+        // Guard: transfers only make sense when the item tracks both pools
+        if ($product->stock_purpose !== 'both') {
+            return back()->withErrors([
+                'from' => 'Transfers are only available for items that track both retail and production stock.',
+            ])->withInput();
+        }
+
         $validated = $request->validate([
             'from' => ['required', 'in:retail,production'],
             'to' => ['required', 'in:retail,production', 'different:from'],
@@ -283,7 +280,7 @@ class InventoryController extends Controller
                     'recorded_by' => auth()->user()->user_id,
                 ]);
 
-                // Add to destination (create if missing)
+                // Add to destination
                 $toInventory = Inventory::where('product_id', $product->product_id)
                     ->where('reserve_type', $validated['to'])
                     ->lockForUpdate()

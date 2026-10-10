@@ -4,12 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\ProductComponent;
-use App\Services\AuditLogger;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
-    /* INDEX — Inventory with tabs + stackable filters */
     public function index(Request $request)
     {
         $itemType = $request->query('item_type', 'product');
@@ -34,28 +33,30 @@ class ProductController extends Controller
             $retail = $item->inventory->firstWhere('reserve_type', 'retail');
             $production = $item->inventory->firstWhere('reserve_type', 'production');
 
+            $item->has_retail = $retail !== null;
+            $item->has_production = $production !== null;
+
             $item->retail_stock = $retail ? (float) $retail->current_quantity : null;
             $item->production_stock = $production ? (float) $production->current_quantity : null;
 
             $threshold = (float) $item->low_stock_threshold;
 
-            $item->retail_low = $item->retail_stock !== null && $item->retail_stock <= $threshold;
-            $item->production_low = $item->production_stock !== null && $item->production_stock <= $threshold;
-            $item->has_low_stock = $item->retail_low || $item->production_low;
+            $item->retail_low = $item->has_retail && $item->retail_stock <= $threshold;
+            $item->production_low = $item->has_production && $item->production_stock <= $threshold;
 
-            $item->total_stock = (float) ($item->retail_stock ?? 0) + (float) ($item->production_stock ?? 0);
+            $item->total_stock = ($item->retail_stock ?? 0) + ($item->production_stock ?? 0);
 
             return $item;
         });
 
         if (in_array('low_stock', $filters)) {
-            $items = $items->filter(fn($i) => $i->has_low_stock);
+            $items = $items->filter(fn($i) => $i->retail_low || $i->production_low);
         }
         if (in_array('sellable', $filters)) {
-            $items = $items->filter(fn($i) => $i->retail_stock !== null);
+            $items = $items->filter(fn($i) => $i->has_retail);
         }
         if (in_array('production', $filters)) {
-            $items = $items->filter(fn($i) => $i->production_stock !== null);
+            $items = $items->filter(fn($i) => $i->has_production);
         }
 
         $items = $items->values();
@@ -72,7 +73,6 @@ class ProductController extends Controller
         ));
     }
 
-    /* CREATE */
     public function create(Request $request)
     {
         $itemType = $request->query('item_type') === 'material' ? 'material' : 'made_product';
@@ -87,7 +87,6 @@ class ProductController extends Controller
         return view('products.create', compact('itemType', 'materials'));
     }
 
-    /* STORE */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -99,10 +98,16 @@ class ProductController extends Controller
             'selling_price' => ['nullable', 'numeric', 'min:0'],
             'stock_unit' => ['required', 'string', 'max:50'],
             'purchase_unit' => ['nullable', 'string', 'max:50'],
-            'units_per_purchase' => ['nullable', 'numeric', 'min:0.01'],
+            'units_per_purchase' => [
+                'nullable',
+                'integer',
+                'min:1',
+                'required_with:purchase_unit',
+            ],
             'bom' => ['nullable', 'array'],
             'bom.*.material_product_id' => ['required', 'exists:products,product_id'],
             'bom.*.quantity_required' => ['required', 'numeric', 'min:0.01'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
         ]);
 
         if ($validated['item_type'] === 'made_product') {
@@ -118,9 +123,16 @@ class ProductController extends Controller
             $validated['low_stock_threshold'] = 10;
         }
 
-        $product = Product::create(collect($validated)->except('bom')->toArray());
+        // Handle image upload
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('products', 'public');
+        }
+        $product = Product::create(array_merge(
+            collect($validated)->except('bom')->toArray(),
+            ['image_path' => $imagePath]
+        ));
 
-        // Generate the reference code (PRD-00001 or MAT-00001)
         $prefix = $product->item_type === 'material' ? 'MAT' : 'PRD';
         $lastCount = Product::where('item_type', $product->item_type)
             ->where('reference_code', 'LIKE', $prefix . '-%')
@@ -128,7 +140,6 @@ class ProductController extends Controller
         $product->update([
             'reference_code' => $prefix . '-' . str_pad($lastCount + 1, 5, '0', STR_PAD_LEFT),
         ]);
-        
 
         if ($validated['item_type'] === 'made_product' && !empty($validated['bom'])) {
             foreach ($validated['bom'] as $row) {
@@ -140,19 +151,11 @@ class ProductController extends Controller
             }
         }
 
-        app(AuditLogger::class)->log(
-            'create',
-            'products',
-            $product->product_id,
-            'Item created: ' . $product->display_name
-        );
-
         return redirect()
             ->route('products.index', ['item_type' => $validated['item_type'] === 'material' ? 'material' : 'product'])
             ->with('success', 'Item created successfully.');
     }
 
-    /* SHOW */
     public function show(Product $product)
     {
         $product->load([
@@ -164,7 +167,6 @@ class ProductController extends Controller
         return view('products.show', compact('product'));
     }
 
-    /* EDIT */
     public function edit(Product $product)
     {
         $materials = Product::where('item_type', 'material')
@@ -180,7 +182,6 @@ class ProductController extends Controller
         return view('products.edit', compact('product', 'materials'));
     }
 
-    /* UPDATE */
     public function update(Request $request, Product $product)
     {
         $validated = $request->validate([
@@ -196,6 +197,7 @@ class ProductController extends Controller
             'bom' => ['nullable', 'array'],
             'bom.*.material_product_id' => ['required', 'exists:products,product_id'],
             'bom.*.quantity_required' => ['required', 'numeric', 'min:0.01'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
         ]);
 
         if ($validated['item_type'] === 'made_product') {
@@ -211,8 +213,24 @@ class ProductController extends Controller
             $validated['low_stock_threshold'] = 10;
         }
 
-        $product->update(collect($validated)->except('bom')->toArray());
+        // Handle image upload
+        $updateData = collect($validated)->except('bom')->toArray();
 
+        if ($request->hasFile('image')) {
+            // Delete old image if it exists
+            if ($product->image_path) {
+                Storage::disk('public')->delete($product->image_path);
+            }
+            $updateData['image_path'] = $request->file('image')->store('products', 'public');
+        }
+
+        // Optionally allow removing the image
+        if ($request->boolean('remove_image') && $product->image_path) {
+            Storage::disk('public')->delete($product->image_path);
+            $updateData['image_path'] = null;
+        }
+
+        $product->update($updateData);
         if ($validated['item_type'] === 'made_product') {
             ProductComponent::where('parent_product_id', $product->product_id)->delete();
 
@@ -227,48 +245,23 @@ class ProductController extends Controller
             }
         }
 
-        app(AuditLogger::class)->log(
-            'update',
-            'products',
-            $product->product_id,
-            'Item updated: ' . $product->display_name
-        );
-
         return redirect()
             ->route('products.index', ['item_type' => $validated['item_type'] === 'material' ? 'material' : 'product'])
             ->with('success', 'Item updated successfully.');
     }
 
-    /* DESTROY (Archive) */
     public function destroy(Product $product)
     {
         $product->update(['is_active' => false]);
 
-        app(AuditLogger::class)->log(
-            'update',
-            'products',
-            $product->product_id,
-            'Item archived: ' . $product->display_name
-        );
-
         return redirect()
-            ->route('products.index', [
-                'item_type' => $product->item_type === 'material' ? 'material' : 'product',
-            ])
+            ->route('products.index', ['item_type' => $product->item_type === 'material' ? 'material' : 'product'])
             ->with('success', 'Item archived successfully.');
     }
 
-    /* UNARCHIVE */
     public function unarchive(Product $product)
     {
         $product->update(['is_active' => true]);
-
-        app(AuditLogger::class)->log(
-            'update',
-            'products',
-            $product->product_id,
-            'Item restored: ' . $product->display_name
-        );
 
         return redirect()
             ->route('products.index', [

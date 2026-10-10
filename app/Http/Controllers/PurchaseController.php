@@ -24,7 +24,10 @@ class PurchaseController extends Controller
 
     public function create()
     {
-        $products = Product::orderBy('name')
+        // Restock is only for materials
+        $products = Product::where('item_type', 'material')
+            ->where('is_active', true)
+            ->orderBy('name')
             ->orderBy('variation')
             ->get();
 
@@ -90,10 +93,14 @@ class PurchaseController extends Controller
                     $item['product_id']
                 );
 
-                /*
-                 * A product being purchased must have
-                 * a purchase unit and conversion value.
-                 */
+                // Restock is only allowed for materials
+                if ($product->item_type !== 'material') {
+                    throw new \Exception(
+                        "{$product->name} is not a material and cannot be restocked."
+                    );
+                }
+
+                // A product being purchased must have valid purchase info
                 if (
                     empty($product->purchase_unit) ||
                     $product->units_per_purchase === null
@@ -106,10 +113,6 @@ class PurchaseController extends Controller
                 $purchaseQuantity = (float) $item['quantity'];
                 $unitCost = (float) $item['unit_cost'];
 
-                /*
-                 * Convert purchase quantity into
-                 * the product's base stock quantity.
-                 */
                 $stockQuantity =
                     $purchaseQuantity *
                     (float) $product->units_per_purchase;
@@ -146,9 +149,6 @@ class PurchaseController extends Controller
                     'reserve_type' => $item['reserve_type'],
                 ]);
 
-                /*
-                 * Find the correct inventory allocation.
-                 */
                 $inventory = Inventory::where(
                     'product_id',
                     $item['product_id']
@@ -160,10 +160,6 @@ class PurchaseController extends Controller
                     ->lockForUpdate()
                     ->first();
 
-                /*
-                 * If the allocation does not exist yet,
-                 * create it with zero stock.
-                 */
                 if (!$inventory) {
                     $inventory = Inventory::create([
                         'product_id' => $item['product_id'],
@@ -192,9 +188,6 @@ class PurchaseController extends Controller
                 ]);
             }
 
-            /*
-             * Record the purchase in the audit trail.
-             */
             app(AuditLogger::class)->log(
                 'create',
                 'purchases',

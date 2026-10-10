@@ -15,7 +15,7 @@
     <div class="page-header">
         <div>
             <h1>Edit Customer</h1>
-            <p>Update info for <strong style="color: #E85D75;">{{ $customer->full_name }}</strong>.</p>
+            <p>Update info for <strong style="color: #6B5B95;">{{ $customer->full_name }}</strong>.</p>
         </div>
 
         <a href="{{ $backUrl }}" class="btn btn-secondary">← Back</a>
@@ -117,7 +117,7 @@
         margin-bottom: 20px;
     }
 
-    .req { color: #E85D75; margin-left: 2px; }
+    .req { color: #6B5B95; margin-left: 2px; }
 
     /* Toggle switch */
     .toggle-option {
@@ -132,10 +132,10 @@
         background: #FFFFFF;
         margin-bottom: 20px;
     }
-    .toggle-option:hover { border-color: #F8BBD0; background: #FEFCF9; }
+    .toggle-option:hover { border-color: #D5C9E8; background: #FEFCF9; }
     .toggle-option:has(input[type="checkbox"]:checked) {
-        border-color: #E85D75;
-        background: #FCE4EC;
+        border-color: #6B5B95;
+        background: #EFEBF7;
     }
 
     .toggle-info {
@@ -149,8 +149,8 @@
         width: 40px;
         height: 40px;
         border-radius: 10px;
-        background: #FCE4EC;
-        color: #E85D75;
+        background: #EFEBF7;
+        color: #6B5B95;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -158,7 +158,7 @@
         transition: all 0.15s ease;
     }
     .toggle-option:has(input[type="checkbox"]:checked) .toggle-icon {
-        background: #E85D75;
+        background: #6B5B95;
         color: #FFFFFF;
     }
 
@@ -202,7 +202,7 @@
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
     }
     .toggle-switch input[type="checkbox"]:checked + .toggle-slider {
-        background-color: #E85D75;
+        background-color: #6B5B95;
     }
     .toggle-switch input[type="checkbox"]:checked + .toggle-slider:before {
         transform: translateX(20px);

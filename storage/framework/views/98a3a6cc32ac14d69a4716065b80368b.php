@@ -40,7 +40,7 @@
     </a>
     <a href="<?php echo e(route('records.index', ['tab' => 'sales', 'sub' => 'online'])); ?>"
         class="record-sub-tab <?php echo e($sub === 'online' ? 'active' : ''); ?>">
-        Online Orders
+        Orders
     </a>
 </div>
 <?php endif; ?>
@@ -93,7 +93,7 @@
 
                     </td>
                     <td>
-                        <span style="font-size: 12px; font-weight: 600; text-transform: capitalize; color: <?php echo e($sale->payment_method === 'cash' ? '#E85D75' : '#2E5A3B'); ?>;">
+                        <span style="font-size: 12px; font-weight: 600; text-transform: capitalize; color: <?php echo e($sale->payment_method === 'cash' ? '#6B5B95' : '#2E5A3B'); ?>;">
                             <?php echo e(str_replace('_', ' ', $sale->payment_method)); ?>
 
                         </span>
@@ -114,10 +114,7 @@
         </table>
     </div>
 
-    <div class="pagination-wrap">
-        <?php echo e($sales->appends(['tab' => 'sales', 'sub' => 'walk-in'])->links()); ?>
-
-    </div>
+    <?php echo $__env->make('partials.pagination', ['paginator' => $sales->appends(['tab' => 'sales', 'sub' => 'walk-in'])], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
     <?php endif; ?>
 
     
@@ -125,8 +122,8 @@
 
     <?php if($orders->isEmpty()): ?>
     <div class="empty-state">
-        <h3>No online orders yet</h3>
-        <p>Orders recorded through Messenger will appear here.</p>
+        <h3>No orders yet</h3>
+        <p>Orders recorded will appear here.</p>
     </div>
     <?php else: ?>
     <div style="overflow-x: auto;">
@@ -136,6 +133,7 @@
                     <th>Order No.</th>
                     <th>Date &amp; Time</th>
                     <th>Customer</th>
+                    <th>Channel</th>
                     <th>Status</th>
                     <th class="num">Total</th>
                     <th class="num">Actions</th>
@@ -154,6 +152,10 @@
                     </td>
                     <td style="font-weight: 500;">
                         <?php echo e($order->customer->full_name ?? $order->customer_name ?? 'Unregistered'); ?>
+
+                    </td>
+                    <td style="color: #64748B;">
+                        <?php echo e($order->channel === 'walk_in' ? 'Walk-in' : 'Online'); ?>
 
                     </td>
                     <td>
@@ -188,10 +190,7 @@
         </table>
     </div>
 
-    <div class="pagination-wrap">
-        <?php echo e($orders->appends(['tab' => 'sales', 'sub' => 'online'])->links()); ?>
-
-    </div>
+    <?php echo $__env->make('partials.pagination', ['paginator' => $orders->appends(['tab' => 'sales', 'sub' => 'online'])], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
     <?php endif; ?>
 
     
@@ -244,10 +243,7 @@
         </table>
     </div>
 
-    <div class="pagination-wrap">
-        <?php echo e($purchases->appends(['tab' => 'purchases'])->links()); ?>
-
-    </div>
+    <?php echo $__env->make('partials.pagination', ['paginator' => $purchases->appends(['tab' => 'purchases'])], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
     <?php endif; ?>
 
     
@@ -265,8 +261,9 @@
                 <tr>
                     <th>Date &amp; Time</th>
                     <th>Product</th>
+                    <th>Type</th>
                     <th>Produced By</th>
-                    <th class="num">Quantity Produced</th>
+                    <th class="num">Quantity</th>
                 </tr>
             </thead>
             <tbody>
@@ -277,16 +274,38 @@
 
                     </td>
                     <td style="font-weight: 600;">
+                        <?php if($production->product): ?>
                         <?php echo e($production->product->display_name); ?>
 
+                        <?php else: ?>
+                        <span style="font-style: italic; color: #64748B;">Custom Bouquet</span>
+                        <?php if($production->order): ?>
+                        <div style="font-size: 11px; color: #94A3B8; font-family: 'SF Mono', Consolas, monospace; margin-top: 2px;">
+                            <?php echo e($production->order->reference_code); ?>
+
+                        </div>
+                        <?php endif; ?>
+                        <?php endif; ?>
+                    </td>
+                    <td style="color: #64748B;">
+                        <?php if($production->order_id && !$production->product_id): ?>
+                        Custom
+                        <?php else: ?>
+                        Standard
+                        <?php endif; ?>
                     </td>
                     <td style="color: #64748B;">
                         <?php echo e($production->producedBy->full_name ?? 'Unknown'); ?>
 
                     </td>
                     <td class="num" style="font-weight: 700; color: #2E5A3B;">
+                        <?php if($production->product): ?>
                         <?php echo e((float) $production->quantity_produced); ?> <?php echo e($production->product->stock_unit); ?>
 
+                        <?php else: ?>
+                        <?php echo e((float) $production->quantity_produced); ?> bouquet<?php echo e($production->quantity_produced > 1 ? 's' : ''); ?>
+
+                        <?php endif; ?>
                     </td>
                 </tr>
                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
@@ -294,10 +313,7 @@
         </table>
     </div>
 
-    <div class="pagination-wrap">
-        <?php echo e($productions->appends(['tab' => 'production'])->links()); ?>
-
-    </div>
+    <?php echo $__env->make('partials.pagination', ['paginator' => $productions->appends(['tab' => 'production'])], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
     <?php endif; ?>
 
     
@@ -354,10 +370,7 @@
         </table>
     </div>
 
-    <div class="pagination-wrap">
-        <?php echo e($customers->appends(['tab' => 'customers'])->links()); ?>
-
-    </div>
+    <?php echo $__env->make('partials.pagination', ['paginator' => $customers->appends(['tab' => 'customers'])], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
     <?php endif; ?>
 
     <?php endif; ?>
@@ -386,12 +399,12 @@
     }
 
     .record-tab:hover {
-        color: #E85D75;
+        color: #6B5B95;
     }
 
     .record-tab.active {
-        color: #E85D75;
-        border-bottom-color: #E85D75;
+        color: #6B5B95;
+        border-bottom-color: #6B5B95;
     }
 
     .record-sub-tabs {
@@ -417,12 +430,12 @@
 
     .record-sub-tab:hover {
         background: #FEFCF9;
-        color: #E85D75;
+        color: #6B5B95;
     }
 
     .record-sub-tab.active {
-        background: #FCE4EC;
-        color: #E85D75;
+        background: #EFEBF7;
+        color: #6B5B95;
     }
 
     .tab-action-row {
@@ -452,13 +465,13 @@
     }
 
     .action-btn.view {
-        background: #FCE4EC;
-        color: #E85D75;
+        background: #EFEBF7;
+        color: #6B5B95;
     }
 
     .action-btn.view:hover {
-        background: #F8BBD0;
-        color: #D14A62;
+        background: #D5C9E8;
+        color: #594B7D;
     }
 
     .action-btn.receipt {
@@ -488,10 +501,73 @@
         font-size: 14px;
     }
 
-    .pagination-wrap {
-        margin-top: 20px;
+    /* ===============================
+       CLEAN PAGINATION
+       =============================== */
+    .clean-pagination {
         display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding-top: 16px;
+        margin-top: 20px;
+        border-top: 1px solid #F0E6DD;
+        flex-wrap: wrap;
+    }
+
+    .clean-pagination .pagination-info {
+        font-size: 12px;
+        color: #64748B;
+        font-weight: 400;
+    }
+
+    .clean-pagination .pagination-info strong {
+        color: #212121;
+        font-weight: 700;
+        font-size: 12px;
+    }
+
+    .clean-pagination .pagination-controls {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .clean-pagination .page-btn {
+        display: inline-flex;
+        align-items: center;
         justify-content: center;
+        padding: 6px 14px;
+        border-radius: 6px;
+        background: #FFFFFF;
+        border: 1.5px solid #F0E6DD;
+        color: #64748B;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: inherit;
+        text-decoration: none;
+        transition: all 0.15s ease;
+        white-space: nowrap;
+    }
+
+    .clean-pagination .page-btn:hover:not(:disabled) {
+        border-color: #6B5B95;
+        color: #6B5B95;
+    }
+
+    .clean-pagination .page-btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+
+    .clean-pagination .page-indicator {
+        font-size: 12px;
+        font-weight: 700;
+        color: #212121;
+        padding: 0 6px;
+        min-width: 50px;
+        text-align: center;
     }
 
     @media (max-width: 640px) {
@@ -503,6 +579,15 @@
         .record-tab {
             font-size: 13px;
             white-space: nowrap;
+        }
+
+        .clean-pagination {
+            justify-content: center;
+        }
+
+        .clean-pagination .pagination-info {
+            width: 100%;
+            text-align: center;
         }
     }
 </style>

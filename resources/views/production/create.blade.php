@@ -15,6 +15,9 @@
     'name' => $component->materialProduct->display_name,
     'quantity_required' => (float) $component->quantity_required,
     'stock_unit' => $component->materialProduct->stock_unit,
+    'available' => (float) $component->material_available,
+    'physical' => (float) $component->material_physical,
+    'reserved' => (float) $component->material_reserved,
     ];
     })->values()->all(),
     ];
@@ -38,7 +41,7 @@
         {{-- PRODUCTION DETAILS --}}
         <div class="card" style="margin-bottom: 20px;">
             <h2 class="card-heading">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#E85D75" stroke-width="2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#6B5B95" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
                 </svg>
                 Production Details
@@ -110,6 +113,7 @@
                             <th>Material</th>
                             <th style="text-align: right;">Per Product</th>
                             <th style="text-align: right;">Total Required</th>
+                            <th style="text-align: right;">Available</th>
                             <th>Stock Unit</th>
                         </tr>
                     </thead>
@@ -148,7 +152,7 @@
         }
 
         .req {
-            color: #E85D75;
+            color: #6B5B95;
             margin-left: 2px;
         }
 
@@ -202,25 +206,40 @@
 
             product.components.forEach(function(component) {
                 const totalRequired = component.quantity_required * quantity;
+                const isShort = totalRequired > component.available;
 
                 const row = document.createElement('tr');
 
+                // Material name
                 const materialCell = document.createElement('td');
                 materialCell.style.fontWeight = '600';
                 materialCell.style.color = '#212121';
                 materialCell.textContent = component.name;
 
+                // Per product
                 const perProductCell = document.createElement('td');
                 perProductCell.style.textAlign = 'right';
                 perProductCell.style.color = '#64748B';
                 perProductCell.textContent = formatQuantity(component.quantity_required);
 
+                // Total required (highlight if short)
                 const totalCell = document.createElement('td');
                 totalCell.style.textAlign = 'right';
-                totalCell.style.fontWeight = '600';
-                totalCell.style.color = '#2E5A3B';
+                totalCell.style.fontWeight = '700';
+                totalCell.style.color = isShort ? '#DC3545' : '#2E5A3B';
                 totalCell.textContent = formatQuantity(totalRequired);
+                if (isShort) {
+                    totalCell.textContent += ' ⚠';
+                }
 
+                // Available column (new)
+                const availableCell = document.createElement('td');
+                availableCell.style.textAlign = 'right';
+                availableCell.style.fontWeight = '600';
+                availableCell.style.color = isShort ? '#DC3545' : '#64748B';
+                availableCell.textContent = formatQuantity(component.available);
+
+                // Unit
                 const unitCell = document.createElement('td');
                 unitCell.style.color = '#64748B';
                 unitCell.textContent = component.stock_unit;
@@ -228,6 +247,7 @@
                 row.appendChild(materialCell);
                 row.appendChild(perProductCell);
                 row.appendChild(totalCell);
+                row.appendChild(availableCell);
                 row.appendChild(unitCell);
 
                 bomBody.appendChild(row);

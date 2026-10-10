@@ -7,260 +7,255 @@
 <div class="page-header">
     <div>
         <h1>Backup &amp; Recovery</h1>
-        <p>Create and download database backups for the Lara's Flowershop system.</p>
+        <p>Download a complete snapshot of the shop's database.</p>
     </div>
 </div>
 
+<?php if(session('success')): ?>
+    <div class="alert alert-success"><?php echo e(session('success')); ?></div>
+<?php endif; ?>
 
-<div class="card" style="margin-bottom: 20px;  #E85D75;">
-    <div style="display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap;">
-        <div style="display: flex; align-items: center; gap: 14px;">
-            <div style="width: 48px; height: 48px; border-radius: 50%; background: #FCE4EC; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#E85D75" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
-                </svg>
-            </div>
-            <div>
-                <h2 style="font-size: 16px; font-weight: 700; color: #212121;">Database Backup</h2>
-                <p style="font-size: 13px; color: #64748B; margin-top: 2px;">
-                    Create a complete backup of the current MySQL database.
-                </p>
-            </div>
-        </div>
-
-        <form action="<?php echo e(route('backup.create')); ?>" method="POST">
-            <?php echo csrf_field(); ?>
-            <button type="submit" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; padding: 11px 20px;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-                </svg>
-                Create Database Backup
-            </button>
-        </form>
-    </div>
-</div>
+<?php if(session('error')): ?>
+    <div class="alert alert-error"><?php echo e(session('error')); ?></div>
+<?php endif; ?>
 
 
-<div class="card" style="margin-bottom: 20px;">
-    <h2 class="card-heading">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#D4AF37" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+<div class="card backup-info-card">
+    <div class="backup-info-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
         </svg>
-        Existing Backups
-    </h2>
+    </div>
+    <div class="backup-info-content">
+        <h2>How backups work</h2>
+        <p>
+            Clicking <strong>Download Backup</strong> generates a full <code>.sql</code> file containing every
+            record in the system and sends it directly to your computer. The file is
+            <strong>not stored on this server</strong> — that way if the machine ever fails, your backup is safe
+            on your local drive.
+        </p>
+        <ul class="backup-info-list">
+            <li>Save the file somewhere safe (external drive, cloud, email it to yourself).</li>
+            <li>To restore, import the <code>.sql</code> file via phpMyAdmin.</li>
+            <li>Back up regularly — the more recent the file, the less data you might lose.</li>
+        </ul>
+    </div>
+</div>
 
-    <p style="font-size: 13px; color: #64748B; margin-top: -10px; margin-bottom: 18px;">
-        Previously created database backup files are listed below.
-    </p>
 
-    <?php if($backups->isEmpty()): ?>
+<div class="card backup-download-card">
+    <div class="backup-download-header">
+        <div>
+            <h2>Generate Backup</h2>
+            <p>Produces a complete SQL dump of the current database.</p>
+        </div>
+    </div>
 
-        <div class="empty-state">
-            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
+    <div class="backup-actions">
+        <a href="<?php echo e(route('backup.download')); ?>" class="backup-download-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4" />
             </svg>
-            <h3>No backups yet</h3>
-            <p>Click "Create Database Backup" above to generate your first backup.</p>
-        </div>
+            Download Backup
+        </a>
 
-    <?php else: ?>
+        <?php if($lastBackup): ?>
+            <div class="backup-last">
+                <span class="backup-last-label">Last backup</span>
+                <span class="backup-last-value">
+                    <?php echo e(\Carbon\Carbon::parse($lastBackup['last_backup_at'])->format('M d, Y · h:i A')); ?>
 
-        <div style="overflow-x: auto;">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Filename</th>
-                        <th>Date &amp; Time</th>
-                        <th style="text-align: right;">Size</th>
-                        <th style="text-align: right;">Actions</th>
-                    </tr>
-                </thead>
+                </span>
+                <span class="backup-last-meta">
+                    by <?php echo e($lastBackup['last_backup_by'] ?? 'Unknown'); ?>
 
-                <tbody>
-                    <?php $__currentLoopData = $backups; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $backup): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                        <tr>
-                            <td style="font-family: 'SF Mono', Consolas, monospace; font-size: 12px; color: #212121;">
-                                <?php echo e($backup->getFilename()); ?>
-
-                            </td>
-
-                            <td style="color: #64748B; white-space: nowrap;">
-                                <?php echo e(date('M d, Y h:i A', $backup->getMTime())); ?>
-
-                            </td>
-
-                            <td style="text-align: right; color: #64748B; font-weight: 500;">
-                                <?php echo e(number_format($backup->getSize() / 1024, 2)); ?> KB
-                            </td>
-
-                            <td style="text-align: right;">
-                                <a
-                                    href="<?php echo e(route('backup.download', ['filename' => $backup->getFilename()])); ?>"
-                                    class="action-btn view">
-                                    Download
-                                </a>
-                            </td>
-                        </tr>
-                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                </tbody>
-            </table>
-        </div>
-
-    <?php endif; ?>
+                    · <?php echo e(number_format(($lastBackup['size_bytes'] ?? 0) / 1024, 1)); ?> KB
+                </span>
+            </div>
+        <?php else: ?>
+            <div class="backup-last">
+                <span class="backup-last-label">Last backup</span>
+                <span class="backup-last-value empty">No backups yet</span>
+            </div>
+        <?php endif; ?>
+    </div>
 </div>
 
 
-<div class="card">
-    <h2 class="card-heading">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#2E5A3B" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-        </svg>
-        Recovery Instructions
-    </h2>
-
-    <p style="font-size: 13px; color: #64748B; margin-top: -10px; margin-bottom: 20px;">
-        Database restoration is currently performed manually to prevent accidental replacement of the active database.
-    </p>
-
-    <ol class="recovery-steps">
-
-        <li>
-            <div class="step-number">1</div>
-            <div class="step-content">
-                <h3>Stop the application</h3>
-                <p>Close the Laravel application or stop the development server before performing database restoration.</p>
-            </div>
-        </li>
-
-        <li>
-            <div class="step-number">2</div>
-            <div class="step-content">
-                <h3>Open phpMyAdmin</h3>
-                <p>Open phpMyAdmin through XAMPP and select the Lara's Flowershop database.</p>
-            </div>
-        </li>
-
-        <li>
-            <div class="step-number">3</div>
-            <div class="step-content">
-                <h3>Import the backup</h3>
-                <p>Use phpMyAdmin's Import function and select the downloaded <strong>.sql</strong> backup file.</p>
-            </div>
-        </li>
-
-        <li>
-            <div class="step-number">4</div>
-            <div class="step-content">
-                <h3>Verify the database</h3>
-                <p>After importing the backup, verify that the database tables and records have been restored correctly before using the system again.</p>
-            </div>
-        </li>
-
+<div class="card backup-restore-card">
+    <h2>How to restore a backup</h2>
+    <ol class="backup-restore-list">
+        <li>Open <strong>phpMyAdmin</strong> and select the <code>lf_db</code> database.</li>
+        <li>Click the <strong>Import</strong> tab.</li>
+        <li>Choose the downloaded <code>.sql</code> file and click <strong>Import</strong>.</li>
+        <li>Wait for the import to finish, then verify key data (users, products, sales).</li>
     </ol>
 </div>
 
 <style>
-    .card-heading {
-        font-size: 16px;
-        font-weight: 700;
-        color: #212121;
-        margin-bottom: 18px;
+    .backup-info-card {
         display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .action-btn {
-        display: inline-block;
-        padding: 5px 14px;
-        border-radius: 6px;
-        font-size: 12px;
-        font-weight: 600;
-        text-decoration: none;
-        cursor: pointer;
-        border: none;
-        transition: all 0.15s ease;
-        white-space: nowrap;
-    }
-    .action-btn.view {
-        background: #F1F5F9;
-        color: #475569;
-    }
-    .action-btn.view:hover {
-        background: #E2E8F0;
-        color: #1E293B;
-    }
-
-    /* Empty state */
-    .empty-state {
-        text-align: center;
-        padding: 40px 20px;
-        color: #64748B;
-    }
-    .empty-state svg {
-        color: #D4AF37;
-        margin-bottom: 12px;
-        opacity: 0.6;
-    }
-    .empty-state h3 {
-        font-size: 16px;
-        color: #212121;
-        margin-bottom: 4px;
-        font-weight: 700;
-    }
-    .empty-state p {
-        font-size: 13px;
-    }
-
-    /* Recovery steps */
-    .recovery-steps {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-    }
-
-    .recovery-steps li {
-        display: flex;
-        gap: 16px;
+        gap: 20px;
         align-items: flex-start;
-        padding: 16px;
-        background: #FEFCF9;
-        border: 1px solid #F5EEE4;
-        border-radius: 10px;
+        margin-bottom: 20px;
     }
 
-    .step-number {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        background: #E85D75;
-        color: #FFFFFF;
-        font-weight: 700;
-        font-size: 14px;
+    .backup-info-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 12px;
+        background: #EFEBF7;
+        color: #6B5B95;
         display: flex;
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
     }
 
-    .step-content h3 {
+    .backup-info-content h2 {
+        font-size: 16px;
+        font-weight: 700;
+        color: #212121;
+        margin: 0 0 8px;
+    }
+
+    .backup-info-content p {
+        font-size: 13px;
+        color: #64748B;
+        line-height: 1.6;
+        margin-bottom: 10px;
+    }
+
+    .backup-info-content code {
+        font-family: 'SF Mono', Consolas, monospace;
+        background: #F1F5F9;
+        color: #212121;
+        padding: 1px 6px;
+        border-radius: 4px;
+        font-size: 12px;
+    }
+
+    .backup-info-list {
+        font-size: 13px;
+        color: #64748B;
+        line-height: 1.6;
+        margin: 0;
+        padding-left: 20px;
+    }
+
+    .backup-download-card { margin-bottom: 20px; }
+
+    .backup-download-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .backup-download-header h2 {
+        font-size: 16px;
+        font-weight: 700;
+        color: #212121;
+        margin: 0 0 4px;
+    }
+
+    .backup-download-header p {
+        font-size: 13px;
+        color: #64748B;
+        margin: 0;
+    }
+
+    .backup-actions {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .backup-download-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 26px;
+        background: #6B5B95;
+        color: #FFFFFF;
+        text-decoration: none;
+        font-size: 15px;
+        font-weight: 600;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(107, 91, 149, 0.3);
+        transition: all 0.15s ease;
+        border: none;
+        cursor: pointer;
+        font-family: inherit;
+    }
+
+    .backup-download-btn:hover {
+        background: #594B7D;
+        box-shadow: 0 4px 14px rgba(107, 91, 149, 0.4);
+        transform: translateY(-1px);
+    }
+
+    .backup-last {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .backup-last-label {
+        font-size: 10px;
+        font-weight: 700;
+        color: #94A3B8;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .backup-last-value {
         font-size: 14px;
         font-weight: 700;
         color: #212121;
-        margin-bottom: 4px;
+    }
+    .backup-last-value.empty {
+        color: #94A3B8;
+        font-style: italic;
+        font-weight: 500;
     }
 
-    .step-content p {
+    .backup-last-meta {
+        font-size: 12px;
+        color: #94A3B8;
+    }
+
+    .backup-restore-card h2 {
+        font-size: 16px;
+        font-weight: 700;
+        color: #212121;
+        margin: 0 0 14px;
+    }
+
+    .backup-restore-list {
         font-size: 13px;
         color: #64748B;
-        line-height: 1.5;
+        line-height: 1.8;
+        margin: 0;
+        padding-left: 22px;
     }
 
-    .step-content strong {
-        color: #E85D75;
+    .backup-restore-list code {
+        font-family: 'SF Mono', Consolas, monospace;
+        background: #F1F5F9;
+        color: #212121;
+        padding: 1px 6px;
+        border-radius: 4px;
+        font-size: 12px;
+    }
+
+    @media (max-width: 640px) {
+        .backup-info-card { flex-direction: column; }
+        .backup-actions { flex-direction: column; align-items: stretch; }
+        .backup-download-btn { justify-content: center; }
     }
 </style>
 
