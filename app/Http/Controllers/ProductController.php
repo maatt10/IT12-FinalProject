@@ -18,18 +18,47 @@ class ProductController extends Controller
 
         $dbType = $itemType === 'material' ? 'material' : 'made_product';
         $filters = (array) $request->query('filters', []);
+        $search = trim((string) $request->query('search', ''));
 
         $query = Product::with('inventory')->where('item_type', $dbType);
 
+        // Archived tab is exclusive with other filters
         if (in_array('archived', $filters)) {
             $query->where('is_active', false);
         } else {
             $query->where('is_active', true);
         }
 
-        $items = $query->orderBy('name')->orderBy('variation')->get();
+        // Filter: Sellable → has a retail pool
+        if (in_array('sellable', $filters)) {
+            $query->whereIn('stock_purpose', ['retail', 'both']);
+        }
 
-        $items = $items->map(function ($item) {
+        // Filter: Production → has a production pool
+        if (in_array('production', $filters)) {
+            $query->whereIn('stock_purpose', ['production', 'both']);
+        }
+
+        // Filter: Low Stock → any inventory row at or below the product's threshold
+        if (in_array('low_stock', $filters)) {
+            $query->whereHas('inventory', function ($q) {
+                $q->whereColumn('current_quantity', '<=', 'products.low_stock_threshold');
+            });
+        }
+
+        // Search by name / variation / reference code
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'LIKE', "%{$search}%")
+                    ->orWhere('variation', 'LIKE', "%{$search}%")
+                    ->orWhere('reference_code', 'LIKE', "%{$search}%");
+            });
+        }
+
+        $items = $query->orderBy('name')->orderBy('variation')->paginate(10)->withQueryString();
+        
+        // Enrich items on the current page
+        $items->getCollection()->transform(function ($item) {
             $retail = $item->inventory->firstWhere('reserve_type', 'retail');
             $production = $item->inventory->firstWhere('reserve_type', 'production');
 
@@ -49,18 +78,6 @@ class ProductController extends Controller
             return $item;
         });
 
-        if (in_array('low_stock', $filters)) {
-            $items = $items->filter(fn($i) => $i->retail_low || $i->production_low);
-        }
-        if (in_array('sellable', $filters)) {
-            $items = $items->filter(fn($i) => $i->has_retail);
-        }
-        if (in_array('production', $filters)) {
-            $items = $items->filter(fn($i) => $i->has_production);
-        }
-
-        $items = $items->values();
-
         $productCount = Product::where('item_type', 'made_product')->where('is_active', true)->count();
         $materialCount = Product::where('item_type', 'material')->where('is_active', true)->count();
 
@@ -69,7 +86,8 @@ class ProductController extends Controller
             'itemType',
             'productCount',
             'materialCount',
-            'filters'
+            'filters',
+            'search'
         ));
     }
 
@@ -123,7 +141,6 @@ class ProductController extends Controller
             $validated['low_stock_threshold'] = 10;
         }
 
-        // Handle image upload
         $imagePath = null;
         if ($request->hasFile('image')) {
             $imagePath = $request->file('image')->store('products', 'public');
@@ -213,24 +230,22 @@ class ProductController extends Controller
             $validated['low_stock_threshold'] = 10;
         }
 
-        // Handle image upload
         $updateData = collect($validated)->except('bom')->toArray();
 
         if ($request->hasFile('image')) {
-            // Delete old image if it exists
             if ($product->image_path) {
                 Storage::disk('public')->delete($product->image_path);
             }
             $updateData['image_path'] = $request->file('image')->store('products', 'public');
         }
 
-        // Optionally allow removing the image
         if ($request->boolean('remove_image') && $product->image_path) {
             Storage::disk('public')->delete($product->image_path);
             $updateData['image_path'] = null;
         }
 
         $product->update($updateData);
+
         if ($validated['item_type'] === 'made_product') {
             ProductComponent::where('parent_product_id', $product->product_id)->delete();
 

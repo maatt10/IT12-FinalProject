@@ -67,63 +67,97 @@
 </div>
 
 
-<div class="card dash-card">
-    <div class="dash-card-header">
-        <div>
-            <h2>Low Stock Alerts</h2>
-            <p>Items at or below their reorder threshold.</p>
+<?php $hasAlerts = !$lowStockItems->isEmpty(); ?>
+
+<div class="alert-card <?php echo e($hasAlerts ? 'has-alerts' : 'no-alerts'); ?>">
+    <div class="alert-card-header">
+        <div class="alert-card-title">
+            <div class="alert-card-icon">
+                <?php if($hasAlerts): ?>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                <?php else: ?>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                <?php endif; ?>
+            </div>
+            <div>
+                <h2 class="alert-card-heading">
+                    Low Stock Alerts
+                    <?php if($hasAlerts): ?>
+                        <span class="alert-count-badge"><?php echo e($lowStockItems->count()); ?> <?php echo e($lowStockItems->count() === 1 ? 'item' : 'items'); ?> need attention</span>
+                    <?php endif; ?>
+                </h2>
+                <p class="alert-card-sub">
+                    <?php if($hasAlerts): ?>
+                        These items are at or below their reorder threshold. Consider restocking soon.
+                    <?php else: ?>
+                        All items are sufficiently stocked.
+                    <?php endif; ?>
+                </p>
+            </div>
         </div>
-        <a href="<?php echo e(route('products.index')); ?>" class="dash-text-link">View Inventory →</a>
+        <a href="<?php echo e(route('products.index')); ?>" class="alert-card-link">
+            View Inventory →
+        </a>
     </div>
 
-    <?php if($lowStockItems->isEmpty()): ?>
-        <div class="dash-empty">
-            All items are sufficiently stocked.
-        </div>
-    <?php else: ?>
-        <table class="dash-table">
-            <thead>
-                <tr>
-                    <th>Item</th>
-                    <th>Type</th>
-                    <th class="num">Retail</th>
-                    <th class="num">Production</th>
-                    <th>Unit</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php $__currentLoopData = $lowStockItems; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+    <?php if($hasAlerts): ?>
+        <div class="alert-table-wrap">
+            <table class="alert-table">
+                <thead>
                     <tr>
-                        <td style="font-weight: 600;">
-                            <?php echo e($item->name); ?><?php if($item->variation): ?> — <?php echo e($item->variation); ?><?php endif; ?>
-                        </td>
-                        <td class="muted">
-                            <?php echo e($item->item_type === 'material' ? 'Material' : 'Product'); ?>
-
-                        </td>
-                        <td class="num <?php echo e($item->retail_low ? 'danger' : 'muted'); ?>">
-                            <?php if($item->has_retail): ?>
-                                <?php echo e($item->retail_stock); ?>
-
-                                <?php if($item->retail_low): ?> <span class="low-tag">LOW</span> <?php endif; ?>
-                            <?php else: ?>
-                                <span class="dash-muted">—</span>
-                            <?php endif; ?>
-                        </td>
-                        <td class="num <?php echo e($item->production_low ? 'danger' : 'muted'); ?>">
-                            <?php if($item->has_production): ?>
-                                <?php echo e($item->production_stock); ?>
-
-                                <?php if($item->production_low): ?> <span class="low-tag">LOW</span> <?php endif; ?>
-                            <?php else: ?>
-                                <span class="dash-muted">—</span>
-                            <?php endif; ?>
-                        </td>
-                        <td class="muted"><?php echo e($item->stock_unit); ?></td>
+                        <th>Item</th>
+                        <th>Type</th>
+                        <th class="num">Retail</th>
+                        <th class="num">Production</th>
+                        <th>Unit</th>
                     </tr>
-                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    <?php $__currentLoopData = $lowStockItems; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <tr>
+                            <td style="font-weight: 600;">
+                                <?php echo e($item->name); ?><?php if($item->variation): ?> — <?php echo e($item->variation); ?><?php endif; ?>
+                            </td>
+                            <td class="muted">
+                                <?php echo e($item->item_type === 'material' ? 'Material' : 'Product'); ?>
+
+                            </td>
+                            <td class="num <?php echo e($item->retail_low ? 'low' : 'muted'); ?>">
+                                <?php if($item->has_retail): ?>
+                                    <span class="alert-value">
+                                        <?php echo e($item->retail_stock); ?>
+
+                                        <?php if($item->retail_low): ?>
+                                            <span class="alert-low-tag">LOW</span>
+                                        <?php endif; ?>
+                                    </span>
+                                <?php else: ?>
+                                    <span class="muted">—</span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="num <?php echo e($item->production_low ? 'low' : 'muted'); ?>">
+                                <?php if($item->has_production): ?>
+                                    <span class="alert-value">
+                                        <?php echo e($item->production_stock); ?>
+
+                                        <?php if($item->production_low): ?>
+                                            <span class="alert-low-tag">LOW</span>
+                                        <?php endif; ?>
+                                    </span>
+                                <?php else: ?>
+                                    <span class="muted">—</span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="muted"><?php echo e($item->stock_unit); ?></td>
+                        </tr>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                </tbody>
+            </table>
+        </div>
     <?php endif; ?>
 </div>
 
@@ -243,7 +277,7 @@
                 <h2>Recent Sales</h2>
                 <p>Latest recorded sales transactions.</p>
             </div>
-            <a href="<?php echo e(route('pos.index')); ?>" class="dash-text-link">Open POS →</a>
+            <a href="<?php echo e(route('sales.create')); ?>" class="dash-text-link">Open POS →</a>
         </div>
 
         <?php if($recentSales->isEmpty()): ?>
@@ -289,7 +323,7 @@
 
     <div class="quick-actions">
 
-        <a href="<?php echo e(route('pos.index')); ?>" class="quick-action">
+        <a href="<?php echo e(route('sales.create')); ?>" class="quick-action">
             <div class="qa-icon" style="background: #EFEBF7; color: #6B5B95;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -403,6 +437,178 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+    }
+
+    /* ===============================
+       LOW STOCK ALERT CARD
+       =============================== */
+    .alert-card {
+        border-radius: 12px;
+        padding: 22px 25px;
+        margin-bottom: 24px;
+        transition: all 0.2s ease;
+    }
+
+        .alert-card.has-alerts {
+        background: #FFFBEB;
+        border: 1.5px solid #FCD34D;
+        box-shadow: 0 4px 16px rgba(217, 119, 6, 0.10);
+    }
+
+    .alert-card.no-alerts {
+        background: #F0FDF4;
+        border: 1.5px solid #BBF7D0;
+        box-shadow: 0 4px 16px rgba(22, 163, 74, 0.08);
+    }
+
+    .alert-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 18px;
+        flex-wrap: wrap;
+    }
+
+    .alert-card.no-alerts .alert-card-header {
+        margin-bottom: 0;
+    }
+
+    .alert-card-title {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .alert-card-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .alert-card.has-alerts .alert-card-icon {
+        background: #FDE68A;
+        color: #B45309;
+        animation: pulse-alert 2s ease-in-out infinite;
+    }
+
+    .alert-card.no-alerts .alert-card-icon {
+        background: #D1FAE5;
+        color: #15803D;
+    }
+
+    @keyframes pulse-alert {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.35); }
+        50% { box-shadow: 0 0 0 8px rgba(217, 119, 6, 0); }
+    }
+
+    .alert-card-heading {
+        font-size: 16px;
+        font-weight: 700;
+        color: #212121;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .alert-count-badge {
+        display: inline-block;
+        padding: 3px 10px;
+        background: #DC3545;
+        color: #FFFFFF;
+        font-size: 11px;
+        font-weight: 700;
+        border-radius: 20px;
+        letter-spacing: 0.3px;
+    }
+
+    .alert-card-sub {
+        font-size: 13px;
+        margin: 4px 0 0;
+        line-height: 1.5;
+    }
+
+    .alert-card.has-alerts .alert-card-sub { color: #92400E; }
+    .alert-card.no-alerts .alert-card-sub { color: #166534; }
+
+    .alert-card-link {
+        font-size: 13px;
+        font-weight: 700;
+        text-decoration: none;
+        white-space: nowrap;
+        align-self: flex-start;
+        padding-top: 6px;
+    }
+
+    .alert-card.has-alerts .alert-card-link { color: #B45309; }
+    .alert-card.has-alerts .alert-card-link:hover { color: #92400E; }
+    .alert-card.no-alerts .alert-card-link { color: #15803D; }
+    .alert-card.no-alerts .alert-card-link:hover { color: #166534; }
+
+    .alert-table-wrap {
+        overflow-x: auto;
+        background: #FFFFFF;
+        border-radius: 10px;
+        padding: 4px;
+    }
+
+    .alert-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .alert-table thead th {
+        text-align: left;
+        padding: 10px 12px;
+        font-size: 10px;
+        font-weight: 700;
+        color: #B45309;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        background: #FEF3C7;
+        border-bottom: 1px solid #FCD34D;
+    }
+
+    .alert-table thead th:first-child { border-top-left-radius: 8px; }
+    .alert-table thead th:last-child { border-top-right-radius: 8px; }
+    .alert-table thead th.num { text-align: right; }
+
+    .alert-table tbody td {
+        padding: 10px 12px;
+        font-size: 13px;
+        color: #212121;
+        border-bottom: 1px solid #FEF3C7;
+    }
+    .alert-table tbody tr:last-child td { border-bottom: none; }
+    .alert-table tbody tr:hover { background: #FFFBEB; }
+    .alert-table tbody td.num { text-align: right; white-space: nowrap; }
+    .alert-table tbody td.muted { color: #64748B; }
+    .alert-table tbody td.low { color: #DC3545; font-weight: 700; }
+
+    .alert-value {
+        display: inline-flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 6px;
+    }
+
+    .alert-low-tag {
+        display: inline-block;
+        padding: 1px 6px;
+        font-size: 9px;
+        font-weight: 700;
+        background: #FDECEA;
+        color: #DC3545;
+        border-radius: 3px;
+        letter-spacing: 0.5px;
     }
 
     /* ===============================
@@ -696,20 +902,6 @@
         font-size: 12px;
     }
 
-    .dash-muted { color: #CBD5E1; }
-
-    .low-tag {
-        display: inline-block;
-        font-size: 9px;
-        font-weight: 700;
-        color: #DC3545;
-        background: #FDECEA;
-        padding: 1px 5px;
-        border-radius: 3px;
-        margin-left: 4px;
-        letter-spacing: 0.5px;
-    }
-
     /* ===============================
        ORDER STATUS
        =============================== */
@@ -816,6 +1008,8 @@
         .chart-tooltip { font-size: 10px; padding: 6px 8px; }
         .metric-tile { padding: 12px 14px; }
         .metric-value { font-size: 14px; }
+        .alert-card { padding: 18px; }
+        .alert-card-title { gap: 10px; }
     }
 </style>
 

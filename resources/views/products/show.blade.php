@@ -17,6 +17,7 @@ return $trimmed === '' ? '0' : $trimmed;
 
 @section('content')
 
+{{-- PAGE HEADER — action buttons aligned on the same row --}}
 <div class="page-header">
     <div>
         <h1>
@@ -31,26 +32,25 @@ return $trimmed === '' ? '0' : $trimmed;
         <p>{{ $typeLabel }} details and Bill of Materials.</p>
     </div>
 
-    <a href="{{ route('products.index', ['item_type' => $tabParam]) }}" class="btn btn-secondary">
-        ← Back to Inventory
-    </a>
-</div>
+    <div class="page-actions">
+        @if($isOwner)
+        @if($isArchived)
+        <form action="{{ route('products.unarchive', $product) }}"
+            method="POST" style="display: inline;"
+            onsubmit="return confirm('Restore this item?');">
+            @csrf
+            <button type="submit" class="action-btn-primary">Unarchive</button>
+        </form>
+        @else
+        <a href="{{ route('products.edit', $product) }}" class="action-btn-primary">Edit {{ $typeLabel }}</a>
+        @endif
+        @endif
 
-{{-- ACTION BAR --}}
-@if($isOwner)
-<div class="action-bar">
-    @if($isArchived)
-    <form action="{{ route('products.unarchive', $product) }}"
-        method="POST" style="display: inline;"
-        onsubmit="return confirm('Restore this item?');">
-        @csrf
-        <button type="submit" class="btn btn-primary">Unarchive</button>
-    </form>
-    @else
-    <a href="{{ route('products.edit', $product) }}" class="btn btn-primary">Edit {{ $typeLabel }}</a>
-    @endif
+        <a href="{{ route('products.index', ['item_type' => $tabParam]) }}" class="action-btn-secondary">
+            ← Back to Inventory
+        </a>
+    </div>
 </div>
-@endif
 
 {{-- INFO CARD --}}
 <div class="card" style="margin-bottom: 20px;">
@@ -77,7 +77,7 @@ return $trimmed === '' ? '0' : $trimmed;
         @if($product->selling_price !== null)
         <div class="info-item">
             <span class="info-label">Selling Price</span>
-            <span class="info-value price">₱{{ number_format($product->selling_price, 2) }}</span>
+            <span class="info-value price num">₱{{ number_format($product->selling_price, 2) }}</span>
         </div>
         @endif
         <div class="info-item">
@@ -86,7 +86,7 @@ return $trimmed === '' ? '0' : $trimmed;
         </div>
         <div class="info-item">
             <span class="info-label">Low Stock Threshold</span>
-            <span class="info-value">{{ $fmtQty($product->low_stock_threshold) }}</span>
+            <span class="info-value num">{{ $fmtQty($product->low_stock_threshold) }}</span>
         </div>
         @if($product->item_type === 'material' && $product->purchase_unit)
         <div class="info-item">
@@ -95,7 +95,7 @@ return $trimmed === '' ? '0' : $trimmed;
         </div>
         <div class="info-item">
             <span class="info-label">Units per Purchase</span>
-            <span class="info-value">{{ $fmtQty($product->units_per_purchase) }}</span>
+            <span class="info-value num">{{ $fmtQty($product->units_per_purchase) }}</span>
         </div>
         @endif
     </div>
@@ -105,13 +105,15 @@ return $trimmed === '' ? '0' : $trimmed;
 <div class="card" style="margin-bottom: 20px;">
     <h2 class="card-heading">Current Stock</h2>
 
-    <div class="stock-grid">
-        @php
-        $retail = $product->inventory->firstWhere('reserve_type', 'retail');
-        $production = $product->inventory->firstWhere('reserve_type', 'production');
-        $threshold = (float) $product->low_stock_threshold;
-        @endphp
+    @php
+    $retail = $product->inventory->firstWhere('reserve_type', 'retail');
+    $production = $product->inventory->firstWhere('reserve_type', 'production');
+    $threshold = (float) $product->low_stock_threshold;
+    @endphp
 
+    <div class="stock-grid">
+
+        {{-- RETAIL --}}
         <div class="stock-box {{ $retail && $retail->current_quantity <= $threshold ? 'low' : '' }}">
             <div class="stock-box-header">
                 <span class="stock-label">Retail Stock</span>
@@ -119,20 +121,20 @@ return $trimmed === '' ? '0' : $trimmed;
                     <span class="stock-badge low">Low</span>
                     @endif
             </div>
+
             <div class="stock-primary">
-                <span class="stock-value {{ $retail && $retail->current_quantity <= $threshold ? 'low' : '' }}">
-                    @if($retail)
-                    {{ $fmtQty($retail->current_quantity) }}
-                    @else
-                    <span style="color: #CBD5E1;">—</span>
-                    @endif
-                </span>
                 @if($retail)
+                <span class="stock-value {{ $retail->current_quantity <= $threshold ? 'low' : '' }}">
+                    {{ $fmtQty($retail->current_quantity) }}
+                </span>
                 <span class="stock-unit">{{ $product->stock_unit }}</span>
+                @else
+                <span class="stock-empty">—</span>
                 @endif
             </div>
         </div>
 
+        {{-- PRODUCTION --}}
         <div class="stock-box {{ $production && $production->current_quantity <= $threshold ? 'low' : '' }}">
             <div class="stock-box-header">
                 <span class="stock-label">Production Stock</span>
@@ -140,19 +142,19 @@ return $trimmed === '' ? '0' : $trimmed;
                     <span class="stock-badge low">Low</span>
                     @endif
             </div>
+
             <div class="stock-primary">
-                <span class="stock-value {{ $production && $production->current_quantity <= $threshold ? 'low' : '' }}">
-                    @if($production)
-                    {{ $fmtQty($production->current_quantity) }}
-                    @else
-                    <span style="color: #CBD5E1;">—</span>
-                    @endif
-                </span>
                 @if($production)
+                <span class="stock-value {{ $production->current_quantity <= $threshold ? 'low' : '' }}">
+                    {{ $fmtQty($production->current_quantity) }}
+                </span>
                 <span class="stock-unit">{{ $product->stock_unit }}</span>
+                @else
+                <span class="stock-empty">—</span>
                 @endif
             </div>
         </div>
+
     </div>
 </div>
 
@@ -226,11 +228,71 @@ return $trimmed === '' ? '0' : $trimmed;
         margin-bottom: 18px;
     }
 
-    .action-bar {
+    /* =========================================
+       PAGE ACTIONS — aligned with Back button
+       ========================================= */
+    .page-actions {
         display: flex;
+        align-items: center;
         gap: 10px;
-        margin-bottom: 20px;
         flex-wrap: wrap;
+    }
+
+    .page-actions .action-btn-primary,
+    .page-actions .action-btn-secondary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+        height: 42px;
+        min-height: 42px;
+        min-width: 140px;
+        padding: 0 20px;
+        font-family: inherit;
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 1;
+        white-space: nowrap;
+        text-decoration: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+
+    .page-actions .action-btn-primary {
+        background: #6B5B95;
+        color: #FFFFFF;
+        border: none;
+        box-shadow: 0 2px 6px rgba(107, 91, 149, 0.3);
+    }
+
+    .page-actions .action-btn-primary:hover {
+        background: #594B7D;
+        box-shadow: 0 4px 10px rgba(107, 91, 149, 0.4);
+    }
+
+    .page-actions .action-btn-secondary {
+        background: #FFFFFF;
+        color: #212121;
+        border: 1.5px solid #F0E6DD;
+    }
+
+    .page-actions .action-btn-secondary:hover {
+        background: #FEFCF9;
+        border-color: #6B5B95;
+        color: #6B5B95;
+    }
+
+    @media (max-width: 640px) {
+        .page-actions {
+            width: 100%;
+        }
+
+        .page-actions .action-btn-primary,
+        .page-actions .action-btn-secondary {
+            flex: 1;
+            min-width: 0;
+        }
     }
 
     .info-grid {
@@ -261,6 +323,10 @@ return $trimmed === '' ? '0' : $trimmed;
         font-weight: 500;
     }
 
+    .info-value.num {
+        font-variant-numeric: tabular-nums;
+    }
+
     .info-value.mono {
         font-family: 'SF Mono', Consolas, monospace;
         font-weight: 700;
@@ -280,7 +346,6 @@ return $trimmed === '' ? '0' : $trimmed;
         white-space: nowrap;
     }
 
-    /* STOCK GRID */
     .stock-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -297,11 +362,6 @@ return $trimmed === '' ? '0' : $trimmed;
     .stock-box.low {
         background: #FFF8E1;
         border-color: #FFECB3;
-    }
-
-    .stock-box.short {
-        background: #FDECEA;
-        border-color: #F8D7DA;
     }
 
     .stock-box-header {
@@ -333,86 +393,35 @@ return $trimmed === '' ? '0' : $trimmed;
         color: #B8860B;
     }
 
-    .stock-badge.short {
-        background: #F8D7DA;
-        color: #DC3545;
-    }
-
     .stock-primary {
-        display: flex;
-        align-items: baseline;
-        gap: 6px;
+        display: block;
+        text-align: right;
+        line-height: 1;
     }
 
     .stock-value {
         font-size: 32px;
         font-weight: 700;
         color: #2E5A3B;
-        line-height: 1;
+        font-variant-numeric: tabular-nums;
     }
 
     .stock-value.low {
         color: #B8860B;
     }
 
-    .stock-value.short {
-        color: #DC3545;
-    }
-
     .stock-unit {
         font-size: 13px;
         font-weight: 500;
         color: #64748B;
+        margin-left: 6px;
     }
 
-    .stock-breakdown {
-        margin-top: 16px;
-        padding-top: 14px;
-        border-top: 1px dashed #F0E6DD;
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-    }
-
-    .breakdown-line {
-        display: flex;
-        justify-content: space-between;
-        font-size: 12px;
-    }
-
-    .breakdown-label {
-        color: #94A3B8;
-        font-weight: 500;
-    }
-
-    .breakdown-value {
-        color: #212121;
-        font-weight: 600;
-        font-variant-numeric: tabular-nums;
-    }
-
-    .breakdown-value.reserved {
-        color: #B8860B;
-    }
-
-    .breakdown-value.short {
-        color: #DC3545;
-    }
-
-    .breakdown-line.total {
-        padding-top: 6px;
-        border-top: 1px solid #F0E6DD;
-        margin-top: 4px;
-    }
-
-    .breakdown-line.total .breakdown-label {
+    .stock-empty {
+        font-size: 32px;
         font-weight: 700;
-        color: #64748B;
-    }
-
-    .breakdown-line.total .breakdown-value {
-        font-weight: 700;
-        color: #212121;
+        color: #CBD5E1;
+        line-height: 1;
     }
 
     .archived-tag {

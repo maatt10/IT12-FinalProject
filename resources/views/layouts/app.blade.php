@@ -387,6 +387,7 @@
             background: #FDFBFF;
         }
 
+        /* Legacy inline alerts — still available if a page needs a persistent banner */
         .alert {
             padding: 14px 18px;
             border-radius: 10px;
@@ -436,6 +437,17 @@
             box-shadow: 0 0 0 3px rgba(107, 91, 149, 0.1);
         }
 
+        /* Global help text below form fields */
+        small.field-help,
+        .field-help {
+            display: block;
+            margin-top: 6px;
+            color: #94A3B8 !important;
+            font-size: 12px !important;
+            line-height: 1.4 !important;
+            font-weight: 400 !important;
+        }
+
         .form-page {
             max-width: 720px;
             margin: 0 auto;
@@ -450,6 +462,191 @@
             color: #DC3545;
             font-size: 12px;
             margin-top: 5px;
+        }
+
+        /* ============================================
+           TOAST NOTIFICATIONS
+           ============================================ */
+        .toast-stack {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 400px;
+            width: calc(100% - 40px);
+            pointer-events: none;
+        }
+
+        .toast {
+            pointer-events: auto;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 16px 18px;
+            background: #FFFFFF;
+            border-radius: 12px;
+            border: 1px solid #F0E6DD;
+            box-shadow:
+                0 10px 30px rgba(33, 33, 33, 0.12),
+                0 2px 8px rgba(33, 33, 33, 0.06);
+            animation: toast-in 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .toast-success {
+            border-color: #C8E6C9;
+        }
+
+        .toast-error {
+            border-color: #F8D7DA;
+        }
+
+        .toast-warning {
+            border-color: #FFECB3;
+        }
+
+        .toast.toast-leaving {
+            animation: toast-out 0.3s cubic-bezier(0.4, 0, 1, 1) forwards;
+        }
+
+
+
+        .toast-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .toast-success .toast-icon {
+            background: #E8F5E9;
+            color: #2E5A3B;
+        }
+
+        .toast-error .toast-icon {
+            background: #FDECEA;
+            color: #DC3545;
+        }
+
+        .toast-warning .toast-icon {
+            background: #FFF8E1;
+            color: #B8860B;
+        }
+
+        .toast-body {
+            flex: 1;
+            min-width: 0;
+            padding-top: 1px;
+        }
+
+        .toast-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #212121;
+            margin-bottom: 2px;
+            line-height: 1.3;
+        }
+
+        .toast-message {
+            font-size: 13px;
+            color: #64748B;
+            line-height: 1.45;
+            word-break: break-word;
+        }
+
+        .toast-close {
+            background: transparent;
+            border: none;
+            color: #94A3B8;
+            font-size: 20px;
+            line-height: 1;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 6px;
+            font-family: inherit;
+            transition: all 0.15s ease;
+            flex-shrink: 0;
+            align-self: flex-start;
+        }
+
+        .toast-close:hover {
+            color: #212121;
+            background: #F1F5F9;
+        }
+
+        /* Progress bar at the bottom of the toast */
+        .toast-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.06);
+            border-radius: 0 0 0 4px;
+        }
+
+        .toast-progress::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+            transform-origin: left;
+            animation: toast-progress linear forwards;
+        }
+
+        .toast-success .toast-progress::after {
+            background: #2E5A3B;
+        }
+
+        .toast-error .toast-progress::after {
+            background: #DC3545;
+        }
+
+        .toast-warning .toast-progress::after {
+            background: #B8860B;
+        }
+
+        @keyframes toast-in {
+            from {
+                opacity: 0;
+                transform: translateX(24px) scale(0.98);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0) scale(1);
+            }
+        }
+
+        @keyframes toast-out {
+            from {
+                opacity: 1;
+                transform: translateX(0) scale(1);
+            }
+
+            to {
+                opacity: 0;
+                transform: translateX(24px) scale(0.98);
+            }
+        }
+
+        @keyframes toast-progress {
+            from {
+                transform: scaleX(1);
+            }
+
+            to {
+                transform: scaleX(0);
+            }
         }
 
         @media (max-width: 768px) {
@@ -487,6 +684,14 @@
             .user-details {
                 display: none;
             }
+
+            .toast-stack {
+                top: 12px;
+                right: 12px;
+                left: 12px;
+                width: auto;
+                max-width: none;
+            }
         }
 
         table td.num,
@@ -514,7 +719,6 @@
 
                 <div class="nav-title">Main</div>
 
-                {{-- DASHBOARD --}}
                 <a href="{{ route('dashboard') }}"
                     class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -523,7 +727,6 @@
                     Dashboard
                 </a>
 
-                {{-- POS --}}
                 <a href="{{ route('sales.create') }}"
                     class="nav-link {{ request()->routeIs('sales.create') ? 'active' : '' }}">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -532,7 +735,6 @@
                     POS
                 </a>
 
-                {{-- RECORD ORDER (OWNER ONLY) --}}
                 @if(auth()->user()->role === 'owner')
                 <a href="{{ route('orders.create') }}"
                     class="nav-link {{ request()->routeIs('orders.create') ? 'active' : '' }}">
@@ -543,7 +745,6 @@
                 </a>
                 @endif
 
-                {{-- INVENTORY --}}
                 <a href="{{ route('products.index') }}"
                     class="nav-link {{ request()->routeIs('products.*') || request()->routeIs('inventory.*') ? 'active' : '' }}">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -552,7 +753,6 @@
                     Inventory
                 </a>
 
-                {{-- REPORTS --}}
                 <a href="{{ route('reports.index') }}"
                     class="nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -561,7 +761,6 @@
                     Reports
                 </a>
 
-                {{-- OWNER-ONLY --}}
                 @if(auth()->user()->role === 'owner')
                 <a href="{{ route('records.index') }}"
                     class="nav-link {{ request()->routeIs('records.*') ? 'active' : '' }}">
@@ -572,10 +771,12 @@
                 </a>
 
                 <div class="nav-title">System</div>
+
                 <a href="{{ route('users.index') }}"
                     class="nav-link sub {{ request()->routeIs('users.*') ? 'active' : '' }}">
                     User Management
                 </a>
+
                 <a href="{{ route('audit.index') }}"
                     class="nav-link sub {{ request()->routeIs('audit.*') ? 'active' : '' }}">
                     Audit Trail
@@ -589,7 +790,6 @@
 
             </div>
 
-            {{-- LOGOUT --}}
             <form action="{{ route('logout') }}" method="POST" class="logout-form">
                 @csrf
                 <button type="submit" class="logout-btn">
@@ -625,20 +825,49 @@
             </div>
 
             <div class="content">
-
-                @if(session('success'))
-                <div class="alert alert-success">{{ session('success') }}</div>
-                @endif
-
-                @if(session('error'))
-                <div class="alert alert-error">{{ session('error') }}</div>
-                @endif
-
                 @yield('content')
-
             </div>
 
         </div>
+
+    </div>
+
+    {{-- ============================================
+         TOAST STACK — floating notifications
+         ============================================ --}}
+    <div class="toast-stack" id="toast-stack">
+
+        @if(session('success'))
+        <div class="toast toast-success" data-auto-dismiss="5000">
+            <div class="toast-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+            </div>
+            <div class="toast-body">
+                <div class="toast-title">Success</div>
+                <div class="toast-message">{{ session('success') }}</div>
+            </div>
+            <button type="button" class="toast-close" onclick="dismissToast(this)" aria-label="Dismiss">×</button>
+            <div class="toast-progress" style="animation-duration: 5000ms;"></div>
+        </div>
+        @endif
+
+        @if(session('error'))
+        <div class="toast toast-error" data-auto-dismiss="8000">
+            <div class="toast-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </div>
+            <div class="toast-body">
+                <div class="toast-title">Something went wrong</div>
+                <div class="toast-message">{{ session('error') }}</div>
+            </div>
+            <button type="button" class="toast-close" onclick="dismissToast(this)" aria-label="Dismiss">×</button>
+            <div class="toast-progress" style="animation-duration: 8000ms;"></div>
+        </div>
+        @endif
 
     </div>
 
@@ -667,6 +896,69 @@
 
         updateClock();
         setInterval(updateClock, 1000);
+
+        /* ============================================
+           TOAST BEHAVIOR
+           ============================================ */
+        function dismissToast(btn) {
+            const toast = btn.closest('.toast');
+            if (!toast) return;
+            toast.classList.add('toast-leaving');
+            toast.addEventListener('animationend', () => toast.remove(), {
+                once: true
+            });
+        }
+
+        document.querySelectorAll('.toast[data-auto-dismiss]').forEach((toast) => {
+            const delay = parseInt(toast.dataset.autoDismiss || '5000');
+            setTimeout(() => {
+                if (!toast.isConnected) return;
+                toast.classList.add('toast-leaving');
+                toast.addEventListener('animationend', () => toast.remove(), {
+                    once: true
+                });
+            }, delay);
+        });
+
+        /* Expose for views that want to push a toast from JS (e.g. POS errors) */
+        window.pushToast = function(type, title, message, autoDismissMs = 5000) {
+            const stack = document.getElementById('toast-stack');
+            if (!stack) return;
+
+            const icons = {
+                success: '<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />',
+                error: '<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />',
+                warning: '<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />',
+            };
+
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.dataset.autoDismiss = autoDismissMs;
+
+            toast.innerHTML = `
+                <div class="toast-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        ${icons[type] || icons.success}
+                    </svg>
+                </div>
+                <div class="toast-body">
+                    <div class="toast-title">${title}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+                <button type="button" class="toast-close" onclick="dismissToast(this)" aria-label="Dismiss">×</button>
+                <div class="toast-progress" style="animation-duration: ${autoDismissMs}ms;"></div>
+            `;
+
+            stack.appendChild(toast);
+
+            setTimeout(() => {
+                if (!toast.isConnected) return;
+                toast.classList.add('toast-leaving');
+                toast.addEventListener('animationend', () => toast.remove(), {
+                    once: true
+                });
+            }, autoDismissMs);
+        };
     </script>
 
 </body>

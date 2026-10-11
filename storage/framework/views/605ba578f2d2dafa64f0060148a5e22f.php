@@ -65,7 +65,7 @@ $fmtMoney = fn($val) => number_format((float) $val, 2);
         <a href="<?php echo e(route('reports.index', array_merge(request()->query(), ['report' => 'sales', 'sub' => 'walk-in']))); ?>"
             class="sub-tab <?php echo e($sub === 'walk-in' ? 'active' : ''); ?>">Walk-in</a>
         <a href="<?php echo e(route('reports.index', array_merge(request()->query(), ['report' => 'sales', 'sub' => 'online']))); ?>"
-            class="sub-tab <?php echo e($sub === 'online' ? 'active' : ''); ?>">Online Orders</a>
+            class="sub-tab <?php echo e($sub === 'online' ? 'active' : ''); ?>">Orders</a>
         <a href="<?php echo e(route('reports.index', array_merge(request()->query(), ['report' => 'sales', 'sub' => 'overall']))); ?>"
             class="sub-tab <?php echo e($sub === 'overall' ? 'active' : ''); ?>">Overall Sales</a>
         <?php else: ?>
@@ -86,7 +86,7 @@ $fmtMoney = fn($val) => number_format((float) $val, 2);
                 <?php if($report === 'sales'): ?>
                 <?php switch($sub):
                 case ('walk-in'): ?> Walk-in Sales Report <?php break; ?>
-                <?php case ('online'): ?> Online Orders Report <?php break; ?>
+                <?php case ('online'): ?> Orders Report <?php break; ?>
                 <?php case ('overall'): ?> Overall Sales Report <?php break; ?>
                 <?php endswitch; ?>
                 <?php else: ?>

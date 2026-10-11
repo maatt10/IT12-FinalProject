@@ -867,6 +867,34 @@ $purchaseUnitOptions = ['bundle', 'box', 'pack', 'roll', 'case', 'carton', 'bag'
         const unitsPerPurchase = document.getElementById('units_per_purchase');
         const qppReq = document.getElementById('qpp-req');
 
+        const stockUnitSelect = document.getElementById('stock_unit');
+        const lowStockInput = document.getElementById('low_stock_threshold');
+
+        // Units that support fractional quantities
+        const DECIMAL_UNITS = ['meter', 'liter', 'kg', 'yard', 'foot', 'cm', 'inch'];
+
+        function updateLowStockStep() {
+            if (!stockUnitSelect || !lowStockInput) return;
+
+            const unit = (stockUnitSelect.value || '').toLowerCase();
+            const isDecimal = DECIMAL_UNITS.includes(unit);
+
+            lowStockInput.step = isDecimal ? '0.01' : '1';
+
+            // If switching to an integer unit and the current value has a decimal part, round up
+            if (!isDecimal && lowStockInput.value) {
+                const val = parseFloat(lowStockInput.value);
+                if (!isNaN(val) && val % 1 !== 0) {
+                    lowStockInput.value = Math.ceil(val);
+                }
+            }
+        }
+
+        if (stockUnitSelect) {
+            stockUnitSelect.addEventListener('change', updateLowStockStep);
+            updateLowStockStep();
+        }
+
         function updateFieldVisibility() {
             const purpose = stockPurpose.value;
             const hasRetail = purpose === 'retail' || purpose === 'both';

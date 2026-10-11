@@ -4,11 +4,15 @@
 
 <?php
     $hasFilter = fn($key) => in_array($key, $filters ?? []);
-    $buildUrl = function ($newFilters) use ($itemType) {
-        return route('products.index', array_filter([
-            'item_type' => $itemType,
-            'filters' => $newFilters,
-        ]));
+    $buildUrl = function ($newFilters) use ($itemType, $search) {
+        $params = ['item_type' => $itemType];
+        if (!empty($newFilters)) {
+            $params['filters'] = $newFilters;
+        }
+        if (!empty($search)) {
+            $params['search'] = $search;
+        }
+        return route('products.index', $params);
     };
     $toggleFilter = function ($key) use ($filters, $buildUrl) {
         $current = $filters ?? [];
@@ -44,27 +48,33 @@
 
 
 <div class="item-tabs">
-    <a href="<?php echo e(route('products.index', ['item_type' => 'product'])); ?>"
+    <a href="<?php echo e(route('products.index', array_filter(['item_type' => 'product', 'search' => $search]))); ?>"
        class="item-tab <?php echo e($itemType === 'product' ? 'active' : ''); ?>">
         Products
     </a>
-    <a href="<?php echo e(route('products.index', ['item_type' => 'material'])); ?>"
+    <a href="<?php echo e(route('products.index', array_filter(['item_type' => 'material', 'search' => $search]))); ?>"
        class="item-tab <?php echo e($itemType === 'material' ? 'active' : ''); ?>">
         Materials
     </a>
 </div>
 
 
-<div class="pos-search">
+<form method="GET" action="<?php echo e(route('products.index')); ?>" class="pos-search">
+    <input type="hidden" name="item_type" value="<?php echo e($itemType); ?>">
+    <?php $__currentLoopData = $filters ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $f): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+        <input type="hidden" name="filters[]" value="<?php echo e($f); ?>">
+    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+
     <div class="pos-search-icon">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
     </div>
-    <input type="text" id="item-search" class="pos-search-input"
+    <input type="text" name="search" id="item-search" class="pos-search-input"
            placeholder="Search by name, variation, or reference code..."
+           value="<?php echo e($search); ?>"
            autocomplete="off">
-</div>
+</form>
 
 
 <div class="item-actions">
@@ -213,16 +223,19 @@
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </tbody>
             </table>
-
-            <div id="search-empty" style="display: none; text-align: center; padding: 40px 20px; color: #94A3B8;">
-                <p style="font-size: 14px;">No items match your search.</p>
-            </div>
         </div>
+
+        <?php echo $__env->make('partials.pagination', ['paginator' => $items], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+
     <?php else: ?>
         <div class="empty-state">
             <?php if($hasFilter('archived')): ?>
                 <h3>No archived items</h3>
                 <p>Archived items will appear here.</p>
+            <?php elseif(!empty($search)): ?>
+                <h3>No items match "<?php echo e($search); ?>"</h3>
+                <p>Try a different search term, or clear filters.</p>
+                <a href="<?php echo e(route('products.index', ['item_type' => $itemType])); ?>" class="action-secondary">Clear Search</a>
             <?php elseif(!empty($filters)): ?>
                 <h3>No items match the current filters</h3>
                 <p>Try removing some filters or switching tabs.</p>
@@ -257,7 +270,7 @@
     }
 
     /* SEARCH */
-    .pos-search { position: relative; margin-bottom: 18px; }
+    .pos-search { position: relative; margin-bottom: 18px; display: block; }
     .pos-search-icon {
         position: absolute; left: 8px; top: 50%; transform: translateY(-50%);
         width: 38px; height: 38px; border-radius: 50%;
@@ -278,9 +291,7 @@
     }
     .pos-search-input::placeholder { color: #B0A99F; }
 
-    /* =========================================
-       ACTION BUTTONS — hard-locked identical
-       ========================================= */
+    /* ACTION BUTTONS */
     .item-actions {
         display: flex;
         gap: 10px;
@@ -291,30 +302,21 @@
 
     .action-primary,
     .action-secondary {
-        /* Reset everything */
         all: unset;
-
-        /* Force identical box model */
         display: inline-flex;
         align-items: center;
         justify-content: center;
         box-sizing: border-box;
-
-        /* Force identical dimensions */
         height: 42px;
         min-height: 42px;
         min-width: 140px;
         padding: 0 20px;
-
-        /* Force identical typography */
         font-family: inherit;
         font-size: 14px;
         font-weight: 600;
         line-height: 1;
         white-space: nowrap;
         text-decoration: none;
-
-        /* Force identical shape */
         border-radius: 8px;
         cursor: pointer;
         transition: all 0.15s ease;
@@ -448,26 +450,27 @@
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const searchInput = document.getElementById('item-search');
-        const table = document.getElementById('items-table');
-        const emptyState = document.getElementById('search-empty');
-        if (!searchInput || !table) return;
+        if (!searchInput) return;
 
-        const rows = table.querySelectorAll('.clickable-row');
+        let timeout;
 
         searchInput.addEventListener('input', function () {
-            const term = this.value.toLowerCase().trim();
-            let visible = 0;
+            clearTimeout(timeout);
+            const value = this.value;
 
-            rows.forEach(row => {
-                const text = row.innerText.toLowerCase();
-                const matches = term === '' || text.includes(term);
+            // Only auto-submit if the value changed from what was loaded
+            if (value === '<?php echo e($search); ?>') return;
 
-                row.style.display = matches ? '' : 'none';
-                if (matches) visible++;
-            });
+            timeout = setTimeout(() => {
+                this.form.submit();
+            }, 500);
+        });
 
-            if (emptyState) {
-                emptyState.style.display = (visible === 0 && term !== '') ? 'block' : 'none';
+        // Submit immediately on Enter
+        searchInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                clearTimeout(timeout);
+                this.form.submit();
             }
         });
     });

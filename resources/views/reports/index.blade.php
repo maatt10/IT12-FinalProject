@@ -65,7 +65,7 @@ $fmtMoney = fn($val) => number_format((float) $val, 2);
         <a href="{{ route('reports.index', array_merge(request()->query(), ['report' => 'sales', 'sub' => 'walk-in'])) }}"
             class="sub-tab {{ $sub === 'walk-in' ? 'active' : '' }}">Walk-in</a>
         <a href="{{ route('reports.index', array_merge(request()->query(), ['report' => 'sales', 'sub' => 'online'])) }}"
-            class="sub-tab {{ $sub === 'online' ? 'active' : '' }}">Online Orders</a>
+            class="sub-tab {{ $sub === 'online' ? 'active' : '' }}">Orders</a>
         <a href="{{ route('reports.index', array_merge(request()->query(), ['report' => 'sales', 'sub' => 'overall'])) }}"
             class="sub-tab {{ $sub === 'overall' ? 'active' : '' }}">Overall Sales</a>
         @else
@@ -86,7 +86,7 @@ $fmtMoney = fn($val) => number_format((float) $val, 2);
                 @if($report === 'sales')
                 @switch($sub)
                 @case('walk-in') Walk-in Sales Report @break
-                @case('online') Online Orders Report @break
+                @case('online') Orders Report @break
                 @case('overall') Overall Sales Report @break
                 @endswitch
                 @else

@@ -9,7 +9,7 @@
     <div class="page-header">
         <div>
             <h1>Restock</h1>
-            <p>Record materials and products received from suppliers.</p>
+            <p>Record materials received from suppliers.</p>
         </div>
 
         <a href="{{ route('products.index', ['item_type' => 'material']) }}" class="btn btn-secondary">
@@ -18,28 +18,23 @@
     </div>
 
     @if($errors->any())
-    <div class="alert alert-error">
-        <ul style="margin-left: 20px;">
-            @foreach($errors->all() as $error)
-            <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
+        <div class="alert alert-error">
+            <ul style="margin-left: 20px;">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
     @endif
 
     <form action="{{ route('purchases.store') }}" method="POST" id="purchase-form">
         @csrf
 
         {{-- SUPPLIER --}}
-        <div class="card" style="margin-bottom: 20px;">
-            <h2 class="card-heading">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#6B5B95" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-                Purchase Information
-            </h2>
+        <div class="form-card">
+            <h2 class="section-title">Purchase Information</h2>
 
-            <div class="form-group" style="margin-bottom: 0;">
+            <div class="form-group" style="margin-bottom: 0; margin-top: 12px;">
                 <label for="supplier_name">Supplier</label>
                 <input
                     type="text"
@@ -52,15 +47,9 @@
         </div>
 
         {{-- ITEMS --}}
-        <div class="card" style="margin-bottom: 20px;">
+        <div class="form-card">
             <div class="items-header">
-                <h2 class="card-heading" style="margin-bottom: 0;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#D4AF37" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                    </svg>
-                    Purchased Items
-                </h2>
-
+                <h2 class="section-title" style="margin-bottom: 0;">Purchased Items</h2>
                 <button type="button" class="btn-add-item" id="add-item">+ Add Item</button>
             </div>
 
@@ -69,15 +58,16 @@
                     <div class="form-grid">
 
                         <div class="form-group">
-                            <label>Product <span class="req">*</span></label>
+                            <label>Material <span class="req">*</span></label>
                             <select name="items[0][product_id]" class="product-select form-control" required>
-                                <option value="">— Select Product —</option>
+                                <option value="">— Select Material —</option>
                                 @foreach($products as $product)
                                     <option
                                         value="{{ $product->product_id }}"
                                         data-purchase-unit="{{ $product->purchase_unit ?? '' }}"
                                         data-stock-unit="{{ $product->stock_unit }}"
                                         data-units-per-purchase="{{ $product->units_per_purchase ?? 1 }}"
+                                        data-stock-purpose="{{ $product->stock_purpose }}"
                                         data-name="{{ $product->display_name }}">
                                         {{ $product->display_name }}
                                     </option>
@@ -121,6 +111,7 @@
                                 <option value="retail">Retail</option>
                                 <option value="production">Production</option>
                             </select>
+                            <small class="field-help allocation-hint">—</small>
                         </div>
 
                         <div class="form-group">
@@ -221,13 +212,17 @@
 </div>
 
 <style>
-    .card-heading {
-        font-size: 16px;
-        font-weight: 700;
-        color: #212121;
-        display: flex;
-        align-items: center;
-        gap: 8px;
+    .form-page-wide {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .form-card {
+        background: #FFFFFF;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        padding: 24px 28px;
+        margin-bottom: 16px;
     }
 
     .items-header {
@@ -237,6 +232,18 @@
         gap: 12px;
         margin-bottom: 18px;
         flex-wrap: wrap;
+    }
+
+    .section-title {
+        font-size: 15px;
+        font-weight: 700;
+        color: #212121;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin: 0;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #EFEBF7;
+        display: inline-block;
     }
 
     .btn-add-item {
@@ -263,10 +270,17 @@
         gap: 16px 20px;
     }
 
-    .req {
-        color: #6B5B95;
-        margin-left: 2px;
+    .req { color: #6B5B95; margin-left: 2px; }
+
+    .field-help {
+        display: block;
+        margin-top: 6px;
+        color: #94A3B8;
+        font-size: 12px;
+        line-height: 1.4;
     }
+    .allocation-hint { color: #94A3B8; }
+    .allocation-hint.warn { color: #B8860B; font-weight: 600; }
 
     .readonly-field {
         background: #FEFCF9 !important;
@@ -274,24 +288,12 @@
         cursor: default;
     }
 
-    .input-with-prefix {
-        position: relative;
-    }
-
+    .input-with-prefix { position: relative; }
     .input-with-prefix .prefix {
-        position: absolute;
-        left: 14px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #94A3B8;
-        font-weight: 600;
-        font-size: 14px;
-        pointer-events: none;
+        position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+        color: #94A3B8; font-weight: 600; font-size: 14px; pointer-events: none;
     }
-
-    .input-with-prefix .form-control {
-        padding-left: 32px;
-    }
+    .input-with-prefix .form-control { padding-left: 32px; }
 
     .purchase-item {
         padding: 20px;
@@ -300,10 +302,7 @@
         border-radius: 12px;
         margin-bottom: 14px;
     }
-
-    .purchase-item:last-child {
-        margin-bottom: 0;
-    }
+    .purchase-item:last-child { margin-bottom: 0; }
 
     .item-actions-row {
         display: flex;
@@ -327,11 +326,7 @@
         background: #FDECEA;
         color: #DC3545;
     }
-
-    .action-btn:hover {
-        background: #F8D7DA;
-        color: #B02A37;
-    }
+    .action-btn:hover { background: #F8D7DA; color: #B02A37; }
 
     .purchase-total {
         display: flex;
@@ -341,28 +336,23 @@
         margin-top: 20px;
         border-top: 2px solid #D5C9E8;
     }
-
     .purchase-total span {
         font-size: 15px;
         font-weight: 600;
         color: #212121;
     }
-
     .purchase-total strong {
         font-size: 24px;
         font-weight: 700;
         color: #6B5B95;
     }
 
-    /* ===============================
-       CONSISTENT FORM ACTIONS
-       =============================== */
+    /* FORM ACTIONS */
     .form-actions {
         display: flex;
         justify-content: flex-end;
         gap: 10px;
-        padding-top: 20px;
-        border-top: 1px solid #F0E6DD;
+        padding: 20px 0;
         align-items: center;
     }
 
@@ -397,22 +387,15 @@
         background: #594B7D;
         box-shadow: 0 4px 10px rgba(107, 91, 149, 0.4);
     }
-    .action-btn-primary:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-    }
+    .action-btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
 
     .action-btn-secondary {
         background: #F0E6DD;
         color: #212121;
     }
-    .action-btn-secondary:hover {
-        background: #E5D5C5;
-    }
+    .action-btn-secondary:hover { background: #E5D5C5; }
 
-    /* =========================================
-       MODALS
-       ========================================= */
+    /* MODALS */
     .modal-overlay {
         display: none;
         position: fixed;
@@ -423,14 +406,8 @@
         align-items: center;
         justify-content: center;
         padding: 20px;
-        animation: fade-in 0.15s ease;
     }
     .modal-overlay.open { display: flex; }
-
-    @keyframes fade-in {
-        from { opacity: 0; }
-        to { opacity: 1; }
-    }
 
     .modal-box {
         background: #FFFFFF;
@@ -442,38 +419,16 @@
         display: flex;
         flex-direction: column;
         overflow: hidden;
-        animation: slide-up 0.2s ease;
-    }
-
-    @keyframes slide-up {
-        from { transform: translateY(20px); opacity: 0; }
-        to { transform: translateY(0); opacity: 1; }
     }
 
     .modal-header {
         padding: 22px 26px 16px;
         border-bottom: 1px solid #F0E6DD;
     }
+    .modal-title { font-size: 18px; font-weight: 700; color: #212121; margin: 0; }
+    .modal-subtitle { font-size: 13px; color: #64748B; margin-top: 4px; }
 
-    .modal-title {
-        font-size: 18px;
-        font-weight: 700;
-        color: #212121;
-        margin: 0;
-    }
-
-    .modal-subtitle {
-        font-size: 13px;
-        color: #64748B;
-        margin-top: 4px;
-    }
-
-    .modal-body {
-        padding: 20px 26px;
-        overflow-y: auto;
-        flex: 1;
-        min-height: 0;
-    }
+    .modal-body { padding: 20px 26px; overflow-y: auto; flex: 1; min-height: 0; }
 
     .modal-section-title {
         font-size: 11px;
@@ -534,11 +489,7 @@
         align-items: center;
     }
 
-    .modal-item-name {
-        color: #212121;
-        font-weight: 600;
-        line-height: 1.3;
-    }
+    .modal-item-name { color: #212121; font-weight: 600; line-height: 1.3; }
     .modal-item-meta {
         font-size: 11px;
         color: #64748B;
@@ -579,15 +530,9 @@
         box-shadow: 0 2px 6px rgba(107, 91, 149, 0.3);
     }
     .modal-btn-primary:hover { background: #594B7D; }
-    .modal-btn-primary:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-    }
+    .modal-btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
 
-    .modal-btn-secondary {
-        background: #F0E6DD;
-        color: #212121;
-    }
+    .modal-btn-secondary { background: #F0E6DD; color: #212121; }
     .modal-btn-secondary:hover { background: #E5D5C5; }
 
     /* ERROR MODAL */
@@ -596,7 +541,6 @@
         text-align: center;
         padding: 30px 30px 24px;
     }
-
     .modal-error-icon {
         width: 64px;
         height: 64px;
@@ -608,14 +552,7 @@
         justify-content: center;
         margin: 0 auto 16px;
     }
-
-    .modal-error-title {
-        font-size: 18px;
-        font-weight: 700;
-        color: #212121;
-        margin-bottom: 8px;
-    }
-
+    .modal-error-title { font-size: 18px; font-weight: 700; color: #212121; margin-bottom: 8px; }
     .modal-error-message {
         font-size: 14px;
         color: #64748B;
@@ -624,11 +561,11 @@
         word-break: break-word;
         white-space: pre-line;
     }
-
     .modal-error-footer { display: flex; justify-content: center; }
     .modal-error-footer .modal-btn { min-width: 120px; }
 
     @media (max-width: 640px) {
+        .form-card { padding: 18px; }
         .modal-box { max-width: 100%; }
         .form-actions .action-btn-primary,
         .form-actions .action-btn-secondary { flex: 1; min-width: 0; }
@@ -672,7 +609,56 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     /* ============================================
-       REFRESH PRODUCT OPTIONS (no duplicate)
+       ALLOCATION AVAILABILITY (based on stock_purpose)
+       ============================================ */
+    function applyAllocationRules(row, stockPurpose) {
+        const allocationSelect = row.querySelector('.allocation-select');
+        const hint = row.querySelector('.allocation-hint');
+
+        if (!allocationSelect || !stockPurpose) {
+            if (hint) hint.textContent = '—';
+            return;
+        }
+
+        const options = allocationSelect.options;
+        let allowedCount = 0;
+
+        for (let i = 0; i < options.length; i++) {
+            const opt = options[i];
+            if (opt.value === 'retail') {
+                const ok = stockPurpose === 'retail' || stockPurpose === 'both';
+                opt.disabled = !ok;
+                if (ok) allowedCount++;
+            } else if (opt.value === 'production') {
+                const ok = stockPurpose === 'production' || stockPurpose === 'both';
+                opt.disabled = !ok;
+                if (ok) allowedCount++;
+            }
+        }
+
+        // If currently selected option is disabled, pick the first allowed one
+        if (allocationSelect.selectedOptions[0]?.disabled) {
+            const firstAllowed = Array.from(options).find(o => !o.disabled && o.value);
+            if (firstAllowed) allocationSelect.value = firstAllowed.value;
+        }
+
+        // Update hint
+        if (hint) {
+            if (stockPurpose === 'both') {
+                hint.textContent = 'This material can be allocated to retail or production.';
+                hint.classList.remove('warn');
+            } else if (stockPurpose === 'retail') {
+                hint.textContent = 'Only retail allocation is available for this material.';
+                hint.classList.add('warn');
+            } else if (stockPurpose === 'production') {
+                hint.textContent = 'Only production allocation is available for this material.';
+                hint.classList.add('warn');
+            }
+        }
+    }
+
+    /* ============================================
+       PRODUCT OPTIONS (no duplicate)
        ============================================ */
     function refreshProductOptions() {
         const rows = document.querySelectorAll('.purchase-item');
@@ -711,7 +697,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const purchaseUnit = item.querySelector('.purchase-unit');
         const stockQuantity = item.querySelector('.stock-quantity');
         const lineTotal = item.querySelector('.line-total');
-        const allocationSelect = item.querySelector('.allocation-select');
 
         const option = productSelect.options[productSelect.selectedIndex];
 
@@ -719,7 +704,7 @@ document.addEventListener('DOMContentLoaded', function () {
             purchaseUnit.value = '—';
             stockQuantity.value = '—';
             lineTotal.value = '₱0.00';
-            if (allocationSelect) allocationSelect.disabled = false;
+            applyAllocationRules(item, null);
             calculateTotal();
             return;
         }
@@ -727,6 +712,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const purchaseUnitValue = option.dataset.purchaseUnit || '';
         const stockUnit = option.dataset.stockUnit || '';
         const unitsPerPurchase = parseFloat(option.dataset.unitsPerPurchase) || 1;
+        const stockPurpose = option.dataset.stockPurpose || '';
 
         const quantity = parseFloat(quantityInput.value) || 0;
         const unitCost = parseFloat(unitCostInput.value) || 0;
@@ -739,7 +725,7 @@ document.addEventListener('DOMContentLoaded', function () {
         stockQuantity.value = formatQty(stockAdded) + ' ' + stockUnit;
         lineTotal.value = '₱' + itemTotal.toFixed(2);
 
-        // Auto-select allocation based on stock purpose — but data attributes don't include it, so leave to user
+        applyAllocationRules(item, stockPurpose);
         calculateTotal();
     }
 
@@ -765,19 +751,20 @@ document.addEventListener('DOMContentLoaded', function () {
         const removeBtn = item.querySelector('.remove-item');
 
         productSelect.addEventListener('change', function () {
-            // Duplicate check
             const currentValue = this.value;
             let duplicates = 0;
             document.querySelectorAll('.purchase-item .product-select').forEach(s => {
                 if (s.value === currentValue && currentValue) duplicates++;
             });
+
             if (duplicates > 1) {
-                showError('This product is already in the purchase list.');
+                showError('This material is already in the purchase list.');
                 this.value = '';
                 refreshProductOptions();
                 updateItem(item);
                 return;
             }
+
             refreshProductOptions();
             updateItem(item);
         });
@@ -787,8 +774,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
         removeBtn.addEventListener('click', function () {
             const items = document.querySelectorAll('.purchase-item');
+
             if (items.length === 1) {
-                // Clear instead of remove
+                // Clear row instead of removing the last one
                 productSelect.value = '';
                 quantityInput.value = '';
                 unitCostInput.value = '';
@@ -799,6 +787,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 updateItem(item);
                 return;
             }
+
             item.remove();
             refreshProductOptions();
             calculateTotal();
@@ -806,11 +795,14 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     /* ============================================
-       ADD ITEM
+       INIT FIRST ROW
        ============================================ */
     attachItemEvents(document.querySelector('.purchase-item'));
     refreshProductOptions();
 
+    /* ============================================
+       ADD ITEM
+       ============================================ */
     addItemButton.addEventListener('click', function () {
         const template = document.querySelector('.purchase-item').cloneNode(true);
         template.dataset.index = itemIndex;
@@ -837,6 +829,12 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
+        const hint = template.querySelector('.allocation-hint');
+        if (hint) {
+            hint.textContent = '—';
+            hint.classList.remove('warn');
+        }
+
         container.appendChild(template);
         attachItemEvents(template);
         refreshProductOptions();
@@ -844,7 +842,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     /* ============================================
-       OVERLAY + ESC
+       MODAL CLOSE HANDLERS
        ============================================ */
     confirmModal.addEventListener('click', function (e) {
         if (e.target === confirmModal) closeConfirmModal();
@@ -860,7 +858,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     /* ============================================
-       SUBMIT → VALIDATE → CONFIRM MODAL
+       SUBMIT → VALIDATE → CONFIRM
        ============================================ */
     form.addEventListener('submit', function (e) {
         e.preventDefault();
@@ -881,7 +879,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const allocation = row.querySelector('.allocation-select').value;
 
             if (!sel.value) {
-                showError(`Please select a product for item #${idx + 1}.`);
+                showError(`Please select a material for item #${idx + 1}.`);
                 hasError = true;
                 return;
             }
@@ -944,9 +942,13 @@ document.addEventListener('DOMContentLoaded', function () {
         confirmModal.classList.add('open');
     });
 
+    /* ============================================
+       CONFIRM → SUBMIT
+       ============================================ */
     confirmBtn.addEventListener('click', function () {
         confirmBtn.disabled = true;
         confirmBtn.textContent = 'Saving...';
+        closeConfirmModal();
         form.submit();
     });
 });

@@ -8,7 +8,7 @@
         @if($report === 'sales')
         @switch($sub)
         @case('walk-in') Walk-in Sales Report @break
-        @case('online') Online Orders Report @break
+        @case('online') Orders Report @break
         @case('overall') Overall Sales Report @break
         @endswitch
         @else
@@ -446,7 +446,7 @@
                 @if($report === 'sales')
                 @switch($sub)
                 @case('walk-in') Walk-in Sales Report @break
-                @case('online') Online Orders Report @break
+                @case('online') Orders Report @break
                 @case('overall') Overall Sales Report @break
                 @endswitch
                 @else
@@ -553,7 +553,7 @@
 
         <div class="section-label">Orders</div>
         @if($orderRecords->isEmpty())
-        <p class="empty-text">No online orders recorded during this period.</p>
+        <p class="empty-text">No orders recorded during this period.</p>
         @else
         <div class="table-scroll">
             <table class="report-table">
