@@ -3,38 +3,38 @@
 @section('title', 'Inventory')
 
 @php
-    $hasFilter = fn($key) => in_array($key, $filters ?? []);
-    $buildUrl = function ($newFilters) use ($itemType, $search) {
-        $params = ['item_type' => $itemType];
-        if (!empty($newFilters)) {
-            $params['filters'] = $newFilters;
-        }
-        if (!empty($search)) {
-            $params['search'] = $search;
-        }
-        return route('products.index', $params);
-    };
-    $toggleFilter = function ($key) use ($filters, $buildUrl) {
-        $current = $filters ?? [];
-        if (in_array($key, $current)) {
-            $current = array_values(array_diff($current, [$key]));
-        } else {
-            if ($key === 'archived') {
-                $current = ['archived'];
-            } else {
-                $current = array_values(array_diff($current, ['archived']));
-                $current[] = $key;
-            }
-        }
-        return $buildUrl($current);
-    };
-    $isOwner = auth()->user()->role === 'owner';
+$hasFilter = fn($key) => in_array($key, $filters ?? []);
+$buildUrl = function ($newFilters) use ($itemType, $search) {
+$params = ['item_type' => $itemType];
+if (!empty($newFilters)) {
+$params['filters'] = $newFilters;
+}
+if (!empty($search)) {
+$params['search'] = $search;
+}
+return route('products.index', $params);
+};
+$toggleFilter = function ($key) use ($filters, $buildUrl) {
+$current = $filters ?? [];
+if (in_array($key, $current)) {
+$current = array_values(array_diff($current, [$key]));
+} else {
+if ($key === 'archived') {
+$current = ['archived'];
+} else {
+$current = array_values(array_diff($current, ['archived']));
+$current[] = $key;
+}
+}
+return $buildUrl($current);
+};
+$isOwner = auth()->user()->role === 'owner';
 
-    $fmtQty = function ($val) {
-        $formatted = number_format((float) $val, 2, '.', ',');
-        $trimmed = rtrim(rtrim($formatted, '0'), '.');
-        return $trimmed === '' ? '0' : $trimmed;
-    };
+$fmtQty = function ($val) {
+$formatted = number_format((float) $val, 2, '.', ',');
+$trimmed = rtrim(rtrim($formatted, '0'), '.');
+return $trimmed === '' ? '0' : $trimmed;
+};
 @endphp
 
 @section('content')
@@ -49,11 +49,11 @@
 {{-- TABS --}}
 <div class="item-tabs">
     <a href="{{ route('products.index', array_filter(['item_type' => 'product', 'search' => $search])) }}"
-       class="item-tab {{ $itemType === 'product' ? 'active' : '' }}">
+        class="item-tab {{ $itemType === 'product' ? 'active' : '' }}">
         Products
     </a>
     <a href="{{ route('products.index', array_filter(['item_type' => 'material', 'search' => $search])) }}"
-       class="item-tab {{ $itemType === 'material' ? 'active' : '' }}">
+        class="item-tab {{ $itemType === 'material' ? 'active' : '' }}">
         Materials
     </a>
 </div>
@@ -62,7 +62,7 @@
 <form method="GET" action="{{ route('products.index') }}" class="pos-search">
     <input type="hidden" name="item_type" value="{{ $itemType }}">
     @foreach($filters ?? [] as $f)
-        <input type="hidden" name="filters[]" value="{{ $f }}">
+    <input type="hidden" name="filters[]" value="{{ $f }}">
     @endforeach
 
     <div class="pos-search-icon">
@@ -71,21 +71,24 @@
         </svg>
     </div>
     <input type="text" name="search" id="item-search" class="pos-search-input"
-           placeholder="Search by name, variation, or reference code..."
-           value="{{ $search }}"
-           autocomplete="off">
+        placeholder="Search by name, variation, or reference code..."
+        value="{{ $search }}"
+        autocomplete="off">
 </form>
 
 {{-- ACTION BUTTONS --}}
 <div class="item-actions">
     @if($itemType === 'product')
-        <a href="{{ route('production.create') }}" class="action-primary">Make Product</a>
-        <a href="{{ route('products.create', ['item_type' => 'product']) }}" class="action-secondary">+ Add Product</a>
+    <a href="{{ route('production.create') }}" class="action-primary">Make Product</a>
+
+    @if($isOwner)
+    <a href="{{ route('products.create', ['item_type' => 'product']) }}" class="action-secondary">+ Add Product</a>
+    @endif
     @else
-        @if($isOwner)
-            <a href="{{ route('purchases.create') }}" class="action-primary">Restock</a>
-            <a href="{{ route('products.create', ['item_type' => 'material']) }}" class="action-secondary">+ Add Material</a>
-        @endif
+    @if($isOwner)
+    <a href="{{ route('purchases.create') }}" class="action-primary">Restock</a>
+    <a href="{{ route('products.create', ['item_type' => 'material']) }}" class="action-secondary">+ Add Material</a>
+    @endif
     @endif
 </div>
 
@@ -108,138 +111,138 @@
     </a>
 
     @if($isOwner)
-        <a href="{{ $toggleFilter('archived') }}" class="filter-chip archive {{ $hasFilter('archived') ? 'active' : '' }}">
-            Archived
-        </a>
+    <a href="{{ $toggleFilter('archived') }}" class="filter-chip archive {{ $hasFilter('archived') ? 'active' : '' }}">
+        Archived
+    </a>
     @endif
 </div>
 
 {{-- TABLE --}}
 <div class="card">
     @if($items->count() > 0)
-        <div style="overflow-x: auto;">
-            <table id="items-table">
-                <thead>
-                    <tr>
-                        <th>Reference</th>
-                        <th>{{ $itemType === 'material' ? 'Material Name' : 'Product Name' }}</th>
-                        <th>Variation</th>
-                        <th class="num">Retail Stock</th>
-                        <th class="num">Production Stock</th>
-                        <th class="num">Total</th>
-                        <th>Unit</th>
-                        <th class="num">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($items as $item)
-                        <tr class="clickable-row" onclick="window.location='{{ route('products.show', $item) }}';">
-                            <td style="font-family: 'SF Mono', Consolas, monospace; font-size: 12px; color: #64748B; font-weight: 600;">
-                                {{ $item->reference_code }}
-                            </td>
+    <div style="overflow-x: auto;">
+        <table id="items-table">
+            <thead>
+                <tr>
+                    <th>Reference</th>
+                    <th>{{ $itemType === 'material' ? 'Material Name' : 'Product Name' }}</th>
+                    <th>Variation</th>
+                    <th class="num">Retail Stock</th>
+                    <th class="num">Production Stock</th>
+                    <th class="num">Total</th>
+                    <th>Unit</th>
+                    <th class="num">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($items as $item)
+                <tr class="clickable-row" onclick="window.location='{{ route('products.show', $item) }}';">
+                    <td style="font-family: 'SF Mono', Consolas, monospace; font-size: 12px; color: #64748B; font-weight: 600;">
+                        {{ $item->reference_code }}
+                    </td>
 
-                            <td style="font-weight: 600; color: #212121;">
-                                {{ $item->name }}
-                                @if(!$item->is_active)
-                                    <span class="archived-tag">Archived</span>
-                                @endif
-                            </td>
+                    <td style="font-weight: 600; color: #212121;">
+                        {{ $item->name }}
+                        @if(!$item->is_active)
+                        <span class="archived-tag">Archived</span>
+                        @endif
+                    </td>
 
-                            <td style="color: #64748B;">{{ $item->variation ?? '—' }}</td>
+                    <td style="color: #64748B;">{{ $item->variation ?? '—' }}</td>
 
-                            {{-- RETAIL STOCK --}}
-                            <td class="num">
-                                @if($item->retail_stock === null)
-                                    <span style="color: #CBD5E1;">—</span>
-                                @else
-                                    <span class="stock-inline {{ $item->retail_low ? 'low' : 'ok' }}">
-                                        {{ $fmtQty($item->retail_stock) }}
-                                        @if($item->retail_low)
-                                            <span class="low-tag">LOW</span>
-                                        @endif
-                                    </span>
-                                @endif
-                            </td>
+                    {{-- RETAIL STOCK --}}
+                    <td class="num">
+                        @if($item->retail_stock === null)
+                        <span style="color: #CBD5E1;">—</span>
+                        @else
+                        <span class="stock-inline {{ $item->retail_low ? 'low' : 'ok' }}">
+                            {{ $fmtQty($item->retail_stock) }}
+                            @if($item->retail_low)
+                            <span class="low-tag">LOW</span>
+                            @endif
+                        </span>
+                        @endif
+                    </td>
 
-                            {{-- PRODUCTION STOCK --}}
-                            <td class="num">
-                                @if($item->production_stock === null)
-                                    <span style="color: #CBD5E1;">—</span>
-                                @else
-                                    <span class="stock-inline {{ $item->production_low ? 'low' : 'ok' }}">
-                                        {{ $fmtQty($item->production_stock) }}
-                                        @if($item->production_low)
-                                            <span class="low-tag">LOW</span>
-                                        @endif
-                                    </span>
-                                @endif
-                            </td>
+                    {{-- PRODUCTION STOCK --}}
+                    <td class="num">
+                        @if($item->production_stock === null)
+                        <span style="color: #CBD5E1;">—</span>
+                        @else
+                        <span class="stock-inline {{ $item->production_low ? 'low' : 'ok' }}">
+                            {{ $fmtQty($item->production_stock) }}
+                            @if($item->production_low)
+                            <span class="low-tag">LOW</span>
+                            @endif
+                        </span>
+                        @endif
+                    </td>
 
-                            {{-- TOTAL --}}
-                            <td class="num" style="font-weight: 700; color: #212121;">
-                                {{ $fmtQty($item->total_stock) }}
-                            </td>
+                    {{-- TOTAL --}}
+                    <td class="num" style="font-weight: 700; color: #212121;">
+                        {{ $fmtQty($item->total_stock) }}
+                    </td>
 
-                            <td style="color: #64748B;">{{ $item->stock_unit }}</td>
+                    <td style="color: #64748B;">{{ $item->stock_unit }}</td>
 
-                            <td class="num" onclick="event.stopPropagation();">
-                                <div class="action-buttons">
-                                    @if($item->is_active)
-                                        @if($item->inventory->isEmpty())
-                                            <a href="{{ route('inventory.initial-stock', $item) }}" class="action-btn adjust">Set Stock</a>
-                                        @else
-                                            <a href="{{ route('inventory.adjustment', $item) }}" class="action-btn adjust">Adjust</a>
-                                        @endif
+                    <td class="num" onclick="event.stopPropagation();">
+                        <div class="action-buttons">
+                            @if($item->is_active)
+                            @if($item->inventory->isEmpty())
+                            <a href="{{ route('inventory.initial-stock', $item) }}" class="action-btn adjust">Set Stock</a>
+                            @else
+                            <a href="{{ route('inventory.adjustment', $item) }}" class="action-btn adjust">Adjust</a>
+                            @endif
 
-                                        @if($isOwner)
-                                            <form action="{{ route('products.destroy', $item) }}"
-                                                  method="POST"
-                                                  style="display: inline;"
-                                                  onsubmit="return confirm('Archive this item?');">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="action-btn archive">Archive</button>
-                                            </form>
-                                        @endif
-                                    @else
-                                        @if($isOwner)
-                                            <form action="{{ route('products.unarchive', $item) }}"
-                                                  method="POST"
-                                                  style="display: inline;"
-                                                  onsubmit="return confirm('Restore this item?');">
-                                                @csrf
-                                                <button type="submit" class="action-btn unarchive">Unarchive</button>
-                                            </form>
-                                        @endif
-                                    @endif
-                                </div>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
+                            @if($isOwner)
+                            <form action="{{ route('products.destroy', $item) }}"
+                                method="POST"
+                                style="display: inline;"
+                                onsubmit="return confirm('Archive this item?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="action-btn archive">Archive</button>
+                            </form>
+                            @endif
+                            @else
+                            @if($isOwner)
+                            <form action="{{ route('products.unarchive', $item) }}"
+                                method="POST"
+                                style="display: inline;"
+                                onsubmit="return confirm('Restore this item?');">
+                                @csrf
+                                <button type="submit" class="action-btn unarchive">Unarchive</button>
+                            </form>
+                            @endif
+                            @endif
+                        </div>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
 
-        @include('partials.pagination', ['paginator' => $items])
+    @include('partials.pagination', ['paginator' => $items])
 
     @else
-        <div class="empty-state">
-            @if($hasFilter('archived'))
-                <h3>No archived items</h3>
-                <p>Archived items will appear here.</p>
-            @elseif(!empty($search))
-                <h3>No items match "{{ $search }}"</h3>
-                <p>Try a different search term, or clear filters.</p>
-                <a href="{{ route('products.index', ['item_type' => $itemType]) }}" class="action-secondary">Clear Search</a>
-            @elseif(!empty($filters))
-                <h3>No items match the current filters</h3>
-                <p>Try removing some filters or switching tabs.</p>
-                <a href="{{ route('products.index', ['item_type' => $itemType]) }}" class="action-secondary">Clear Filters</a>
-            @else
-                <h3>No items yet</h3>
-                <p>Add a new {{ $itemType === 'material' ? 'material' : 'product' }} to get started.</p>
-            @endif
-        </div>
+    <div class="empty-state">
+        @if($hasFilter('archived'))
+        <h3>No archived items</h3>
+        <p>Archived items will appear here.</p>
+        @elseif(!empty($search))
+        <h3>No items match "{{ $search }}"</h3>
+        <p>Try a different search term, or clear filters.</p>
+        <a href="{{ route('products.index', ['item_type' => $itemType]) }}" class="action-secondary">Clear Search</a>
+        @elseif(!empty($filters))
+        <h3>No items match the current filters</h3>
+        <p>Try removing some filters or switching tabs.</p>
+        <a href="{{ route('products.index', ['item_type' => $itemType]) }}" class="action-secondary">Clear Filters</a>
+        @else
+        <h3>No items yet</h3>
+        <p>Add a new {{ $itemType === 'material' ? 'material' : 'product' }} to get started.</p>
+        @endif
+    </div>
     @endif
 </div>
 
@@ -251,40 +254,75 @@
         margin-bottom: 20px;
         border-bottom: 1.5px solid #F0E6DD;
     }
+
     .item-tab {
-        display: inline-flex; align-items: center; gap: 8px;
-        padding: 10px 2px; text-decoration: none;
-        font-size: 15px; font-weight: 600; color: #94A3B8;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 2px;
+        text-decoration: none;
+        font-size: 15px;
+        font-weight: 600;
+        color: #94A3B8;
         border-bottom: 2px solid transparent;
-        margin-bottom: -1.5px; transition: all 0.15s ease;
+        margin-bottom: -1.5px;
+        transition: all 0.15s ease;
     }
-    .item-tab:hover { color: #6B5B95; }
+
+    .item-tab:hover {
+        color: #6B5B95;
+    }
+
     .item-tab.active {
         color: #6B5B95;
         border-bottom-color: #6B5B95;
     }
 
     /* SEARCH */
-    .pos-search { position: relative; margin-bottom: 18px; display: block; }
+    .pos-search {
+        position: relative;
+        margin-bottom: 18px;
+        display: block;
+    }
+
     .pos-search-icon {
-        position: absolute; left: 8px; top: 50%; transform: translateY(-50%);
-        width: 38px; height: 38px; border-radius: 50%;
-        background: #6B5B95; color: #FFFFFF;
-        display: flex; align-items: center; justify-content: center;
+        position: absolute;
+        left: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: #6B5B95;
+        color: #FFFFFF;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         pointer-events: none;
     }
+
     .pos-search-input {
-        width: 100%; height: 54px;
+        width: 100%;
+        height: 54px;
         padding: 0 20px 0 60px;
-        border: 1.5px solid #F0E6DD; border-radius: 27px;
-        font-size: 15px; background: #FFFFFF; color: #212121;
-        transition: all 0.2s ease; font-family: inherit;
+        border: 1.5px solid #F0E6DD;
+        border-radius: 27px;
+        font-size: 15px;
+        background: #FFFFFF;
+        color: #212121;
+        transition: all 0.2s ease;
+        font-family: inherit;
     }
+
     .pos-search-input:focus {
-        outline: none; border-color: #6B5B95;
+        outline: none;
+        border-color: #6B5B95;
         box-shadow: 0 0 0 4px rgba(107, 91, 149, 0.1);
     }
-    .pos-search-input::placeholder { color: #B0A99F; }
+
+    .pos-search-input::placeholder {
+        color: #B0A99F;
+    }
 
     /* ACTION BUTTONS */
     .item-actions {
@@ -323,6 +361,7 @@
         border: none;
         box-shadow: 0 2px 6px rgba(107, 91, 149, 0.3);
     }
+
     .action-primary:hover {
         background: #594B7D;
         box-shadow: 0 4px 10px rgba(107, 91, 149, 0.4);
@@ -333,6 +372,7 @@
         color: #212121;
         border: 1.5px solid #F0E6DD;
     }
+
     .action-secondary:hover {
         background: #FEFCF9;
         border-color: #6B5B95;
@@ -341,36 +381,66 @@
 
     /* FILTER CHIPS */
     .filter-chips {
-        display: flex; gap: 8px; margin-bottom: 20px;
-        flex-wrap: wrap; align-items: center;
+        display: flex;
+        gap: 8px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        align-items: center;
     }
+
     .filter-label {
-        font-size: 11px; color: #94A3B8; font-weight: 700;
-        text-transform: uppercase; letter-spacing: 1.5px; margin-right: 6px;
+        font-size: 11px;
+        color: #94A3B8;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        margin-right: 6px;
     }
+
     .filter-chip {
-        display: inline-flex; align-items: center; gap: 6px;
-        padding: 6px 14px; border-radius: 20px;
-        text-decoration: none; font-size: 12px; font-weight: 600;
-        color: #64748B; background: #FFFFFF;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 20px;
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 600;
+        color: #64748B;
+        background: #FFFFFF;
         border: 1.5px solid #F0E6DD;
         transition: all 0.15s ease;
     }
+
     .filter-chip:hover {
-        border-color: #D5C9E8; background: #FEFCF9; color: #6B5B95;
+        border-color: #D5C9E8;
+        background: #FEFCF9;
+        color: #6B5B95;
     }
+
     .filter-chip.active {
-        background: #6B5B95; color: #FFFFFF; border-color: #6B5B95;
+        background: #6B5B95;
+        color: #FFFFFF;
+        border-color: #6B5B95;
     }
+
     .filter-chip.archive.active {
-        background: #A16207; border-color: #A16207;
+        background: #A16207;
+        border-color: #A16207;
     }
 
     /* ROWS */
-    .clickable-row { cursor: pointer; transition: background 0.15s ease; }
-    .clickable-row:hover { background: #FDFBFF; }
+    .clickable-row {
+        cursor: pointer;
+        transition: background 0.15s ease;
+    }
 
-    table td.num, table th.num {
+    .clickable-row:hover {
+        background: #FDFBFF;
+    }
+
+    table td.num,
+    table th.num {
         text-align: right;
         white-space: nowrap;
     }
@@ -385,8 +455,14 @@
         font-weight: 600;
         white-space: nowrap;
     }
-    .stock-inline.ok { color: #2E5A3B; }
-    .stock-inline.low { color: #DC3545; }
+
+    .stock-inline.ok {
+        color: #2E5A3B;
+    }
+
+    .stock-inline.low {
+        color: #DC3545;
+    }
 
     .low-tag {
         display: inline-block;
@@ -401,39 +477,93 @@
     }
 
     .archived-tag {
-        display: inline-block; margin-left: 6px;
-        padding: 2px 8px; border-radius: 4px;
-        background: #F1F5F9; color: #64748B;
-        font-size: 10px; font-weight: 700;
-        text-transform: uppercase; letter-spacing: 0.5px;
+        display: inline-block;
+        margin-left: 6px;
+        padding: 2px 8px;
+        border-radius: 4px;
+        background: #F1F5F9;
+        color: #64748B;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
 
     /* ACTION BUTTONS (in table) */
-    .action-buttons { display: flex; gap: 6px; justify-content: flex-end; }
-    .action-btn {
-        display: inline-block; padding: 5px 12px;
-        border-radius: 6px; font-size: 12px; font-weight: 600;
-        text-decoration: none; cursor: pointer; border: none;
-        transition: all 0.15s ease; white-space: nowrap; font-family: inherit;
+    .action-buttons {
+        display: flex;
+        gap: 6px;
+        justify-content: flex-end;
     }
-    .action-btn.adjust { background: #EEF5F0; color: #2E5A3B; }
-    .action-btn.adjust:hover { background: #D8E9DF; color: #1E3D28; }
-    .action-btn.archive { background: #FFF4E5; color: #A16207; }
-    .action-btn.archive:hover { background: #FDE9C7; color: #854D0E; }
-    .action-btn.unarchive { background: #E8F5E9; color: #2E5A3B; }
-    .action-btn.unarchive:hover { background: #D4EBD6; color: #1E3D28; }
+
+    .action-btn {
+        display: inline-block;
+        padding: 5px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        border: none;
+        transition: all 0.15s ease;
+        white-space: nowrap;
+        font-family: inherit;
+    }
+
+    .action-btn.adjust {
+        background: #EEF5F0;
+        color: #2E5A3B;
+    }
+
+    .action-btn.adjust:hover {
+        background: #D8E9DF;
+        color: #1E3D28;
+    }
+
+    .action-btn.archive {
+        background: #FFF4E5;
+        color: #A16207;
+    }
+
+    .action-btn.archive:hover {
+        background: #FDE9C7;
+        color: #854D0E;
+    }
+
+    .action-btn.unarchive {
+        background: #E8F5E9;
+        color: #2E5A3B;
+    }
+
+    .action-btn.unarchive:hover {
+        background: #D4EBD6;
+        color: #1E3D28;
+    }
 
     /* EMPTY */
     .empty-state {
-        text-align: center; padding: 50px 20px; color: #64748B;
+        text-align: center;
+        padding: 50px 20px;
+        color: #64748B;
     }
+
     .empty-state h3 {
-        font-size: 18px; color: #212121; margin-bottom: 6px; font-weight: 700;
+        font-size: 18px;
+        color: #212121;
+        margin-bottom: 6px;
+        font-weight: 700;
     }
-    .empty-state p { font-size: 14px; margin-bottom: 20px; }
+
+    .empty-state p {
+        font-size: 14px;
+        margin-bottom: 20px;
+    }
 
     @media (max-width: 640px) {
-        .item-tabs { gap: 20px; }
+        .item-tabs {
+            gap: 20px;
+        }
+
         .action-primary,
         .action-secondary {
             flex: 1;
@@ -443,13 +573,13 @@
 </style>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function() {
         const searchInput = document.getElementById('item-search');
         if (!searchInput) return;
 
         let timeout;
 
-        searchInput.addEventListener('input', function () {
+        searchInput.addEventListener('input', function() {
             clearTimeout(timeout);
             const value = this.value;
 
@@ -462,7 +592,7 @@
         });
 
         // Submit immediately on Enter
-        searchInput.addEventListener('keydown', function (e) {
+        searchInput.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
                 clearTimeout(timeout);
                 this.form.submit();

@@ -13,59 +13,46 @@ use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\BackupController;
 use App\Http\Controllers\ProductionController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\PosController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\RecordsController;
 use App\Http\Controllers\UserController;
 
-
-
-Route::get('/login', [AuthController::class, 'showLogin'])
-    ->name('login');
-
-Route::post('/login', [AuthController::class, 'login'])
-    ->name('login.submit');
-
+/* ============================================
+   AUTH
+   ============================================ */
+Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
 Route::post('/logout', [AuthController::class, 'logout'])
     ->middleware('auth')
     ->name('logout');
 
-Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->middleware(['auth', 'role:owner,employee'])
-    ->name('dashboard');
+Route::get('/', fn () => redirect('/login'));
 
-Route::middleware(['auth', 'role:owner,employee'])->group(function () {
+/* ============================================
+   OWNER + STAFF
+   ============================================ */
+Route::middleware(['auth', 'role:owner,staff'])->group(function () {
+
+    /* DASHBOARD */
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     /* POS */
-    Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
+    Route::get('/sales/pos', [SaleController::class, 'create'])->name('sales.create');
+    Route::post('/sales', [SaleController::class, 'store'])->name('sales.store');
+    Route::get('/sales/{sale}/print', [SaleController::class, 'print'])->name('sales.print');
 
-    /* INVENTORY (Products & Materials) */
-    Route::resource('products', ProductController::class);
+    /* INVENTORY — read only for staff */
+    Route::get('/products', [ProductController::class, 'index'])->name('products.index');
+    Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');
 
-    Route::post('/products/{product}/unarchive', [ProductController::class, 'unarchive'])
-        ->middleware('role:owner')
-        ->name('products.unarchive');
-
-    /* BOM (legacy — kept for compatibility) */
-    Route::get('/products/{product}/components/create', [ProductComponentController::class, 'create'])
-        ->name('products.components.create');
-
-    Route::post('/products/{product}/components', [ProductComponentController::class, 'store'])
-        ->name('products.components.store');
-
-    Route::delete('/products/{product}/components/{materialProduct}', [ProductComponentController::class, 'destroy'])
-        ->name('products.components.destroy');
-
-    /* STOCK ADJUSTMENT */
+    /* INVENTORY — adjustments (staff can adjust stock) */
     Route::get('/inventory/{product}/initial-stock', [InventoryController::class, 'initialStock'])
         ->name('inventory.initial-stock');
-
     Route::post('/inventory/{product}/initial-stock', [InventoryController::class, 'storeInitialStock'])
         ->name('inventory.initial-stock.store');
 
     Route::get('/inventory/{product}/adjustment', [InventoryController::class, 'adjustment'])
         ->name('inventory.adjustment');
-
     Route::post('/inventory/{product}/adjustment', [InventoryController::class, 'storeAdjustment'])
         ->name('inventory.adjustment.store');
 
@@ -75,10 +62,9 @@ Route::middleware(['auth', 'role:owner,employee'])->group(function () {
     Route::post('/inventory/{product}/transfer', [InventoryController::class, 'storeTransfer'])
         ->name('inventory.transfer.store');
 
-    /* SALES POS */
-    Route::get('/sales/pos', [SaleController::class, 'create'])->name('sales.create');
-    Route::post('/sales', [SaleController::class, 'store'])->name('sales.store');
-    Route::get('/sales/{sale}/print', [SaleController::class, 'print'])->name('sales.print');
+    /* PRODUCTION (staff can make products) */
+    Route::get('/production/create', [ProductionController::class, 'create'])->name('production.create');
+    Route::post('/production', [ProductionController::class, 'store'])->name('production.store');
 
     /* CUSTOMERS */
     Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
@@ -92,9 +78,28 @@ Route::middleware(['auth', 'role:owner,employee'])->group(function () {
     Route::get('/reports/print', [ReportsController::class, 'print'])->name('reports.print');
 });
 
+/* ============================================
+   OWNER ONLY
+   ============================================ */
 Route::middleware(['auth', 'role:owner'])->group(function () {
 
-    /* STOCK-IN */
+    /* INVENTORY — create / edit / archive */
+    Route::get('/products/create', [ProductController::class, 'create'])->name('products.create');
+    Route::post('/products', [ProductController::class, 'store'])->name('products.store');
+    Route::get('/products/{product}/edit', [ProductController::class, 'edit'])->name('products.edit');
+    Route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update');
+    Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
+    Route::post('/products/{product}/unarchive', [ProductController::class, 'unarchive'])->name('products.unarchive');
+
+    /* BOM (legacy helpers) */
+    Route::get('/products/{product}/components/create', [ProductComponentController::class, 'create'])
+        ->name('products.components.create');
+    Route::post('/products/{product}/components', [ProductComponentController::class, 'store'])
+        ->name('products.components.store');
+    Route::delete('/products/{product}/components/{materialProduct}', [ProductComponentController::class, 'destroy'])
+        ->name('products.components.destroy');
+
+    /* STOCK-IN / PURCHASES */
     Route::get('/purchases', [PurchaseController::class, 'index'])->name('purchases.index');
     Route::get('/purchases/create', [PurchaseController::class, 'create'])->name('purchases.create');
     Route::post('/purchases', [PurchaseController::class, 'store'])->name('purchases.store');
@@ -109,20 +114,11 @@ Route::middleware(['auth', 'role:owner'])->group(function () {
     Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
     Route::put('/orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.status.update');
 
-    /* PRODUCTION */
+    /* PRODUCTION HISTORY */
     Route::get('/production', [ProductionController::class, 'index'])->name('production.index');
-    Route::get('/production/create', [ProductionController::class, 'create'])->name('production.create');
-    Route::post('/production', [ProductionController::class, 'store'])->name('production.store');
 
     /* RECORDS */
     Route::get('/records', [RecordsController::class, 'index'])->name('records.index');
-
-    /* AUDIT */
-    Route::get('/audit-trail', [AuditLogController::class, 'index'])->name('audit.index');
-
-    /* BACKUP */
-    Route::get('/backup', [BackupController::class, 'index'])->name('backup.index');
-    Route::get('/backup/download', [BackupController::class, 'download'])->name('backup.download');
 
     /* USER MANAGEMENT */
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
@@ -132,6 +128,11 @@ Route::middleware(['auth', 'role:owner'])->group(function () {
     Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
     Route::delete('/users/{user}', [UserController::class, 'archive'])->name('users.archive');
     Route::post('/users/{user}/restore', [UserController::class, 'restore'])->name('users.restore');
-});
 
-Route::redirect('/', '/login');
+    /* AUDIT */
+    Route::get('/audit-trail', [AuditLogController::class, 'index'])->name('audit.index');
+
+    /* BACKUP */
+    Route::get('/backup', [BackupController::class, 'index'])->name('backup.index');
+    Route::get('/backup/download', [BackupController::class, 'download'])->name('backup.download');
+});

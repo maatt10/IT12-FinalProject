@@ -8,7 +8,7 @@
         <?php if($report === 'sales'): ?>
         <?php switch($sub):
         case ('walk-in'): ?> Walk-in Sales Report <?php break; ?>
-        <?php case ('online'): ?> Online Orders Report <?php break; ?>
+        <?php case ('online'): ?> Orders Report <?php break; ?>
         <?php case ('overall'): ?> Overall Sales Report <?php break; ?>
         <?php endswitch; ?>
         <?php else: ?>
@@ -448,7 +448,7 @@
                 <?php if($report === 'sales'): ?>
                 <?php switch($sub):
                 case ('walk-in'): ?> Walk-in Sales Report <?php break; ?>
-                <?php case ('online'): ?> Online Orders Report <?php break; ?>
+                <?php case ('online'): ?> Orders Report <?php break; ?>
                 <?php case ('overall'): ?> Overall Sales Report <?php break; ?>
                 <?php endswitch; ?>
                 <?php else: ?>
@@ -555,7 +555,7 @@
 
         <div class="section-label">Orders</div>
         <?php if($orderRecords->isEmpty()): ?>
-        <p class="empty-text">No online orders recorded during this period.</p>
+        <p class="empty-text">No orders recorded during this period.</p>
         <?php else: ?>
         <div class="table-scroll">
             <table class="report-table">
