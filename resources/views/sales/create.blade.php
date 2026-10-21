@@ -4,16 +4,6 @@
 
 @section('content')
 
-@if($errors->any())
-<div class="alert alert-error">
-    <ul style="margin-left: 20px;">
-        @foreach($errors->all() as $error)
-            <li>{{ $error }}</li>
-        @endforeach
-    </ul>
-</div>
-@endif
-
 <div class="pos-layout">
 
     {{-- LEFT COLUMN --}}
@@ -26,64 +16,64 @@
                 <select id="customer_id" class="form-control">
                     <option value="">Walk-in Customer</option>
                     @foreach($customers as $customer)
-                        <option value="{{ $customer['id'] }}">
-                            {{ $customer['label'] }}
-                        </option>
+                    <option value="{{ $customer['id'] }}">
+                        {{ $customer['label'] }}
+                    </option>
                     @endforeach
                 </select>
             </div>
         </div>
 
-        {{-- ITEMS --}}
+        {{-- PRODUCTS --}}
         <div class="card products-card">
-            <h2 class="card-heading">Select Items</h2>
+            <h2 class="card-heading">Select Products</h2>
 
             @if(count($products) > 0)
-                <div class="pos-search">
-                    <div class="pos-search-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
-                    </div>
-                    <input type="text" id="product-search" class="pos-search-input"
-                           placeholder="Search items by name..." autocomplete="off">
+            <div class="pos-search">
+                <div class="pos-search-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
                 </div>
+                <input type="text" id="product-search" class="pos-search-input"
+                    placeholder="Search products by name..." autocomplete="off">
+            </div>
 
-                <div class="product-table-wrap">
-                    <table class="product-table">
-                        <thead>
-                            <tr>
-                                <th>Product</th>
-                                <th style="width: 110px; text-align: right;">Price</th>
-                                <th style="width: 130px; text-align: right;">Available</th>
-                                <th style="width: 100px; text-align: center;">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="product-table-body"></tbody>
-                    </table>
+            <div class="product-table-wrap">
+                <table class="product-table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th style="width: 110px; text-align: right;">Price</th>
+                            <th style="width: 130px; text-align: right;">Available</th>
+                            <th style="width: 100px; text-align: center;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="product-table-body"></tbody>
+                </table>
 
-                    <div id="no-results" class="no-results" style="display: none;">
-                        No items match your search.
-                    </div>
+                <div id="no-results" class="no-results" style="display: none;">
+                    No products match your search.
                 </div>
+            </div>
 
-                <div class="product-pagination">
-                    <div class="pagination-info" id="pagination-info">—</div>
-                    <div class="pagination-controls">
-                        <button type="button" class="page-btn" id="prev-page" disabled>‹ Prev</button>
-                        <span class="page-indicator" id="page-indicator">1 / 1</span>
-                        <button type="button" class="page-btn" id="next-page" disabled>Next ›</button>
-                    </div>
+            <div class="product-pagination">
+                <div class="pagination-info" id="pagination-info">—</div>
+                <div class="pagination-controls">
+                    <button type="button" class="page-btn" id="prev-page" disabled>‹ Prev</button>
+                    <span class="page-indicator" id="page-indicator">1 / 1</span>
+                    <button type="button" class="page-btn" id="next-page" disabled>Next ›</button>
                 </div>
+            </div>
             @else
-                <div class="empty-state">
-                    <p style="font-size: 14px; color: #94A3B8;">
-                        No items available for sale right now.
-                    </p>
-                    <p style="font-size: 12px; color: #CBD5E1; margin-top: 6px;">
-                        All items are out of stock.
-                    </p>
-                </div>
+            <div class="empty-state">
+                <p style="font-size: 14px; color: #94A3B8;">
+                    No products available for sale right now.
+                </p>
+                <p style="font-size: 12px; color: #CBD5E1; margin-top: 6px;">
+                    All items are out of stock.
+                </p>
+            </div>
             @endif
         </div>
 
@@ -100,7 +90,7 @@
             </h2>
 
             <div id="cart-items" class="cart-items">
-                <div class="cart-empty">No items yet. Add items from the list.</div>
+                <div class="cart-empty">No items yet. Add products from the list.</div>
             </div>
 
             <div class="cart-subtotal-row">
@@ -183,7 +173,7 @@
                 <strong id="total_amount" class="total-display">₱0.00</strong>
             </div>
 
-            {{-- CASH SECTION --}}
+            {{-- CASH --}}
             <div id="cash-section" class="cash-section">
                 <div class="form-group">
                     <label for="money_received">Amount Paid</label>
@@ -300,7 +290,6 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
         </div>
-        <h3 class="modal-error-title">Something's not right</h3>
         <p class="modal-error-message" id="error-modal-message"></p>
         <div class="modal-error-footer">
             <button type="button" class="modal-btn modal-btn-primary" onclick="closeErrorModal()">
@@ -311,9 +300,6 @@
 </div>
 
 <style>
-    /* =========================================
-       POS LAYOUT — no page scroll, only payment card scrolls
-       ========================================= */
     .pos-layout {
         display: grid;
         grid-template-columns: 1fr 400px;
@@ -332,7 +318,9 @@
         overflow: hidden;
     }
 
-    .customer-card { flex-shrink: 0; }
+    .customer-card {
+        flex-shrink: 0;
+    }
 
     .products-card {
         flex: 1;
@@ -341,16 +329,24 @@
         flex-direction: column;
         overflow: hidden;
     }
-    .products-card > .card-heading,
-    .products-card > .pos-search { flex-shrink: 0; }
-    .products-card > .product-table-wrap {
+
+    .products-card>.card-heading,
+    .products-card>.pos-search {
+        flex-shrink: 0;
+    }
+
+    .products-card>.product-table-wrap {
         flex: 1;
         min-height: 0;
         overflow-y: auto;
         margin-bottom: 14px;
     }
-    .products-card > .product-pagination { flex-shrink: 0; }
-    .products-card > .empty-state {
+
+    .products-card>.product-pagination {
+        flex-shrink: 0;
+    }
+
+    .products-card>.empty-state {
         flex: 1;
         display: flex;
         flex-direction: column;
@@ -373,6 +369,7 @@
         max-height: 320px;
         overflow: hidden;
     }
+
     .pos-cart-card .cart-items {
         flex: 1;
         min-height: 0;
@@ -388,9 +385,6 @@
         padding-right: 22px;
     }
 
-    /* =========================================
-       BASE
-       ========================================= */
     .card-heading {
         font-size: 15px;
         font-weight: 700;
@@ -401,154 +395,376 @@
         gap: 8px;
     }
 
-    .pos-search { position: relative; margin-bottom: 16px; }
+    .pos-search {
+        position: relative;
+        margin-bottom: 16px;
+    }
+
     .pos-search-icon {
-        position: absolute; left: 8px; top: 50%; transform: translateY(-50%);
-        width: 34px; height: 34px; border-radius: 50%;
-        background: #6B5B95; color: #FFFFFF;
-        display: flex; align-items: center; justify-content: center;
+        position: absolute;
+        left: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: #6B5B95;
+        color: #FFFFFF;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         pointer-events: none;
     }
+
     .pos-search-input {
-        width: 100%; height: 48px;
+        width: 100%;
+        height: 48px;
         padding: 0 18px 0 54px;
-        border: 1.5px solid #F0E6DD; border-radius: 24px;
-        font-size: 14px; background: #FFFFFF; color: #212121;
-        transition: all 0.2s ease; font-family: inherit;
-    }
-    .pos-search-input:focus {
-        outline: none; border-color: #6B5B95;
-        box-shadow: 0 0 0 4px rgba(107, 91, 149, 0.1);
-    }
-    .pos-search-input::placeholder { color: #B0A99F; }
-
-    /* PRODUCT TABLE */
-    .product-table { width: 100%; border-collapse: collapse; }
-    .product-table thead th {
-        background: #EFEBF7; color: #6B5B95; font-weight: 700;
-        text-transform: uppercase; font-size: 10px; letter-spacing: 1px;
-        padding: 10px 12px; border-bottom: 2px solid #D5C9E8;
-        position: sticky; top: 0; z-index: 1;
-    }
-    .product-table tbody td {
-        padding: 10px 12px; border-bottom: 1px solid #F5EEE4;
-        font-size: 13px; color: #212121; vertical-align: middle;
-    }
-    .product-table tbody tr:hover { background: #FDFBFF; }
-    .product-name-cell { font-weight: 600; color: #212121; }
-    .product-price-cell { font-weight: 700; color: #6B5B95; text-align: right; white-space: nowrap; }
-    .product-stock-cell { color: #2E5A3B; font-size: 12px; font-weight: 600; text-align: right; white-space: nowrap; }
-    .product-stock-cell.low { color: #B8860B; }
-
-    .add-row-btn {
-        padding: 6px 14px; border-radius: 6px;
-        background: #6B5B95; color: #FFFFFF; border: none;
-        font-size: 12px; font-weight: 600; cursor: pointer;
-        font-family: inherit; transition: all 0.15s ease;
-    }
-    .add-row-btn:hover { background: #594B7D; }
-
-    .no-results { text-align: center; padding: 40px 20px; color: #94A3B8; font-size: 14px; }
-
-    .product-pagination {
-        display: flex; align-items: center; justify-content: space-between;
-        padding-top: 12px; border-top: 1px solid #F0E6DD;
-        flex-wrap: wrap; gap: 10px;
-    }
-    .pagination-info { font-size: 12px; color: #64748B; }
-    .pagination-controls { display: flex; align-items: center; gap: 8px; }
-    .page-btn {
-        padding: 5px 12px; border-radius: 6px;
-        background: #FFFFFF; border: 1.5px solid #F0E6DD;
-        color: #64748B; font-size: 12px; font-weight: 600;
-        cursor: pointer; font-family: inherit;
-    }
-    .page-btn:hover:not(:disabled) { border-color: #6B5B95; color: #6B5B95; }
-    .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-    .page-indicator { font-size: 12px; font-weight: 600; color: #212121; padding: 0 6px; }
-
-    /* CART */
-    .cart-count {
-        display: inline-flex; align-items: center; justify-content: center;
-        min-width: 22px; height: 22px; padding: 0 7px;
-        background: #6B5B95; color: #FFFFFF;
-        border-radius: 11px; font-size: 11px; font-weight: 700; margin-left: 4px;
-    }
-    .cart-empty {
-        text-align: center; padding: 30px 20px; color: #94A3B8; font-size: 13px;
-        background: #FDFBFF; border-radius: 10px;
-    }
-    .cart-item {
-        padding: 10px; background: #FDFBFF; border-radius: 10px;
-        margin-bottom: 8px; border: 1px solid #F5EEE4;
-    }
-    .cart-item-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 6px; }
-    .cart-item-name { font-size: 13px; font-weight: 600; color: #212121; line-height: 1.3; }
-    .cart-item-remove {
-        background: transparent; border: none; color: #94A3B8; cursor: pointer;
-        padding: 2px; border-radius: 4px; font-family: inherit;
-    }
-    .cart-item-remove:hover { color: #DC3545; background: #FDECEA; }
-    .cart-item-bottom { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-
-    .qty-controls {
-        display: inline-flex; align-items: center;
-        background: #FFFFFF; border: 1px solid #F0E6DD;
-        border-radius: 8px; overflow: hidden;
-    }
-    .qty-btn {
-        width: 28px; height: 28px;
-        background: transparent; border: none; cursor: pointer;
-        font-weight: 700; font-size: 14px; color: #64748B;
+        border: 1.5px solid #F0E6DD;
+        border-radius: 24px;
+        font-size: 14px;
+        background: #FFFFFF;
+        color: #212121;
+        transition: all 0.2s ease;
         font-family: inherit;
     }
-    .qty-btn:hover { background: #EFEBF7; color: #6B5B95; }
+
+    .pos-search-input:focus {
+        outline: none;
+        border-color: #6B5B95;
+        box-shadow: 0 0 0 4px rgba(107, 91, 149, 0.1);
+    }
+
+    .pos-search-input::placeholder {
+        color: #B0A99F;
+    }
+
+    .product-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .product-table thead th {
+        background: #EFEBF7;
+        color: #6B5B95;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 10px;
+        letter-spacing: 1px;
+        padding: 10px 12px;
+        border-bottom: 2px solid #D5C9E8;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
+
+    .product-table tbody td {
+        padding: 10px 12px;
+        border-bottom: 1px solid #F5EEE4;
+        font-size: 13px;
+        color: #212121;
+        vertical-align: middle;
+    }
+
+    .product-table tbody tr:hover {
+        background: #FDFBFF;
+    }
+
+    .product-name-cell {
+        font-weight: 600;
+        color: #212121;
+    }
+
+    .product-price-cell {
+        font-weight: 700;
+        color: #6B5B95;
+        text-align: right;
+        white-space: nowrap;
+    }
+
+    .product-stock-cell {
+        color: #2E5A3B;
+        font-size: 12px;
+        font-weight: 600;
+        text-align: right;
+        white-space: nowrap;
+    }
+
+    .product-stock-cell.low {
+        color: #B8860B;
+    }
+
+    .add-row-btn {
+        padding: 6px 14px;
+        border-radius: 6px;
+        background: #6B5B95;
+        color: #FFFFFF;
+        border: none;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: inherit;
+        transition: all 0.15s ease;
+    }
+
+    .add-row-btn:hover {
+        background: #594B7D;
+    }
+
+    .no-results {
+        text-align: center;
+        padding: 40px 20px;
+        color: #94A3B8;
+        font-size: 14px;
+    }
+
+    .product-pagination {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-top: 12px;
+        border-top: 1px solid #F0E6DD;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .pagination-info {
+        font-size: 12px;
+        color: #64748B;
+    }
+
+    .pagination-controls {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .page-btn {
+        padding: 5px 12px;
+        border-radius: 6px;
+        background: #FFFFFF;
+        border: 1.5px solid #F0E6DD;
+        color: #64748B;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: inherit;
+    }
+
+    .page-btn:hover:not(:disabled) {
+        border-color: #6B5B95;
+        color: #6B5B95;
+    }
+
+    .page-btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+
+    .page-indicator {
+        font-size: 12px;
+        font-weight: 600;
+        color: #212121;
+        padding: 0 6px;
+    }
+
+    .cart-count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 22px;
+        height: 22px;
+        padding: 0 7px;
+        background: #6B5B95;
+        color: #FFFFFF;
+        border-radius: 11px;
+        font-size: 11px;
+        font-weight: 700;
+        margin-left: 4px;
+    }
+
+    .cart-empty {
+        text-align: center;
+        padding: 30px 20px;
+        color: #94A3B8;
+        font-size: 13px;
+        background: #FDFBFF;
+        border-radius: 10px;
+    }
+
+    .cart-item {
+        padding: 10px;
+        background: #FDFBFF;
+        border-radius: 10px;
+        margin-bottom: 8px;
+        border: 1px solid #F5EEE4;
+    }
+
+    .cart-item-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 8px;
+        margin-bottom: 6px;
+    }
+
+    .cart-item-name {
+        font-size: 13px;
+        font-weight: 600;
+        color: #212121;
+        line-height: 1.3;
+    }
+
+    .cart-item-remove {
+        background: transparent;
+        border: none;
+        color: #94A3B8;
+        cursor: pointer;
+        padding: 2px;
+        border-radius: 4px;
+        font-family: inherit;
+    }
+
+    .cart-item-remove:hover {
+        color: #DC3545;
+        background: #FDECEA;
+    }
+
+    .cart-item-bottom {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .qty-controls {
+        display: inline-flex;
+        align-items: center;
+        background: #FFFFFF;
+        border: 1px solid #F0E6DD;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .qty-btn {
+        width: 28px;
+        height: 28px;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        font-weight: 700;
+        font-size: 14px;
+        color: #64748B;
+        font-family: inherit;
+    }
+
+    .qty-btn:hover {
+        background: #EFEBF7;
+        color: #6B5B95;
+    }
 
     .qty-input {
-        width: 44px; height: 28px; border: none;
-        border-left: 1px solid #F0E6DD; border-right: 1px solid #F0E6DD;
-        background: transparent; text-align: center;
-        font-size: 13px; font-weight: 700; color: #212121;
-        font-family: inherit; outline: none;
+        width: 44px;
+        height: 28px;
+        border: none;
+        border-left: 1px solid #F0E6DD;
+        border-right: 1px solid #F0E6DD;
+        background: transparent;
+        text-align: center;
+        font-size: 13px;
+        font-weight: 700;
+        color: #212121;
+        font-family: inherit;
+        outline: none;
         -moz-appearance: textfield;
     }
+
     .qty-input::-webkit-outer-spin-button,
     .qty-input::-webkit-inner-spin-button {
-        -webkit-appearance: none; margin: 0;
+        -webkit-appearance: none;
+        margin: 0;
     }
 
-    .cart-item-total { font-size: 14px; font-weight: 700; color: #2E5A3B; }
+    .cart-item-total {
+        font-size: 14px;
+        font-weight: 700;
+        color: #2E5A3B;
+    }
+
     .cart-subtotal-row {
-        display: flex; justify-content: space-between; align-items: center;
-        padding-top: 12px; border-top: 1px solid #F0E6DD;
-        font-size: 14px; color: #64748B;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 12px;
+        border-top: 1px solid #F0E6DD;
+        font-size: 14px;
+        color: #64748B;
         flex-shrink: 0;
     }
-    .cart-subtotal-row strong { font-size: 18px; color: #212121; font-weight: 700; }
 
-    /* PAYMENT */
-    .discount-line {
-        display: flex; justify-content: space-between; align-items: center;
-        padding: 10px 14px; margin-top: 10px;
-        background: #FFF8E1; border-radius: 8px;
-        font-size: 13px; color: #B8860B; font-weight: 600;
+    .cart-subtotal-row strong {
+        font-size: 18px;
+        color: #212121;
+        font-weight: 700;
     }
-    .discount-line strong { color: #B8860B; font-weight: 700; }
+
+    .discount-line {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 14px;
+        margin-top: 10px;
+        background: #FFF8E1;
+        border-radius: 8px;
+        font-size: 13px;
+        color: #B8860B;
+        font-weight: 600;
+    }
+
+    .discount-line strong {
+        color: #B8860B;
+        font-weight: 700;
+    }
 
     .summary-total-row {
-        display: flex; justify-content: space-between; align-items: center;
-        padding-top: 16px; margin-top: 6px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 16px;
+        margin-top: 6px;
         border-top: 2px solid #D5C9E8;
     }
-    .summary-total-row span { font-size: 15px; font-weight: 600; color: #212121; }
-    .total-display { font-size: 22px; font-weight: 700; color: #6B5B95; }
 
-    .input-with-prefix { position: relative; }
-    .input-with-prefix .prefix {
-        position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
-        color: #94A3B8; font-weight: 600; font-size: 14px; pointer-events: none;
+    .summary-total-row span {
+        font-size: 15px;
+        font-weight: 600;
+        color: #212121;
     }
-    .input-with-prefix .form-control { padding-left: 32px; }
+
+    .total-display {
+        font-size: 22px;
+        font-weight: 700;
+        color: #6B5B95;
+    }
+
+    .input-with-prefix {
+        position: relative;
+    }
+
+    .input-with-prefix .prefix {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94A3B8;
+        font-weight: 600;
+        font-size: 14px;
+        pointer-events: none;
+    }
+
+    .input-with-prefix .form-control {
+        padding-left: 32px;
+    }
 
     .cash-section {
         margin-top: 18px;
@@ -557,19 +773,34 @@
     }
 
     .change-row {
-        display: flex; justify-content: space-between; align-items: center;
-        padding: 12px 14px; background: #E8F5E9; border-radius: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 14px;
+        background: #E8F5E9;
+        border-radius: 10px;
         margin-top: 6px;
         transition: all 0.2s ease;
     }
-    .change-row span { font-size: 14px; font-weight: 600; color: #2E5A3B; }
-    .change-display { font-size: 20px; font-weight: 700; color: #2E5A3B; }
+
+    .change-row span {
+        font-size: 14px;
+        font-weight: 600;
+        color: #2E5A3B;
+    }
+
+    .change-display {
+        font-size: 20px;
+        font-weight: 700;
+        color: #2E5A3B;
+    }
 
     .change-row.insufficient {
         background: #FDECEA;
         border: 1.5px solid #DC3545;
         animation: pulse-warning 1.5s ease-in-out infinite;
     }
+
     .change-row.insufficient span,
     .change-row.insufficient .change-display {
         color: #C0392B;
@@ -577,47 +808,116 @@
     }
 
     @keyframes pulse-warning {
-        0%, 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.3); }
-        50% { box-shadow: 0 0 0 6px rgba(220, 53, 69, 0); }
+
+        0%,
+        100% {
+            box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.3);
+        }
+
+        50% {
+            box-shadow: 0 0 0 6px rgba(220, 53, 69, 0);
+        }
     }
 
-    .payment-methods { display: flex; flex-direction: column; gap: 8px; }
+    .payment-methods {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
     .payment-option {
-        display: flex; align-items: center; padding: 10px 14px;
-        border: 1.5px solid #F0E6DD; border-radius: 10px;
-        cursor: pointer; background: #FFFFFF;
+        display: flex;
+        align-items: center;
+        padding: 10px 14px;
+        border: 1.5px solid #F0E6DD;
+        border-radius: 10px;
+        cursor: pointer;
+        background: #FFFFFF;
     }
-    .payment-option:hover { border-color: #D5C9E8; background: #FDFBFF; }
-    .payment-option input[type="radio"] { margin: 0 10px 0 0; accent-color: #6B5B95; cursor: pointer; }
-    .payment-option:has(input:checked) { border-color: #6B5B95; background: #EFEBF7; }
-    .payment-option:has(input:checked) .payment-label { color: #6B5B95; font-weight: 600; }
-    .payment-label { font-size: 14px; color: #212121; font-weight: 500; }
 
-    .discount-radios { display: flex; gap: 8px; }
+    .payment-option:hover {
+        border-color: #D5C9E8;
+        background: #FDFBFF;
+    }
+
+    .payment-option input[type="radio"] {
+        margin: 0 10px 0 0;
+        accent-color: #6B5B95;
+        cursor: pointer;
+    }
+
+    .payment-option:has(input:checked) {
+        border-color: #6B5B95;
+        background: #EFEBF7;
+    }
+
+    .payment-option:has(input:checked) .payment-label {
+        color: #6B5B95;
+        font-weight: 600;
+    }
+
+    .payment-label {
+        font-size: 14px;
+        color: #212121;
+        font-weight: 500;
+    }
+
+    .discount-radios {
+        display: flex;
+        gap: 8px;
+    }
+
     .discount-radio {
         flex: 1;
-        display: flex; align-items: center; justify-content: center;
-        gap: 6px; padding: 10px 8px;
-        border: 1.5px solid #F0E6DD; border-radius: 10px;
-        cursor: pointer; background: #FFFFFF;
-        font-size: 13px; font-weight: 600; color: #64748B;
-        transition: all 0.15s ease; text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 10px 8px;
+        border: 1.5px solid #F0E6DD;
+        border-radius: 10px;
+        cursor: pointer;
+        background: #FFFFFF;
+        font-size: 13px;
+        font-weight: 600;
+        color: #64748B;
+        transition: all 0.15s ease;
+        text-align: center;
     }
-    .discount-radio input[type="radio"] { display: none; }
-    .discount-radio:hover { border-color: #D5C9E8; background: #FDFBFF; }
+
+    .discount-radio input[type="radio"] {
+        display: none;
+    }
+
+    .discount-radio:hover {
+        border-color: #D5C9E8;
+        background: #FDFBFF;
+    }
+
     .discount-radio:has(input:checked) {
-        border-color: #6B5B95; background: #EFEBF7; color: #6B5B95;
+        border-color: #6B5B95;
+        background: #EFEBF7;
+        color: #6B5B95;
     }
 
     .discount-detail-box {
-        padding: 14px; margin-bottom: 14px;
-        background: #FDFBFF; border: 1px dashed #F0E6DD;
+        padding: 14px;
+        margin-bottom: 14px;
+        background: #FDFBFF;
+        border: 1px dashed #F0E6DD;
         border-radius: 10px;
     }
 
     .btn-block {
-        width: 100%; display: flex; align-items: center; justify-content: center;
-        gap: 8px; padding: 14px; font-size: 15px; font-weight: 600; margin-top: 16px;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 14px;
+        font-size: 15px;
+        font-weight: 600;
+        margin-top: 16px;
     }
 
     .field-help {
@@ -627,9 +927,7 @@
         font-size: 12px;
     }
 
-    /* =========================================
-       MODALS
-       ========================================= */
+    /* MODALS */
     .modal-overlay {
         display: none;
         position: fixed;
@@ -640,13 +938,10 @@
         align-items: center;
         justify-content: center;
         padding: 20px;
-        animation: fade-in 0.15s ease;
     }
-    .modal-overlay.open { display: flex; }
 
-    @keyframes fade-in {
-        from { opacity: 0; }
-        to { opacity: 1; }
+    .modal-overlay.open {
+        display: flex;
     }
 
     .modal-box {
@@ -659,12 +954,6 @@
         display: flex;
         flex-direction: column;
         overflow: hidden;
-        animation: slide-up 0.2s ease;
-    }
-
-    @keyframes slide-up {
-        from { transform: translateY(20px); opacity: 0; }
-        to { transform: translateY(0); opacity: 1; }
     }
 
     .modal-header {
@@ -695,7 +984,10 @@
     .modal-section {
         margin-bottom: 20px;
     }
-    .modal-section:last-child { margin-bottom: 0; }
+
+    .modal-section:last-child {
+        margin-bottom: 0;
+    }
 
     .modal-section-title {
         font-size: 11px;
@@ -762,7 +1054,7 @@
 
     .modal-item {
         display: grid;
-        grid-template-columns: 1fr auto auto;
+        grid-template-columns: 1fr auto;
         gap: 12px;
         padding: 10px 12px;
         background: #FDFBFF;
@@ -774,12 +1066,6 @@
     .modal-item-name {
         color: #212121;
         font-weight: 600;
-    }
-
-    .modal-item-qty {
-        color: #64748B;
-        font-size: 12px;
-        white-space: nowrap;
     }
 
     .modal-item-total {
@@ -814,15 +1100,21 @@
         color: #FFFFFF;
         box-shadow: 0 2px 6px rgba(107, 91, 149, 0.3);
     }
+
     .modal-btn-primary:hover {
         background: #594B7D;
-        box-shadow: 0 4px 12px rgba(107, 91, 149, 0.4);
+    }
+
+    .modal-btn-primary:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
     }
 
     .modal-btn-secondary {
         background: #F0E6DD;
         color: #212121;
     }
+
     .modal-btn-secondary:hover {
         background: #E5D5C5;
     }
@@ -846,47 +1138,59 @@
         margin: 0 auto 16px;
     }
 
-    .modal-error-title {
-        font-size: 18px;
-        font-weight: 700;
-        color: #212121;
-        margin-bottom: 8px;
-    }
-
     .modal-error-message {
-        font-size: 14px;
-        color: #64748B;
-        line-height: 1.5;
+        font-size: 15px;
+        font-weight: 600;
+        color: #212121;
+        line-height: 1.6;
         margin-bottom: 24px;
         word-break: break-word;
+        white-space: pre-line;
     }
 
     .modal-error-footer {
         display: flex;
         justify-content: center;
     }
+
     .modal-error-footer .modal-btn {
         min-width: 120px;
     }
 
-    /* RESPONSIVE */
     @media (max-width: 1024px) {
         .pos-layout {
             grid-template-columns: 1fr;
             height: auto;
             overflow: visible;
         }
-        .pos-left, .pos-right {
+
+        .pos-left,
+        .pos-right {
             height: auto;
             overflow: visible;
         }
-        .products-card, .payment-card { overflow: visible; }
-        .pos-cart-card { max-height: none; }
+
+        .products-card,
+        .payment-card {
+            overflow: visible;
+        }
+
+        .pos-cart-card {
+            max-height: none;
+        }
     }
+
     @media (max-width: 640px) {
+
         .product-table thead th,
-        .product-table tbody td { padding: 8px; font-size: 12px; }
-        .modal-box { max-width: 100%; }
+        .product-table tbody td {
+            padding: 8px;
+            font-size: 12px;
+        }
+
+        .modal-box {
+            max-width: 100%;
+        }
     }
 </style>
 
@@ -923,6 +1227,7 @@
     const changeAmountEl = document.getElementById('change_amount');
     const changeLabel = document.getElementById('change-label');
     const changeRow = document.getElementById('change-row');
+    const changeWarning = document.getElementById('change-warning');
     const cashSection = document.getElementById('cash-section');
     const gcashSection = document.getElementById('gcash-section');
     const gcashInput = document.getElementById('gcash_reference');
@@ -937,7 +1242,6 @@
     const formPaymentMethod = document.getElementById('form-payment-method');
     const formGcashReference = document.getElementById('form-gcash-reference');
 
-    /* MODAL ELEMENTS */
     const confirmModal = document.getElementById('confirm-modal');
     const errorModal = document.getElementById('error-modal');
     const errorModalMessage = document.getElementById('error-modal-message');
@@ -946,12 +1250,15 @@
     let cart = [];
     let activeDiscount = 'none';
 
-    /* HELPERS */
-    function formatMoney(n) { return '₱' + Number(n || 0).toFixed(2); }
+    function formatMoney(n) {
+        return '₱' + Number(n || 0).toFixed(2);
+    }
+
     function formatQty(n) {
         const num = Number(n || 0);
         return parseFloat(num.toFixed(2)).toString();
     }
+
     function escapeHtml(str) {
         const div = document.createElement('div');
         div.textContent = str;
@@ -961,30 +1268,28 @@
     function getCurrentSubtotal() {
         return cart.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
     }
+
     function getCurrentDiscount() {
         if (activeDiscount === 'none') return 0;
         return getCurrentSubtotal() * 0.20;
     }
+
     function getCurrentTotal() {
         return getCurrentSubtotal() - getCurrentDiscount();
     }
 
-    /* ============================================
-       ERROR MODAL
-       ============================================ */
     function showError(message) {
         errorModalMessage.textContent = message;
         errorModal.classList.add('open');
     }
-    function closeErrorModal() {
+    window.closeErrorModal = function() {
         errorModal.classList.remove('open');
-    }
+    };
+    window.closeConfirmModal = function() {
+        confirmModal.classList.remove('open');
+    };
 
-    /* ============================================
-       CONFIRMATION MODAL
-       ============================================ */
     function showConfirmModal() {
-        // Populate items
         const itemsList = document.getElementById('modal-items-list');
         itemsList.innerHTML = '';
 
@@ -993,28 +1298,23 @@
             row.className = 'modal-item';
             row.innerHTML = `
                 <span class="modal-item-name">${escapeHtml(item.productName)}</span>
-                <span class="modal-item-qty">${formatQty(item.quantity)} ${escapeHtml(item.stockUnit)}</span>
                 <span class="modal-item-total">${formatMoney(item.quantity * item.unitPrice)}</span>
             `;
             itemsList.appendChild(row);
         });
 
-        // Customer
         const selectedCustomer = customerSelect.options[customerSelect.selectedIndex];
         document.getElementById('modal-customer').textContent =
             selectedCustomer && selectedCustomer.value ? selectedCustomer.textContent.trim() : 'Walk-in Customer';
 
-        // Payment method
         const paymentRadio = document.querySelector('input[name="payment_method"]:checked');
         const paymentValue = paymentRadio ? paymentRadio.value : 'cash';
         document.getElementById('modal-payment-method').textContent =
             paymentValue === 'cash' ? 'Cash' : 'GCash';
 
-        // Subtotal
         const subtotal = getCurrentSubtotal();
         document.getElementById('modal-subtotal').textContent = formatMoney(subtotal);
 
-        // Discount
         const discount = getCurrentDiscount();
         const discountRow = document.getElementById('modal-discount-row');
         if (activeDiscount !== 'none' && discount > 0) {
@@ -1026,26 +1326,24 @@
             discountRow.style.display = 'none';
         }
 
-        // Total
         const total = getCurrentTotal();
         document.getElementById('modal-total').textContent = formatMoney(total);
 
-        // Payment detail — cash vs gcash
         const cashReceivedRow = document.getElementById('modal-cash-received-row');
-        const changeRow = document.getElementById('modal-change-row');
+        const changeRowModal = document.getElementById('modal-change-row');
         const gcashRefRow = document.getElementById('modal-gcash-ref-row');
 
         if (paymentValue === 'cash') {
             const received = parseFloat(moneyReceivedInput.value) || 0;
             cashReceivedRow.style.display = 'flex';
-            changeRow.style.display = 'flex';
+            changeRowModal.style.display = 'flex';
             gcashRefRow.style.display = 'none';
 
             document.getElementById('modal-cash-received').textContent = formatMoney(received);
             document.getElementById('modal-change').textContent = formatMoney(received - total);
         } else {
             cashReceivedRow.style.display = 'none';
-            changeRow.style.display = 'none';
+            changeRowModal.style.display = 'none';
             gcashRefRow.style.display = 'flex';
 
             document.getElementById('modal-gcash-ref').textContent = gcashInput.value.trim() || '—';
@@ -1054,13 +1352,6 @@
         confirmModal.classList.add('open');
     }
 
-    function closeConfirmModal() {
-        confirmModal.classList.remove('open');
-    }
-
-    /* ============================================
-       PRODUCT TABLE
-       ============================================ */
     function renderProductTable() {
         if (!productTableBody) return;
 
@@ -1077,7 +1368,7 @@
 
         if (totalItems === 0) {
             if (noResults) noResults.style.display = 'block';
-            if (paginationInfo) paginationInfo.textContent = 'No items';
+            if (paginationInfo) paginationInfo.textContent = 'No products';
             if (pageIndicator) pageIndicator.textContent = '0 / 0';
             if (prevPageBtn) prevPageBtn.disabled = true;
             if (nextPageBtn) nextPageBtn.disabled = true;
@@ -1104,7 +1395,7 @@
         });
 
         if (paginationInfo) {
-            paginationInfo.textContent = `Showing ${startIdx + 1}–${Math.min(endIdx, totalItems)} of ${totalItems} items`;
+            paginationInfo.textContent = `Showing ${startIdx + 1}–${Math.min(endIdx, totalItems)} of ${totalItems} products`;
         }
         if (pageIndicator) pageIndicator.textContent = `${currentPage} / ${totalPages}`;
         if (prevPageBtn) prevPageBtn.disabled = currentPage === 1;
@@ -1140,9 +1431,6 @@
         renderCart();
     }
 
-    /* ============================================
-       CART
-       ============================================ */
     function renderCart() {
         if (!cartItemsEl) return;
 
@@ -1152,7 +1440,7 @@
         if (cartCountEl) cartCountEl.textContent = formatQty(totalCount);
 
         if (cart.length === 0) {
-            cartItemsEl.innerHTML = '<div class="cart-empty">No items yet. Add items from the list.</div>';
+            cartItemsEl.innerHTML = '<div class="cart-empty">No items yet. Add products from the list.</div>';
             if (subtotalDisplay) subtotalDisplay.textContent = '₱0.00';
             updateTotal();
             return;
@@ -1237,9 +1525,6 @@
         renderCart();
     }
 
-    /* ============================================
-       TOTAL + CHANGE
-       ============================================ */
     function updateTotal() {
         const subtotal = getCurrentSubtotal();
         const discount = getCurrentDiscount();
@@ -1267,27 +1552,27 @@
             changeLabel.textContent = 'Change';
             changeAmountEl.textContent = formatMoney(0);
             changeRow.classList.remove('insufficient');
+            if (changeWarning) changeWarning.style.display = 'none';
             return;
         }
 
         const diff = received - total;
 
         if (diff < 0) {
-            changeLabel.textContent = 'Short by';
-            changeAmountEl.textContent = formatMoney(Math.abs(diff));
+            changeLabel.textContent = 'Change';
+            changeAmountEl.textContent = '-' + formatMoney(Math.abs(diff));
             changeRow.classList.add('insufficient');
+            if (changeWarning) changeWarning.style.display = 'block';
         } else {
             changeLabel.textContent = 'Change';
             changeAmountEl.textContent = formatMoney(diff);
             changeRow.classList.remove('insufficient');
+            if (changeWarning) changeWarning.style.display = 'none';
         }
     }
 
     if (moneyReceivedInput) moneyReceivedInput.addEventListener('input', updateChange);
 
-    /* ============================================
-       PAYMENT METHOD
-       ============================================ */
     document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
         radio.addEventListener('change', function() {
             if (this.value === 'cash') {
@@ -1309,9 +1594,6 @@
         });
     }
 
-    /* ============================================
-       DISCOUNT
-       ============================================ */
     document.querySelectorAll('input[name="discount_type"]').forEach(radio => {
         radio.addEventListener('change', function() {
             handleDiscountChange(this.value);
@@ -1385,9 +1667,6 @@
         });
     }
 
-    /* ============================================
-       CUSTOMER SELECT
-       ============================================ */
     if (customerSelect) {
         customerSelect.addEventListener('change', function() {
             const customerId = this.value;
@@ -1416,9 +1695,6 @@
         });
     }
 
-    /* ============================================
-       SEARCH + PAGINATION
-       ============================================ */
     if (searchInput) {
         searchInput.addEventListener('input', function() {
             const term = this.value.toLowerCase().trim();
@@ -1430,24 +1706,26 @@
 
     if (prevPageBtn) {
         prevPageBtn.addEventListener('click', function() {
-            if (currentPage > 1) { currentPage--; renderProductTable(); }
+            if (currentPage > 1) {
+                currentPage--;
+                renderProductTable();
+            }
         });
     }
     if (nextPageBtn) {
         nextPageBtn.addEventListener('click', function() {
             const totalPages = Math.max(1, Math.ceil(filteredProducts.length / ITEMS_PER_PAGE));
-            if (currentPage < totalPages) { currentPage++; renderProductTable(); }
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderProductTable();
+            }
         });
     }
 
-    /* ============================================
-       SUBMIT — validate, show confirm modal, then process
-       ============================================ */
     if (saleForm) {
         saleForm.addEventListener('submit', function(event) {
             event.preventDefault();
 
-            // Validation
             if (cart.length === 0) {
                 showError('Please add at least one item to the order.');
                 return;
@@ -1465,7 +1743,7 @@
                     return;
                 }
                 if (received < total) {
-                    showError(`Amount paid is less than the total.\n\nTotal: ${formatMoney(total)}\nReceived: ${formatMoney(received)}\nShort by: ${formatMoney(total - received)}`);
+                    showError(`Insufficient payment. Balance due: ${formatMoney(total - received)}`);
                     moneyReceivedInput?.focus();
                     return;
                 }
@@ -1510,17 +1788,12 @@
                 }
             }
 
-            // All good — show confirmation modal
             showConfirmModal();
         });
     }
 
-    /* ============================================
-       CONFIRM → ACTUALLY SUBMIT
-       ============================================ */
     if (modalConfirmBtn) {
         modalConfirmBtn.addEventListener('click', function() {
-            // Close the modal first
             closeConfirmModal();
 
             const selectedPayment = document.querySelector('input[name="payment_method"]:checked');
@@ -1561,50 +1834,42 @@
 
             const formData = new FormData(saleForm);
 
-            // Disable button to prevent double submit
             modalConfirmBtn.disabled = true;
             modalConfirmBtn.textContent = 'Processing...';
 
             fetch(saleForm.action, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                    'Accept': 'application/json',
-                },
-                body: formData,
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    window.location.href = data.receipt_url;
-                } else {
-                    showError(data.message || 'Something went wrong processing the sale.');
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json',
+                    },
+                    body: formData,
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.href = data.receipt_url;
+                    } else {
+                        showError(data.message || 'Something went wrong processing the sale.');
+                        modalConfirmBtn.disabled = false;
+                        modalConfirmBtn.textContent = 'Confirm & Process Sale';
+                    }
+                })
+                .catch(error => {
+                    console.error(error);
+                    showError('Could not process the sale. Please try again.');
                     modalConfirmBtn.disabled = false;
                     modalConfirmBtn.textContent = 'Confirm & Process Sale';
-                }
-            })
-            .catch(error => {
-                console.error(error);
-                showError('Could not process the sale. Please try again.');
-                modalConfirmBtn.disabled = false;
-                modalConfirmBtn.textContent = 'Confirm & Process Sale';
-            });
+                });
         });
     }
 
-    /* Close modal by clicking outside */
-    if (confirmModal) {
-        confirmModal.addEventListener('click', function(e) {
-            if (e.target === confirmModal) closeConfirmModal();
-        });
-    }
-    if (errorModal) {
-        errorModal.addEventListener('click', function(e) {
-            if (e.target === errorModal) closeErrorModal();
-        });
-    }
-
-    /* ESC key closes modals */
+    confirmModal.addEventListener('click', function(e) {
+        if (e.target === confirmModal) closeConfirmModal();
+    });
+    errorModal.addEventListener('click', function(e) {
+        if (e.target === errorModal) closeErrorModal();
+    });
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             closeConfirmModal();
@@ -1612,7 +1877,6 @@
         }
     });
 
-    /* INIT */
     renderProductTable();
     renderCart();
 </script>
